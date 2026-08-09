@@ -47,3 +47,4 @@
 - Implementados header, rail principal, biblioteca de widgets, árbol de capas, canvas responsive, inspector de propiedades, status bar y navegación móvil con sheets.
 - Ampliados Button e Icon con variantes, tamaños y un catálogo SVG outline coherente; añadidos tokens de superficies, éxito y advertencia.
 - Verificada la UI en desktop, tablet, móvil y landscape sin overflow horizontal; búsqueda, tabs, tema y foco de sheets funcionan localmente.
+- Publicado `14a00e9`; GitHub Actions `31339361393` y el despliegue del prototipo UI en Cloudflare Pages finalizaron correctamente.

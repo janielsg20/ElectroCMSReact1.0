@@ -10,7 +10,7 @@ Actualizado: 2026-08-09.
 - Entrega anticipada solicitada: prototipo visual integral del editor completado sin cerrar las fases funcionales F04–F07; M02.3 continúa siendo la microfase activa.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: commit `f987869` publicado; pipeline `31337310722` completo en verde; Cloudflare Pages responde HTTPS 200.
+- Última evidencia: prototipo UI en commit `14a00e9`; pipeline `31339361393` completo en verde; Cloudflare Pages responde HTTPS 200.
 
 ## Tablero compacto
 
@@ -73,6 +73,8 @@ Actualizado: 2026-08-09.
 - Completada: búsqueda de widgets, pestañas, selector de viewport, modo oscuro y apertura/cierre de sheets como interacciones reales del prototipo.
 - Completada: validación browser en 320, 375, 768, 1024, 1440 y landscape 812 × 375 sin overflow horizontal ni errores de consola.
 - No completada por este prototipo: publicación, historial, mutaciones del documento, rutas y módulos CMS; permanecen deshabilitados o etiquetados como planificados.
+- Completada: ejecución GitHub Actions `31339361393` con lint, typecheck, pruebas, build y despliegue correctos para `14a00e9`.
+- Completada: producción sirve el prototipo UI desde `https://electrocms-react.pages.dev/` con HTTPS 200.
 
 
 ## Plantilla de relevo

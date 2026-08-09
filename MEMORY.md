@@ -51,7 +51,7 @@ Reanudar y cerrar `M02.3`: documentar y publicar los modelos ya iniciados de CPT
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
-- GitHub Actions: lint, typecheck, 28/28 pruebas, build y deploy correctos para `f987869` en la ejecución `31337310722`.
+- GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.
 - UI foundation: tokens light/dark con pares WCAG AA, reset global, movimiento reducido, SVG semánticos, Button y TextField accesibles.
@@ -68,6 +68,7 @@ Reanudar y cerrar `M02.3`: documentar y publicar los modelos ya iniciados de CPT
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
+- Publicación UI: commit `14a00e9`, ejecución `31339361393` y producción HTTPS 200.
 
 ## Punteros
 
