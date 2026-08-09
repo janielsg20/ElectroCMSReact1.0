@@ -59,3 +59,4 @@
 - Incorporados Dexie 4.4.4 y fake-indexeddb 6.2.5 como dependencias exactas de runtime y test respectivamente.
 - Añadido adaptador IndexedDB con namespaces, clave compuesta, índices por versión, escritura por lote transaccional y validación de integridad en lectura.
 - Probados CRUD indexado, cierre/reapertura, rollback completo por cuota, corrupción detectable y conexión cerrada; la suite alcanza 47/47 pruebas.
+- Publicado `a4431fe`; GitHub Actions `31340890680` y el despliegue de M03.1 en Cloudflare Pages finalizaron correctamente.

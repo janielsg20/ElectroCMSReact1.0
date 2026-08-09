@@ -77,6 +77,7 @@ Implementar `M03.2`: crear, duplicar, renombrar, archivar, eliminar, recuperar, 
 - Persistencia M03.1: `LocalRepository` tipado y adaptador Dexie/IndexedDB con namespace, clave compuesta e índices de versión.
 - Integridad M03.1: serialización validada, huella por registro y rechazo de JSON/schema/ID/versión incoherentes.
 - Resiliencia M03.1: reapertura real, transacción por lote revertida ante cuota y conexión cerrada diferenciada; 5 pruebas de integración.
+- Publicación M03.1: commit `a4431fe`, ejecución `31340890680` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
