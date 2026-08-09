@@ -33,3 +33,7 @@
 - Añadidos contrato público v1 de adaptadores de plataforma, adaptador web y documentación para futuras envolturas desktop y móvil.
 - Validado el núcleo React sin red desde un origen limpio después de detener totalmente el servidor; 17/17 pruebas verdes.
 - Publicado `16d76f3`; GitHub Actions `31334792028` y el despliegue PWA en Cloudflare Pages finalizaron correctamente.
+- Cerrada `M02.1`: añadido envelope `electrocms.project` v1 con UUID, revisión, nombre, timestamps UTC, metadatos JSON y payload validado por schema.
+- Incorporado Zod 4.4.3 como dependencia exacta y fuente común para tipos, validación y JSON Schema estricto.
+- Añadida serialización JSON determinista con claves ordenadas, deserialización segura y errores tipados sin excepciones para entradas no confiables.
+- Añadidas pruebas de identidad, cronología, versiones incompatibles, propiedades desconocidas, determinismo, round-trip y JSON Schema.

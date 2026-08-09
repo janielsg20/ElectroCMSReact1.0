@@ -5,7 +5,7 @@ Actualizado: 2026-08-09.
 ## Estado global
 
 - Fase actual: `F02 — Modelo canónico, esquemas y migraciones`.
-- Microfase actual: `M02.1 — Identidad y versionado`.
+- Microfase actual: `M02.2 — Documentos, nodos y propiedades responsive`.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
@@ -17,7 +17,7 @@ Actualizado: 2026-08-09.
 |---|---|---|
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
 | F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
-| F02 | EN_CURSO | M02.1 en curso |
+| F02 | EN_CURSO | M02.1 completada; M02.2 en curso |
 | F03–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
@@ -57,6 +57,10 @@ Actualizado: 2026-08-09.
 - Completada: puerta G1 y fase F01 cerradas.
 - Completada: ejecución GitHub Actions `31334792028` con 17/17 pruebas, build y despliegue correctos para `16d76f3`.
 - Completada: producción entrega `manifest.webmanifest` como `application/manifest+json` y `sw.js` con política `no-cache, no-store, must-revalidate`.
+- Completada: `M02.1`; UUID de proyecto, timestamps UTC canónicos, revisión, metadatos JSON y envelope v1 tipado.
+- Completada: Zod 4.4.3 fijado exactamente y JSON Schema estricto generado desde la misma fuente.
+- Completada: validación de versión, propiedades desconocidas y cronología; serialización determinista y deserialización con errores tipados.
+- Completada: puerta local de M02.1 con lint, typecheck, 22/22 pruebas y build reproducible.
 
 
 ## Plantilla de relevo

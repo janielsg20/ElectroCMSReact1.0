@@ -85,7 +85,7 @@ exporters ─────────────────┘
 | Dependencia | Uso autorizado | Microfase de incorporación |
 |---|---|---|
 | React Router | Rutas internas y estados de navegación | M04.x |
-| Zod 4 | Validación y tipos de schemas canónicos | M02.x |
+| Zod 4.4.3 | Validación, tipos y JSON Schema del modelo canónico | Incorporada en M02.1 |
 | Dexie | Repositorios IndexedDB y migraciones | M03.x |
 | `@dnd-kit` | Sensores accesibles de interacción espacial | M05.x |
 | Vitest + Testing Library | Unitarias e integración de componentes | Ya incorporadas |

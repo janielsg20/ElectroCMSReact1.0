@@ -17,7 +17,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M01.2 — Capas y contratos` completada con pruebas de dirección y ciclos.
 - `M01.3 — Tokens y primitives` completada con contraste, foco, movimiento reducido y targets táctiles verificados.
 - `M01.4 — PWA y adaptadores de plataforma` completada; puerta G1 y F01 cerradas.
-- Fase activa: `F02 / M02.1 — Identidad y versionado`.
+- `M02.1 — Identidad y versionado` completada con envelope v1, Zod y serialización determinista.
+- Fase activa: `F02 / M02.2 — Documentos, nodos y propiedades responsive`.
 
 ## Decisiones vigentes
 
@@ -29,7 +30,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M02.1`: IDs, timestamps, metadatos, versiones de schema y envelope canónico con serialización determinista y validación.
+Implementar `M02.2`: documentos, árboles de nodos, slots, estilos, bindings, condiciones, componentes globales y breakpoints con sus invariantes.
 
 ## Riesgos abiertos
 
@@ -44,7 +45,7 @@ Implementar `M02.1`: IDs, timestamps, metadatos, versiones de schema y envelope 
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 17/17 pruebas.
+- `npm run test`: 22/22 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -55,6 +56,9 @@ Implementar `M02.1`: IDs, timestamps, metadatos, versiones de schema y envelope 
 - PWA: manifest con iconos 192/512, `sw.js` versionado desde el bundle y cabeceras no-cache para actualizaciones.
 - Offline browser: en origen limpio, React volvió a renderizar después de detener por completo el servidor.
 - Plataformas: contrato público v1 documentado en `PLATFORM_ADAPTERS.md`; solo el adaptador web está implementado.
+- Modelo M02.1: `electrocms.project`, `schemaVersion: 1`, UUID, revisión, UTC con milisegundos, metadata/payload JSON y objetos estrictos.
+- Serialización: claves de objeto ordenadas recursivamente, arrays preservados y errores `invalid-json`/`invalid-value` tipados.
+- Dependencia: Zod 4.4.3 exacto; schemas y tipos comparten una única fuente.
 
 ## Punteros
 
@@ -65,3 +69,4 @@ Implementar `M02.1`: IDs, timestamps, metadatos, versiones de schema y envelope 
 - Estado: `TRACKING.md`.
 - CI/CD: `CI_CD.md`.
 - Plataformas: `PLATFORM_ADAPTERS.md`.
+- Modelo canónico: `DATA_MODELS.md`.
