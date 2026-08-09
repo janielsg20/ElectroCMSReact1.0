@@ -9,7 +9,7 @@ Actualizado: 2026-08-09.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: commit `6705eca` publicado; pipeline `31333777914` completo en verde; Cloudflare Pages sirve el bundle de M01.3 con HTTPS 200.
+- Última evidencia: commit `16d76f3` publicado; pipeline `31334792028` completo en verde; Cloudflare Pages sirve el manifest y Service Worker de M01.4 con HTTPS 200.
 
 ## Tablero compacto
 
@@ -55,6 +55,8 @@ Actualizado: 2026-08-09.
 - Completada: 17/17 pruebas, lint, typecheck y build con `sw.js` que precachea los hashes actuales.
 - Completada: prueba browser en origen limpio; tras detener totalmente el servidor, React volvió a renderizar desde caché sin overlay ni overflow.
 - Completada: puerta G1 y fase F01 cerradas.
+- Completada: ejecución GitHub Actions `31334792028` con 17/17 pruebas, build y despliegue correctos para `16d76f3`.
+- Completada: producción entrega `manifest.webmanifest` como `application/manifest+json` y `sw.js` con política `no-cache, no-store, must-revalidate`.
 
 
 ## Plantilla de relevo

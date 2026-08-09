@@ -32,3 +32,4 @@
 - Corregida la recuperación offline de módulos ES servidos con `Vary: Origin` mediante coincidencia same-origin que ignora esa variación.
 - Añadidos contrato público v1 de adaptadores de plataforma, adaptador web y documentación para futuras envolturas desktop y móvil.
 - Validado el núcleo React sin red desde un origen limpio después de detener totalmente el servidor; 17/17 pruebas verdes.
+- Publicado `16d76f3`; GitHub Actions `31334792028` y el despliegue PWA en Cloudflare Pages finalizaron correctamente.
