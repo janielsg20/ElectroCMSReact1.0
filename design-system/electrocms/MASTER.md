@@ -1,6 +1,6 @@
 # Design System Master File
 
-> **STATUS:** Propuesta inicial generada por `ui-ux-pro-max`; paleta, tipografía y densidad requieren validación de contraste y pruebas con usuarios antes de convertirse en tokens definitivos.
+> **STATUS:** Fundación técnica validada en M01.3. Los tokens implementados viven en `src/editor-ui/theme/tokens.ts`; la densidad del editor completo aún requiere pruebas con sus flujos reales.
 >
 > **LOGIC:** When building a specific page, first check `design-system/electrocms/pages/[page-name].md`.
 > If that file exists, its rules **override** this Master file.
@@ -12,6 +12,14 @@
 **Generated:** 2026-08-09 11:39:14
 **Category:** No-code / Low-code Builder
 **Design Dials:** Variance 5/10 (Balanced / Modern) | Motion 3/10 (Subtle) | Density 8/10 (Dense / Dashboard)
+
+## Decisiones de implementación M01.3
+
+- La aplicación usa tokens semánticos por rol, con variantes light/dark y pares de contraste verificados automáticamente contra WCAG AA.
+- La tipografía usa stacks locales del sistema para que el núcleo funcione sin red; no se importa Google Fonts.
+- El acento rosa propuesto no se usa como CTA primario hasta validar contraste en el contexto real del editor.
+- Toda transición queda entre 150 y 300 ms y se desactiva con `prefers-reduced-motion`.
+- La escala de z-index es explícita y los controles interactivos conservan targets mínimos de 44 px.
 
 ---
 

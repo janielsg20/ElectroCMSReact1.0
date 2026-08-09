@@ -42,3 +42,32 @@ El texto normativo completo vive en `PROMPT_MAESTRO_ELECTROCMS.md`. Esta matriz 
 
 Una fila solo puede considerarse cubierta cuando sus requisitos individuales tienen pruebas enlazadas desde `TRACKING.md`. La asignación a una fase no significa implementación.
 
+## Equivalencias de arquitectura objetivo
+
+Al no existir una aplicación de referencia autorizada, la correspondencia se define desde cada capacidad normativa hacia una arquitectura React original. `AUSENTE` en `REFERENCE_INVENTORY.md` nunca significa requisito descartado.
+
+| Capacidad normativa | Equivalente objetivo | Fases |
+|---|---|---|
+| Navegación y shell | Estado de navegación tipado y shell responsive accesible | F01, F04 |
+| Proyecto, páginas y nodos | Modelo canónico versionado, validación y migraciones | F02, F03 |
+| Canvas, capas e inspector | Comandos reversibles, renderers y schemas de propiedades | F05–F07 |
+| Widgets y componentes | Registro extensible con contratos por versión | F06 |
+| Themes y tokens | Paquetes de tema portables para editor, frontend y backend | F08 |
+| Contenido dinámico | Modelos, registros, bindings y relaciones canónicas | F09 |
+| Consultas y filtros | AST declarativo validado y ejecución local segura | F10 |
+| Formularios | Schema, validación, acciones y adaptadores explícitos | F11 |
+| Backend y permisos | Navegación administrativa generada desde roles y capacidades | F12 |
+| Presets y media | Plantillas versionadas y biblioteca local con metadatos | F13 |
+| Preview | Renderers frontend/backend consumiendo el modelo canónico | F04, F12 |
+| Local y React | Exportadores diagnosticables sin pérdida silenciosa | F14 |
+| LAMP | Generador versionado con validación y salida reproducible | F15 |
+| WordPress | Theme/plugin generado con compatibilidad declarada | F16 |
+| PWA y plataformas | Núcleo web offline y adaptadores desacoplados | F01, F17 |
+| Seguridad, accesibilidad y calidad | Puertas transversales verificables | F00–F18 |
+
+## Regla contra requisitos huérfanos
+
+- Cada sección 1–33 tiene al menos una fase propietaria en la matriz principal.
+- Cada capacidad transversal conserva pruebas en su fase y en `F18` cuando corresponda.
+- Las decisiones de arquitectura no pueden eliminar requisitos; solo asignarles contratos, fases y criterios verificables.
+- Toda desviación futura debe registrarse en `ARCHITECTURE.md`, `TRACKING.md` y `CHANGELOG.md`.

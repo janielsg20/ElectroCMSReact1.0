@@ -4,9 +4,10 @@ Actualizado: 2026-08-09.
 
 ## Estado global
 
-- Fase actual: `F00 — Descubrimiento, inventario y trazabilidad`.
-- Microfase actual: `M00.2 — Inventario de la referencia`.
-- Estado: `BLOQUEADA` hasta recibir o localizar la aplicación React de referencia mencionada por el prompt maestro.
+- Fase actual: `F01 — Plataforma React/Tailwind y arquitectura modular`.
+- Microfase actual: `M01.4 — PWA y adaptadores de plataforma`.
+- Estado: `EN_CURSO`.
+- Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
 - Última evidencia: repositorio público y `main` publicados; pipeline completo verde; Cloudflare Pages responde HTTPS 200 en `https://electrocms-react.pages.dev/`.
 
@@ -14,13 +15,13 @@ Actualizado: 2026-08-09.
 
 | Fase | Estado | Evidencia requerida para cerrar |
 |---|---|---|
-| F00 | BLOQUEADA | Falta la aplicación React de referencia para completar inventario y equivalencias |
-| F01 | EN_CURSO | M01.1 completada anticipadamente; faltan M01.2–M01.4 |
+| F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
+| F01 | EN_CURSO | M01.1, M01.2 y M01.3 completadas; M01.4 en curso |
 | F02–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
 
-- No se encontró código de la aplicación React de referencia en el inventario inicial.
+- Ninguno. La ausencia de una referencia autorizada quedó resuelta mediante decisión explícita del usuario y clasificación `AUSENTE` en `REFERENCE_INVENTORY.md`.
 
 ## Verificaciones de esta actualización
 
@@ -38,6 +39,14 @@ Actualizado: 2026-08-09.
 - Completada: secretos `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` configurados sin persistir sus valores en el repositorio.
 - Completada: ejecución GitHub Actions `31332151380` con calidad y despliegue correctos.
 - Completada: Cloudflare Pages `electrocms-react` verificado con HTTPS 200.
+- Completada: `M00.2`; inventario de referencia cerrado sin sustituir el artefacto ausente por aplicaciones externas.
+- Completada: `M00.3`; secciones 1–33 y equivalencias objetivo enlazadas sin requisitos huérfanos.
+- Completada: `M00.4`; ADR iniciales aceptados, dependencias justificadas y puerta G0 cerrada.
+- Completada: `M01.2`; seis capas creadas, contratos mínimos tipados y pruebas contra inversiones y ciclos.
+- Completada: puerta local de M01.2 con lint, typecheck, 7/7 pruebas y build.
+- Completada: `M01.3`; tokens semánticos light/dark, reset, tipografía local, iconos SVG y primitives accesibles.
+- Completada: puerta local de M01.3 con lint, typecheck, 12/12 pruebas, build y contraste WCAG AA automatizado.
+- Completada: validación aislada de la implementación objetivo en escritorio y 375 × 812, con estructura semántica y sin overflow horizontal.
 
 
 ## Plantilla de relevo
