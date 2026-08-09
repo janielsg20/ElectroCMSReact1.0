@@ -23,7 +23,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M02.4 — Migraciones` completada con registry forward, backup recuperable y fixtures v0/v1.
 - Fase F02 completada.
 - `M03.1 — Repositorios locales` completada con IndexedDB/Dexie, transacciones, errores tipados e integridad verificada.
-- Fase activa: `F03 / M03.2 — Ciclo de proyecto`; todavía no implementada.
+- `M03.2 — Ciclo de proyecto` completada con catálogo local, papelera recuperable e import/export validado.
+- Fase activa: `F03 / M03.3 — Guardado incremental y recuperación`; todavía no implementada.
 - Por prioridad expresa del usuario se implementó anticipadamente un prototipo visual integral del editor; no equivale a cerrar F04–F07.
 
 ## Decisiones vigentes
@@ -36,7 +37,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M03.2`: crear, duplicar, renombrar, archivar, eliminar, recuperar, importar y exportar proyectos con confirmación o recuperación para cambios destructivos.
+Implementar `M03.3`: autosave con debounce, snapshots, journal y recuperación tras cierre o escritura interrumpida sin perder el último estado válido.
 
 ## Riesgos abiertos
 
@@ -51,7 +52,7 @@ Implementar `M03.2`: crear, duplicar, renombrar, archivar, eliminar, recuperar, 
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 47/47 pruebas.
+- `npm run test`: 60/60 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -78,6 +79,9 @@ Implementar `M03.2`: crear, duplicar, renombrar, archivar, eliminar, recuperar, 
 - Integridad M03.1: serialización validada, huella por registro y rechazo de JSON/schema/ID/versión incoherentes.
 - Resiliencia M03.1: reapertura real, transacción por lote revertida ante cuota y conexión cerrada diferenciada; 5 pruebas de integración.
 - Publicación M03.1: commit `a4431fe`, ejecución `31340890680` y producción HTTPS 200.
+- Ciclo M03.2: creación, duplicado, renombrado, archivo, papelera, recuperación, exportación e importación migrada con errores tipados.
+- Integridad M03.2: IDs repetidos y conflictos de importación no sobrescriben; duplicado explícito obtiene identidad y fechas nuevas.
+- Persistencia M03.2: factoría `projects` conectada a IndexedDB y reapertura de `ProjectRecord` verificada.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.

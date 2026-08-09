@@ -9,6 +9,10 @@ export {
   IndexedDbRepository,
   type IndexedDbRepositoryOptions,
 } from './indexed-db/indexed-db-repository'
+export {
+  createProjectRecordRepository,
+  PROJECT_RECORDS_NAMESPACE,
+} from './indexed-db/project-record-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,

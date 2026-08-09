@@ -1,6 +1,6 @@
 # Persistencia local-first
 
-Estado: `M03.1 — Repositorios locales` aceptada; ciclo de proyectos, autosave e historial pendientes de M03.2–M03.4.
+Estado: `M03.1 — Repositorios locales` y `M03.2 — Ciclo de proyecto` aceptadas; autosave e historial pendientes de M03.3–M03.4.
 
 ## Contrato M03.1
 
@@ -32,9 +32,25 @@ La huella actual detecta alteraciones accidentales del registro local; no es una
 
 Las pruebas Node usan `fake-indexeddb` como implementación aislada de la API. Producción usa IndexedDB real del navegador; no incluye ese paquete en el bundle de runtime.
 
+## Contrato M03.2
+
+`ProjectRecord` envuelve el envelope portable con un estado local estricto: `active`, `archived` o `trashed`. La papelera conserva `restoreState`, `trashedAt` y, cuando corresponde, `archivedAt`; combinaciones incoherentes se rechazan por schema.
+
+`ProjectLifecycleService` implementa:
+
+- Crear con ID y timestamps inyectados, revisión cero, nombre y payload validados.
+- Duplicar con nueva identidad, fechas nuevas, revisión cero y copia independiente de metadata/payload.
+- Renombrar y archivar incrementando revisión.
+- Eliminar mediante papelera recuperable y restaurar al estado activo o archivado anterior.
+- Exportar el envelope canónico sin estado local de catálogo.
+- Importar v0/v1 mediante el registry de migraciones, siempre como activo.
+- Rechazar conflictos de ID o importarlos como duplicado con identidad nueva; nunca sobrescribir silenciosamente.
+- Propagar fallos del repositorio como errores tipados sin afirmar éxito.
+
+La factoría `createProjectRecordRepository()` conecta el schema de `ProjectRecord` con el namespace IndexedDB `projects`. Una prueba de integración crea un proyecto y lo recupera desde una conexión nueva.
+
 ## Límites pendientes
 
-- M03.2 implementará crear, duplicar, renombrar, archivar, eliminar, recuperar, importar y exportar proyectos.
 - M03.3 añadirá autosave, snapshots y journal contra fallos durante escritura.
 - M03.4 añadirá command bus e historial persistente con undo/redo.
 - OPFS permanece detrás de un puerto futuro para blobs grandes; M03.1 no simula assets persistentes.

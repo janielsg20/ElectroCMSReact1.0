@@ -171,3 +171,11 @@ export {
   type ProjectMigrationError,
   type ProjectMigrationSuccess,
 } from './migrations'
+export {
+  createProjectRecordSchema,
+  ProjectLifecycleSchema,
+  ProjectLifecycleStateSchema,
+  type ProjectLifecycle,
+  type ProjectLifecycleState,
+  type ProjectRecord,
+} from './project-record'

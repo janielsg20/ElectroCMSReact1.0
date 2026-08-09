@@ -65,6 +65,16 @@ Este contrato modela y valida datos; no declara implementados los constructores 
 
 El registry no escribe en almacenamiento: su integración transaccional con repositorios corresponde a F03.
 
+## Contrato implementado en M03.2
+
+El envelope portable permanece estable. El catálogo local persiste un `ProjectRecord` que añade ciclo de vida sin contaminar la exportación:
+
+- `active`: sin marcas de archivo o papelera.
+- `archived`: requiere `archivedAt`.
+- `trashed`: requiere `trashedAt` y `restoreState`; conserva `archivedAt` solo si debe volver a archivado.
+
+Crear, duplicar, renombrar, archivar, eliminar de forma recuperable, restaurar, importar y exportar preservan IDs estables, revisiones y timestamps. Los conflictos de importación nunca sobrescriben datos existentes de forma implícita.
+
 ## Agregados mínimos
 
 Project, Document, Node, WidgetDefinition, Theme, Template, ContentType, Taxonomy, FieldDefinition, Record, Relation, Query, Form, Filter, Role, User, BackendScreen, MediaAsset, ExportManifest y HistoryEntry.

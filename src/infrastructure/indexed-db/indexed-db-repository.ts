@@ -2,7 +2,6 @@ import type * as z from 'zod'
 import type { LocalRepository, LocalRepositoryError } from '../../application/ports/local-repository'
 import { failure, success, type Result } from '../../domain/common/result'
 import { deserializeCanonical, serializeCanonical } from '../../domain/project/canonical-json'
-import type { JsonValue } from '../../domain/project/project-envelope'
 import { ElectroCmsLocalDatabase, type StoredLocalRecord } from './electrocms-local-database'
 
 export interface IndexedDbRepositoryOptions<TEntity, TId extends string> {
@@ -41,7 +40,7 @@ function storageError(error: unknown): LocalRepositoryError {
   return { kind: 'storage-failure', message, recoverable: true }
 }
 
-export class IndexedDbRepository<TEntity extends JsonValue, TId extends string>
+export class IndexedDbRepository<TEntity, TId extends string>
 implements LocalRepository<TEntity, TId> {
   readonly #now: () => string
 

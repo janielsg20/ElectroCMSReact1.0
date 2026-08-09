@@ -60,3 +60,7 @@
 - Añadido adaptador IndexedDB con namespaces, clave compuesta, índices por versión, escritura por lote transaccional y validación de integridad en lectura.
 - Probados CRUD indexado, cierre/reapertura, rollback completo por cuota, corrupción detectable y conexión cerrada; la suite alcanza 47/47 pruebas.
 - Publicado `a4431fe`; GitHub Actions `31340890680` y el despliegue de M03.1 en Cloudflare Pages finalizaron correctamente.
+- Cerrada `M03.2`: añadido `ProjectRecord` con estados activo, archivado y papelera recuperable, timestamps y estado previo validados.
+- Implementado `ProjectLifecycleService` para crear, duplicar, renombrar, archivar, eliminar, recuperar, exportar e importar proyectos.
+- Añadida importación v0/v1 con migraciones, resolución explícita de conflictos y protección contra sobrescritura por IDs repetidos.
+- Conectado el ciclo a IndexedDB mediante `createProjectRecordRepository`; 60/60 pruebas verifican dominio, servicio y reapertura persistente.
