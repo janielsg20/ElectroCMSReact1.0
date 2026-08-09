@@ -64,3 +64,4 @@
 - Implementado `ProjectLifecycleService` para crear, duplicar, renombrar, archivar, eliminar, recuperar, exportar e importar proyectos.
 - Añadida importación v0/v1 con migraciones, resolución explícita de conflictos y protección contra sobrescritura por IDs repetidos.
 - Conectado el ciclo a IndexedDB mediante `createProjectRecordRepository`; 60/60 pruebas verifican dominio, servicio y reapertura persistente.
+- Publicado `8e9b333`; GitHub Actions `31341648227` y el despliegue de M03.2 en Cloudflare Pages finalizaron correctamente.

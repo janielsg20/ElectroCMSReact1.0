@@ -82,6 +82,7 @@ Implementar `M03.3`: autosave con debounce, snapshots, journal y recuperación t
 - Ciclo M03.2: creación, duplicado, renombrado, archivo, papelera, recuperación, exportación e importación migrada con errores tipados.
 - Integridad M03.2: IDs repetidos y conflictos de importación no sobrescriben; duplicado explícito obtiene identidad y fechas nuevas.
 - Persistencia M03.2: factoría `projects` conectada a IndexedDB y reapertura de `ProjectRecord` verificada.
+- Publicación M03.2: commit `8e9b333`, ejecución `31341648227` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
