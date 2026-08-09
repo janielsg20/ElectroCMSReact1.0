@@ -72,6 +72,7 @@ Implementar `M03.1`: almacenamiento local transaccional/indexado detrás de repo
 - Relaciones: fixtures y pruebas para 1:1, 1:N y N:N, pares duplicados y extremos incompatibles.
 - Migraciones M02.4: registry inmutable de pasos forward consecutivos, v0→v1, validación antes/después y diagnósticos tipados.
 - Recuperación M02.4: backup exacto incluido también en fallos; fixtures v0/v1, restauración byte por byte y reintento probados.
+- Publicación M02.4: commit `3fbe4fe`, ejecución `31340253571` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.

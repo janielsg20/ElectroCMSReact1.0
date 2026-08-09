@@ -54,3 +54,4 @@
 - Cerrada `M02.4` y F02: añadido registry inmutable de migraciones forward consecutivas con paso v0→v1 y validación de entrada/salida.
 - Añadida copia previa exacta y recuperable, incluida en errores posteriores al versionado, más diagnósticos para versiones futuras y cadenas incompletas.
 - Añadidos fixtures de proyecto v0/v1 y pruebas de migración, lectura actual, configuración del registry, fallo, restauración byte por byte y reintento; la suite alcanza 42/42 pruebas.
+- Publicado `3fbe4fe`; GitHub Actions `31340253571` y el despliegue de M02.4 en Cloudflare Pages finalizaron correctamente.
