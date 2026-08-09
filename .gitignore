@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.npm-cache/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.local
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
