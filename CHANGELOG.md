@@ -38,3 +38,7 @@
 - Añadida serialización JSON determinista con claves ordenadas, deserialización segura y errores tipados sin excepciones para entradas no confiables.
 - Añadidas pruebas de identidad, cronología, versiones incompatibles, propiedades desconocidas, determinismo, round-trip y JSON Schema.
 - Publicado `ea034f2`; GitHub Actions `31336177234` y el despliegue posterior a M02.1 finalizaron correctamente.
+- Cerrada `M02.2`: añadidos schemas estrictos para documentos, nodos, componentes globales, slots, propiedades, estilos, bindings, condiciones y overrides responsive.
+- Incorporados IDs nominales por agregado y seis breakpoints base configurables con orientación y herencia explícita.
+- Añadida resolución de estado responsive por cadena de herencia y diagnósticos tipados para referencias rotas, huérfanos, padres múltiples y ciclos estructurales.
+- Añadidas pruebas de invariantes, componentes recursivos, bindings rotos, herencia y JSON Schema; la suite alcanza 28/28 pruebas.

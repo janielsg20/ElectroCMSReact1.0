@@ -5,7 +5,7 @@ Actualizado: 2026-08-09.
 ## Estado global
 
 - Fase actual: `F02 — Modelo canónico, esquemas y migraciones`.
-- Microfase actual: `M02.2 — Documentos, nodos y propiedades responsive`.
+- Microfase actual: `M02.3 — Modelos CMS y backend`.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
@@ -17,7 +17,7 @@ Actualizado: 2026-08-09.
 |---|---|---|
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
 | F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
-| F02 | EN_CURSO | M02.1 completada; M02.2 en curso |
+| F02 | EN_CURSO | M02.1 y M02.2 completadas; M02.3 en curso |
 | F03–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
@@ -62,6 +62,10 @@ Actualizado: 2026-08-09.
 - Completada: validación de versión, propiedades desconocidas y cronología; serialización determinista y deserialización con errores tipados.
 - Completada: puerta local de M02.1 con lint, typecheck, 22/22 pruebas y build reproducible.
 - Completada: ejecución GitHub Actions `31336177234` con calidad, build y despliegue correctos para `ea034f2`.
+- Completada: `M02.2`; documentos y componentes globales normalizados, nodos discriminados, slots, propiedades, estilos, bindings y condiciones con schemas estrictos.
+- Completada: seis breakpoints configurables con herencia explícita y resolución acumulativa de overrides responsive.
+- Completada: diagnósticos tipados para invariantes de IDs, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes o breakpoints.
+- Completada: puerta local de M02.2 con lint, typecheck, 28/28 pruebas y build Vite reproducible.
 
 
 ## Plantilla de relevo

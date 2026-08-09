@@ -18,7 +18,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M01.3 — Tokens y primitives` completada con contraste, foco, movimiento reducido y targets táctiles verificados.
 - `M01.4 — PWA y adaptadores de plataforma` completada; puerta G1 y F01 cerradas.
 - `M02.1 — Identidad y versionado` completada con envelope v1, Zod y serialización determinista.
-- Fase activa: `F02 / M02.2 — Documentos, nodos y propiedades responsive`.
+- `M02.2 — Documentos, nodos y propiedades responsive` completada con schemas estrictos, diagnósticos e herencia probada.
+- Fase activa: `F02 / M02.3 — Modelos CMS y backend`.
 
 ## Decisiones vigentes
 
@@ -30,7 +31,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M02.2`: documentos, árboles de nodos, slots, estilos, bindings, condiciones, componentes globales y breakpoints con sus invariantes.
+Implementar `M02.3`: CPT, taxonomías, campos, registros, consultas, formularios, roles, menús y pantallas; probar relaciones 1:1, 1:N y N:N.
 
 ## Riesgos abiertos
 
@@ -45,7 +46,7 @@ Implementar `M02.2`: documentos, árboles de nodos, slots, estilos, bindings, co
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 22/22 pruebas.
+- `npm run test`: 28/28 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -59,6 +60,9 @@ Implementar `M02.2`: documentos, árboles de nodos, slots, estilos, bindings, co
 - Modelo M02.1: `electrocms.project`, `schemaVersion: 1`, UUID, revisión, UTC con milisegundos, metadata/payload JSON y objetos estrictos.
 - Serialización: claves de objeto ordenadas recursivamente, arrays preservados y errores `invalid-json`/`invalid-value` tipados.
 - Dependencia: Zod 4.4.3 exacto; schemas y tipos comparten una única fuente.
+- Modelo M02.2: documentos y componentes globales normalizados, nodos widget/instancia, slots, properties, styles, bindings, condiciones y overrides responsive.
+- Responsive: seis breakpoints base configurables con herencia acíclica; la resolución acumula overrides desde desktop hasta el breakpoint objetivo.
+- Integridad estructural: diagnósticos para claves/IDs, duplicados, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes y breakpoints.
 
 ## Punteros
 

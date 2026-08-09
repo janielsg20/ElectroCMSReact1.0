@@ -5,13 +5,26 @@ export {
   type ValidationIssue,
 } from './canonical-json'
 export {
+  BreakpointIdSchema,
+  DocumentIdSchema,
+  GlobalComponentIdSchema,
+  NodeIdSchema,
+  parseBreakpointId,
+  parseDocumentId,
+  parseGlobalComponentId,
+  parseNodeId,
   parseProjectId,
   parseTimestamp,
   ProjectIdSchema,
   TimestampSchema,
+  type BreakpointId,
+  type DocumentId,
+  type GlobalComponentId,
+  type NodeId,
   type ProjectId,
   type Timestamp,
 } from './identity'
+export { DEFAULT_BREAKPOINTS } from './default-breakpoints'
 export {
   createProjectEnvelopeSchema,
   CURRENT_PROJECT_SCHEMA_VERSION,
@@ -23,3 +36,30 @@ export {
   type ProjectEnvelope,
   type ProjectMetadata,
 } from './project-envelope'
+export {
+  BindingSourceSchema,
+  BreakpointSchema,
+  ConditionGroupSchema,
+  ConditionPredicateSchema,
+  DocumentSchema,
+  GlobalComponentSchema,
+  NodeResponsiveOverrideSchema,
+  NodeSchema,
+  ProjectStructureSchema,
+  type BindingSource,
+  type Breakpoint,
+  type ConditionGroup,
+  type ConditionPredicate,
+  type Document,
+  type GlobalComponent,
+  type Node,
+  type NodeResponsiveOverride,
+  type ProjectStructure,
+} from './structure-schema'
+export {
+  resolveNodeResponsiveState,
+  validateProjectStructure,
+  type ResolvedNodeResponsiveState,
+  type StructureDiagnostic,
+  type StructureDiagnosticCode,
+} from './validate-structure'
