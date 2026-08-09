@@ -50,7 +50,7 @@ Implementar `M02.3`: CPT, taxonomías, campos, registros, consultas, formularios
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
-- GitHub Actions: lint, typecheck, 22/22 pruebas, build y deploy correctos para `ea034f2` en la ejecución `31336177234`.
+- GitHub Actions: lint, typecheck, 28/28 pruebas, build y deploy correctos para `f987869` en la ejecución `31337310722`.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.
 - UI foundation: tokens light/dark con pares WCAG AA, reset global, movimiento reducido, SVG semánticos, Button y TextField accesibles.
@@ -63,6 +63,7 @@ Implementar `M02.3`: CPT, taxonomías, campos, registros, consultas, formularios
 - Modelo M02.2: documentos y componentes globales normalizados, nodos widget/instancia, slots, properties, styles, bindings, condiciones y overrides responsive.
 - Responsive: seis breakpoints base configurables con herencia acíclica; la resolución acumula overrides desde desktop hasta el breakpoint objetivo.
 - Integridad estructural: diagnósticos para claves/IDs, duplicados, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes y breakpoints.
+- Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 
 ## Punteros
 

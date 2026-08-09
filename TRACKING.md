@@ -9,7 +9,7 @@ Actualizado: 2026-08-09.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: commit `ea034f2` publicado; pipeline `31336177234` completo en verde; Cloudflare Pages responde HTTPS 200.
+- Última evidencia: commit `f987869` publicado; pipeline `31337310722` completo en verde; Cloudflare Pages responde HTTPS 200.
 
 ## Tablero compacto
 
@@ -66,6 +66,8 @@ Actualizado: 2026-08-09.
 - Completada: seis breakpoints configurables con herencia explícita y resolución acumulativa de overrides responsive.
 - Completada: diagnósticos tipados para invariantes de IDs, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes o breakpoints.
 - Completada: puerta local de M02.2 con lint, typecheck, 28/28 pruebas y build Vite reproducible.
+- Completada: ejecución GitHub Actions `31337310722` con calidad, 28/28 pruebas, build y despliegue correctos para `f987869`.
+- Completada: producción verificada tras M02.2 en `https://electrocms-react.pages.dev/` con HTTPS 200.
 
 
 ## Plantilla de relevo
