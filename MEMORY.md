@@ -47,8 +47,8 @@ Implementar `M01.4`: soporte PWA instalable/offline y contratos desacoplados par
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
-- GitHub Actions: lint, typecheck, 2/2 pruebas, build y deploy correctos en la ejecución `31332151380`.
-- Cloudflare Pages: `https://electrocms-react.pages.dev/`, respuesta HTTPS 200 y título esperado.
+- GitHub Actions: lint, typecheck, 12/12 pruebas, build y deploy correctos para `6705eca` en la ejecución `31333777914`.
+- Cloudflare Pages: `https://electrocms-react.pages.dev/`, respuesta HTTPS 200, título esperado y bundle `index-CPN-M36E.js` de M01.3.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.
 - UI foundation: tokens light/dark con pares WCAG AA, reset global, movimiento reducido, SVG semánticos, Button y TextField accesibles.
 

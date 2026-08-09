@@ -26,3 +26,4 @@
 - Añadidos primitives accesibles `Button`, `Icon` y `TextField`, con estados de carga/error y targets táctiles mínimos de 44 px.
 - Añadidas pruebas de contraste WCAG AA, semántica y comportamiento; la suite alcanza 12/12 pruebas.
 - Validada la pantalla de fundación de este repositorio en desktop y 375 × 812 sin desbordamiento horizontal.
+- Publicado `6705eca`; GitHub Actions `31333777914` y el despliegue de M01.3 en Cloudflare Pages finalizaron correctamente.

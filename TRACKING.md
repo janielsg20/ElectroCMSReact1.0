@@ -9,7 +9,7 @@ Actualizado: 2026-08-09.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: repositorio público y `main` publicados; pipeline completo verde; Cloudflare Pages responde HTTPS 200 en `https://electrocms-react.pages.dev/`.
+- Última evidencia: commit `6705eca` publicado; pipeline `31333777914` completo en verde; Cloudflare Pages sirve el bundle de M01.3 con HTTPS 200.
 
 ## Tablero compacto
 
@@ -47,6 +47,8 @@ Actualizado: 2026-08-09.
 - Completada: `M01.3`; tokens semánticos light/dark, reset, tipografía local, iconos SVG y primitives accesibles.
 - Completada: puerta local de M01.3 con lint, typecheck, 12/12 pruebas, build y contraste WCAG AA automatizado.
 - Completada: validación aislada de la implementación objetivo en escritorio y 375 × 812, con estructura semántica y sin overflow horizontal.
+- Completada: ejecución GitHub Actions `31333777914` con lint, typecheck, 12/12 pruebas, build y despliegue correctos.
+- Completada: producción sirve el bundle `index-CPN-M36E.js` de M01.3 con HTTPS 200.
 
 
 ## Plantilla de relevo
