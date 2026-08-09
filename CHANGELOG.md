@@ -12,4 +12,9 @@
 - Añadido workflow GitHub Actions con puerta de calidad y despliegue a Cloudflare Pages.
 - Añadidos `wrangler.jsonc`, fallback SPA y headers de seguridad.
 - Verificada la UI en navegador desktop y 375 px, sin errores ni overflow horizontal.
-- Instalado GitHub CLI 2.97.0; publicación pendiente de autenticación del usuario.
+- Instalado y autenticado GitHub CLI 2.97.0.
+- Creado y publicado el repositorio público `janielsg20/ElectroCMSReact1.0` con rama principal `main`.
+- Creado el proyecto Direct Upload `electrocms-react` en Cloudflare Pages.
+- Configurados los secretos cifrados de GitHub Actions para Cloudflare sin exponer credenciales.
+- Verificada la ejecución completa de CI/CD: lint, typecheck, 2 pruebas, build y deploy correctos.
+- Verificada `https://electrocms-react.pages.dev/` con respuesta HTTPS 200 y contenido esperado.

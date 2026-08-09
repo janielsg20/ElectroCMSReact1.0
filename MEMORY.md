@@ -11,7 +11,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - Existe un scaffold funcional React 19 + TypeScript + Tailwind 4 con pantalla de fundación accesible.
 - Prompt Flutter convertido a React sin eliminar ninguna de sus 33 secciones.
 - Sistema de diseño base generado con `ui-ux-pro-max`; requiere validación visual posterior.
-- Fase actual: `F01 / M01.1 — Scaffold y calidad`, autorizada fuera de secuencia para habilitar GitHub Actions y Cloudflare Pages.
+- `M01.1 — Scaffold y calidad` completada, incluido CI/CD y despliegue verificable.
+- Fase retomada: `F00 / M00.2 — Inventario de la referencia`, bloqueada hasta recibir la aplicación React de referencia mencionada por el prompt.
 
 ## Decisiones vigentes
 
@@ -23,7 +24,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-El usuario debe ejecutar `gh auth login` y avisar cuando termine. Después: crear repo público `janielsg20/ElectroCMSReact1.0`, crear Pages `electrocms-react`, configurar secretos, push y verificar Actions/deploy. Volver a `M00.2` antes de implementar funciones del editor.
+Recibir o localizar la aplicación React de referencia y completar `M00.2`. No implementar funciones del editor hasta inventariar sus rutas, pantallas, componentes, estados y flujos.
 
 ## Riesgos abiertos
 
@@ -32,6 +33,7 @@ El usuario debe ejecutar `gh auth login` y avisar cuando termine. Después: crea
 - La paleta y tipografía sugeridas por la skill son provisionales hasta pruebas de contraste, densidad y legibilidad del editor.
 - Debe decidirse la envoltura desktop/móvil después del núcleo PWA, sin acoplarla al dominio.
 - Direct Upload de Cloudflare Pages no puede convertirse después a Git Integration; cambiar requeriría otro proyecto Pages.
+- El token de CI está restringido a Cloudflare Pages y almacenado solo como secreto cifrado de GitHub; deberá rotarse si cambia el responsable del repositorio.
 
 ## Evidencia técnica reciente
 
@@ -40,7 +42,9 @@ El usuario debe ejecutar `gh auth login` y avisar cuando termine. Después: crea
 - `npm run test`: 2/2 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser: contenido presente, sin overlay ni errores; 375 px sin overflow.
-- GitHub CLI 2.97.0 instalado, sin autenticación.
+- GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
+- GitHub Actions: lint, typecheck, 2/2 pruebas, build y deploy correctos en la ejecución `31332151380`.
+- Cloudflare Pages: `https://electrocms-react.pages.dev/`, respuesta HTTPS 200 y título esperado.
 
 ## Punteros
 

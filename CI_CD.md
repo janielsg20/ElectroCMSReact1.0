@@ -28,13 +28,13 @@ El job usa permisos mínimos: `contents: read`; deploy añade únicamente `deplo
 
 Nunca se guardan estos valores en archivos, commits, logs o variables públicas.
 
-## Preparación externa pendiente
+## Estado operativo
 
-1. Autenticar GitHub CLI: `gh auth login`.
-2. Crear el repositorio público y enlazar `origin`.
-3. Crear el proyecto Direct Upload `electrocms-react` en Cloudflare Pages.
-4. Añadir los dos secretos al repositorio.
-5. Hacer el primer push a `main` y verificar el workflow y la URL de despliegue.
+- Repositorio público creado y `origin` enlazado.
+- Proyecto Direct Upload `electrocms-react` creado.
+- Secretos requeridos configurados en GitHub Actions.
+- Primera ejecución completa verificada: `31332151380`.
+- Producción verificada: `https://electrocms-react.pages.dev/` responde HTTPS 200.
 
 ## Nota irreversible
 
@@ -45,4 +45,3 @@ Cloudflare no permite convertir un proyecto Pages Direct Upload existente en Git
 - https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/
 - https://github.com/cloudflare/wrangler-action
 - https://docs.github.com/actions
-
