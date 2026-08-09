@@ -55,3 +55,7 @@
 - Añadida copia previa exacta y recuperable, incluida en errores posteriores al versionado, más diagnósticos para versiones futuras y cadenas incompletas.
 - Añadidos fixtures de proyecto v0/v1 y pruebas de migración, lectura actual, configuración del registry, fallo, restauración byte por byte y reintento; la suite alcanza 42/42 pruebas.
 - Publicado `3fbe4fe`; GitHub Actions `31340253571` y el despliegue de M02.4 en Cloudflare Pages finalizaron correctamente.
+- Cerrada `M03.1`: añadido puerto `LocalRepository` con resultados y errores tipados para cuota, corrupción, cierre, indisponibilidad y fallos de almacenamiento.
+- Incorporados Dexie 4.4.4 y fake-indexeddb 6.2.5 como dependencias exactas de runtime y test respectivamente.
+- Añadido adaptador IndexedDB con namespaces, clave compuesta, índices por versión, escritura por lote transaccional y validación de integridad en lectura.
+- Probados CRUD indexado, cierre/reapertura, rollback completo por cuota, corrupción detectable y conexión cerrada; la suite alcanza 47/47 pruebas.

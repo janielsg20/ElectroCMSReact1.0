@@ -1,4 +1,5 @@
 export type { Repository } from './ports/repository'
+export type { LocalRepository, LocalRepositoryError } from './ports/local-repository'
 export {
   PLATFORM_ADAPTER_CONTRACT_VERSION,
   type PlatformAdapter,

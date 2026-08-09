@@ -1,4 +1,14 @@
 export { InMemoryRepository } from './memory/in-memory-repository'
+export {
+  ElectroCmsLocalDatabase,
+  LOCAL_DATABASE_SCHEMA_VERSION,
+  LOCAL_RECORDS_TABLE,
+  type StoredLocalRecord,
+} from './indexed-db/electrocms-local-database'
+export {
+  IndexedDbRepository,
+  type IndexedDbRepositoryOptions,
+} from './indexed-db/indexed-db-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,

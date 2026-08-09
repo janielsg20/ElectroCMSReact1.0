@@ -5,7 +5,7 @@ Actualizado: 2026-08-09.
 ## Estado global
 
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
-- Microfase actual: `M03.1 — Repositorios locales`.
+- Microfase actual: `M03.2 — Ciclo de proyecto`.
 - Estado: `EN_CURSO`.
 - Entrega anticipada solicitada: prototipo visual integral del editor completado sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
@@ -19,7 +19,7 @@ Actualizado: 2026-08-09.
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
 | F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
 | F02 | COMPLETADA | M02.1–M02.4: schemas, invariantes, cardinalidades, migraciones y recuperación probadas |
-| F03 | EN_CURSO | M03.1 registrada; repositorios locales aún no implementados |
+| F03 | EN_CURSO | M03.1 completada; M03.2 en curso |
 | F04–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
@@ -85,7 +85,12 @@ Actualizado: 2026-08-09.
 - Completada: fixtures reales v0/v1 y restauración byte por byte con reintento de migración probado.
 - Completada: puerta local de M02.4 con lint, typecheck, 42/42 pruebas y build Vite reproducible; F02 cerrada.
 - Completada: publicación M02.4 en commit `3fbe4fe`, ejecución GitHub Actions `31340253571` verde y producción HTTPS 200.
-- En curso: `M03.1`; almacenamiento transaccional/indexado, abstracción de repositorio, reapertura, cuota y corrupción detectable pendientes de implementación.
+- Completada: `M03.1`; puerto `LocalRepository` con resultados y errores tipados, sin filtrar excepciones de infraestructura.
+- Completada: Dexie 4.4.4 sobre IndexedDB con clave compuesta por namespace/ID e índices de namespace, versión y actualización.
+- Completada: escritura `saveMany` atómica, validación canónica previa y verificación de huella/schema/ID/versión al leer.
+- Completada: cierre/reapertura, rollback por cuota, corrupción detectable, conexión cerrada y consultas indexadas probadas.
+- Completada: puerta local de M03.1 con lint, typecheck, 47/47 pruebas y build Vite reproducible.
+- En curso: `M03.2`; ciclo de crear, duplicar, renombrar, archivar, eliminar, recuperar, importar y exportar proyectos aún no implementado.
 
 
 ## Plantilla de relevo

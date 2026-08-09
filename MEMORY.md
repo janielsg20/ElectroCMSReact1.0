@@ -22,7 +22,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M02.3 — Modelos CMS y backend` completada con schemas estrictos, referencias cruzadas y cardinalidades probadas.
 - `M02.4 — Migraciones` completada con registry forward, backup recuperable y fixtures v0/v1.
 - Fase F02 completada.
-- Fase activa: `F03 / M03.1 — Repositorios locales`; todavía no implementada.
+- `M03.1 — Repositorios locales` completada con IndexedDB/Dexie, transacciones, errores tipados e integridad verificada.
+- Fase activa: `F03 / M03.2 — Ciclo de proyecto`; todavía no implementada.
 - Por prioridad expresa del usuario se implementó anticipadamente un prototipo visual integral del editor; no equivale a cerrar F04–F07.
 
 ## Decisiones vigentes
@@ -35,7 +36,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M03.1`: almacenamiento local transaccional/indexado detrás de repositorios, con pruebas de cierre/reapertura, cuota y corrupción detectable.
+Implementar `M03.2`: crear, duplicar, renombrar, archivar, eliminar, recuperar, importar y exportar proyectos con confirmación o recuperación para cambios destructivos.
 
 ## Riesgos abiertos
 
@@ -50,7 +51,7 @@ Implementar `M03.1`: almacenamiento local transaccional/indexado detrás de repo
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 42/42 pruebas.
+- `npm run test`: 47/47 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -73,6 +74,9 @@ Implementar `M03.1`: almacenamiento local transaccional/indexado detrás de repo
 - Migraciones M02.4: registry inmutable de pasos forward consecutivos, v0→v1, validación antes/después y diagnósticos tipados.
 - Recuperación M02.4: backup exacto incluido también en fallos; fixtures v0/v1, restauración byte por byte y reintento probados.
 - Publicación M02.4: commit `3fbe4fe`, ejecución `31340253571` y producción HTTPS 200.
+- Persistencia M03.1: `LocalRepository` tipado y adaptador Dexie/IndexedDB con namespace, clave compuesta e índices de versión.
+- Integridad M03.1: serialización validada, huella por registro y rechazo de JSON/schema/ID/versión incoherentes.
+- Resiliencia M03.1: reapertura real, transacción por lote revertida ante cuota y conexión cerrada diferenciada; 5 pruebas de integración.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
@@ -89,3 +93,4 @@ Implementar `M03.1`: almacenamiento local transaccional/indexado detrás de repo
 - CI/CD: `CI_CD.md`.
 - Plataformas: `PLATFORM_ADAPTERS.md`.
 - Modelo canónico: `DATA_MODELS.md`.
+- Persistencia: `PERSISTENCE.md`.

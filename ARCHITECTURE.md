@@ -86,7 +86,8 @@ exporters ─────────────────┘
 |---|---|---|
 | React Router | Rutas internas y estados de navegación | M04.x |
 | Zod 4.4.3 | Validación, tipos y JSON Schema del modelo canónico | Incorporada en M02.1 |
-| Dexie | Repositorios IndexedDB y migraciones | M03.x |
+| Dexie 4.4.4 exacto | Repositorios IndexedDB y transacciones | Incorporada en M03.1 |
+| fake-indexeddb 6.2.5 exacto | API IndexedDB aislada para pruebas Node; solo desarrollo | Incorporada en M03.1 |
 | `@dnd-kit` | Sensores accesibles de interacción espacial | M05.x |
 | Vitest + Testing Library | Unitarias e integración de componentes | Ya incorporadas |
 | Playwright | Flujos E2E y accesibilidad en navegadores | M18.x o antes si una puerta lo exige |
