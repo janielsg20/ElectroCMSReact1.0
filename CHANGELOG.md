@@ -27,3 +27,8 @@
 - Añadidas pruebas de contraste WCAG AA, semántica y comportamiento; la suite alcanza 12/12 pruebas.
 - Validada la pantalla de fundación de este repositorio en desktop y 375 × 812 sin desbordamiento horizontal.
 - Publicado `6705eca`; GitHub Actions `31333777914` y el despliegue de M01.3 en Cloudflare Pages finalizaron correctamente.
+- Cerrada `M01.4` y puerta G1: añadidos manifest instalable, iconos PNG/SVG y Service Worker versionado desde los assets reales del build.
+- Implementado precache del shell, navegación network-first, assets cache-first, limpieza de cachés antiguas y registro exclusivo de producción.
+- Corregida la recuperación offline de módulos ES servidos con `Vary: Origin` mediante coincidencia same-origin que ignora esa variación.
+- Añadidos contrato público v1 de adaptadores de plataforma, adaptador web y documentación para futuras envolturas desktop y móvil.
+- Validado el núcleo React sin red desde un origen limpio después de detener totalmente el servidor; 17/17 pruebas verdes.

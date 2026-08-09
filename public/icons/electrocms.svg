@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">ElectroCMS</title>
+  <rect width="512" height="512" rx="112" fill="#6d28d9"/>
+  <path fill="#fff" d="M142 116h228v72H222v32h116v72H222v32h148v72H142z"/>
+</svg>

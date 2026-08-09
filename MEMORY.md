@@ -16,7 +16,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - Fase `F00` completada y puerta G0 cerrada.
 - `M01.2 — Capas y contratos` completada con pruebas de dirección y ciclos.
 - `M01.3 — Tokens y primitives` completada con contraste, foco, movimiento reducido y targets táctiles verificados.
-- Fase activa: `F01 / M01.4 — PWA y adaptadores de plataforma`.
+- `M01.4 — PWA y adaptadores de plataforma` completada; puerta G1 y F01 cerradas.
+- Fase activa: `F02 / M02.1 — Identidad y versionado`.
 
 ## Decisiones vigentes
 
@@ -28,14 +29,14 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M01.4`: soporte PWA instalable/offline y contratos desacoplados para futuros adaptadores desktop y móvil.
+Implementar `M02.1`: IDs, timestamps, metadatos, versiones de schema y envelope canónico con serialización determinista y validación.
 
 ## Riesgos abiertos
 
 - El prompt menciona una aplicación React adjunta, pero no se proporcionó un artefacto autorizado; por decisión del usuario, no se sustituirá con otras aplicaciones.
 - El scaffold pertenece a la implementación objetivo y no se utilizará como referencia circular.
 - La densidad y legibilidad del editor completo todavía requieren pruebas con sus flujos reales; la fundación ya supera contraste automatizado.
-- Debe decidirse la envoltura desktop/móvil después del núcleo PWA, sin acoplarla al dominio.
+- Las envolturas desktop/móvil permanecen planificadas; solo existe el contrato de capacidades v1 y no se presentan como implementadas.
 - Direct Upload de Cloudflare Pages no puede convertirse después a Git Integration; cambiar requeriría otro proyecto Pages.
 - El token de CI está restringido a Cloudflare Pages y almacenado solo como secreto cifrado de GitHub; deberá rotarse si cambia el responsable del repositorio.
 
@@ -43,7 +44,7 @@ Implementar `M01.4`: soporte PWA instalable/offline y contratos desacoplados par
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 12/12 pruebas.
+- `npm run test`: 17/17 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -51,6 +52,9 @@ Implementar `M01.4`: soporte PWA instalable/offline y contratos desacoplados par
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, respuesta HTTPS 200, título esperado y bundle `index-CPN-M36E.js` de M01.3.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.
 - UI foundation: tokens light/dark con pares WCAG AA, reset global, movimiento reducido, SVG semánticos, Button y TextField accesibles.
+- PWA: manifest con iconos 192/512, `sw.js` versionado desde el bundle y cabeceras no-cache para actualizaciones.
+- Offline browser: en origen limpio, React volvió a renderizar después de detener por completo el servidor.
+- Plataformas: contrato público v1 documentado en `PLATFORM_ADAPTERS.md`; solo el adaptador web está implementado.
 
 ## Punteros
 
@@ -60,3 +64,4 @@ Implementar `M01.4`: soporte PWA instalable/offline y contratos desacoplados par
 - Diseño adaptable: `UI_UX_LAYOUT_SYSTEM.md`.
 - Estado: `TRACKING.md`.
 - CI/CD: `CI_CD.md`.
+- Plataformas: `PLATFORM_ADAPTERS.md`.

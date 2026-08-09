@@ -72,6 +72,14 @@ exporters ─────────────────┘
 - Cada definición incluye ID estable, versión, schema, renderer/adapter y diagnóstico de compatibilidad.
 - Ninguna extensión puede ejecutar código arbitrario importado desde un proyecto de usuario.
 
+### ADR-008 — Shell PWA generado y adaptadores de plataforma
+
+- Decisión: Vite emite un Service Worker propio cuya versión deriva de los nombres del bundle; precachea el shell mínimo y elimina versiones obsoletas al activar.
+- Estrategia: navegación network-first con fallback a `index.html`; assets same-origin cache-first. La coincidencia del precache ignora `Vary` porque el mismo asset puede solicitarse desde el worker y como módulo ES con encabezados distintos.
+- Registro: solo se ejecuta en producción y deja evidencia DOM cuando el worker activo controla la página actual.
+- Contrato: `application` publica un descriptor v1 de familia y capacidades; web, futuras envolturas desktop y futuras envolturas mobile lo implementan desde `infrastructure`.
+- Límite: las APIs nativas concretas obtendrán puertos específicos en su microfase; no se inventan operaciones genéricas ni se importan SDK nativos en dominio.
+
 ## Dependencias aprobadas y momento de adopción
 
 | Dependencia | Uso autorizado | Microfase de incorporación |
@@ -82,6 +90,8 @@ exporters ─────────────────┘
 | `@dnd-kit` | Sensores accesibles de interacción espacial | M05.x |
 | Vitest + Testing Library | Unitarias e integración de componentes | Ya incorporadas |
 | Playwright | Flujos E2E y accesibilidad en navegadores | M18.x o antes si una puerta lo exige |
+
+El soporte PWA de M01.4 no añade una dependencia de runtime: manifiesto, registro y generación del Service Worker pertenecen al repositorio.
 
 Las versiones exactas se fijan en `package-lock.json` al incorporarse y se verifican contra documentación oficial en esa microfase.
 
@@ -99,3 +109,5 @@ Las versiones exactas se fijan en `package-lock.json` al incorporarse y se verif
 - https://zod.dev/
 - https://dexie.org/docs
 - https://dndkit.com/
+- https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable
+- https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/CycleTracker/Service_workers

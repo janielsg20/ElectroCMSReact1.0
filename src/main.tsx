@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { registerElectroCmsServiceWorker } from './infrastructure/pwa/register-service-worker'
 import './styles.css'
 
 const rootElement = document.getElementById('root')
@@ -15,3 +16,12 @@ createRoot(rootElement).render(
   </StrictMode>,
 )
 
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  void registerElectroCmsServiceWorker(navigator.serviceWorker)
+    .then(() => {
+      document.documentElement.dataset.offlineShell = 'ready'
+    })
+    .catch((error: unknown) => {
+      console.error('No se pudo registrar el soporte offline de ElectroCMS.', error)
+    })
+}

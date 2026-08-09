@@ -4,8 +4,8 @@ Actualizado: 2026-08-09.
 
 ## Estado global
 
-- Fase actual: `F01 — Plataforma React/Tailwind y arquitectura modular`.
-- Microfase actual: `M01.4 — PWA y adaptadores de plataforma`.
+- Fase actual: `F02 — Modelo canónico, esquemas y migraciones`.
+- Microfase actual: `M02.1 — Identidad y versionado`.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
@@ -16,8 +16,9 @@ Actualizado: 2026-08-09.
 | Fase | Estado | Evidencia requerida para cerrar |
 |---|---|---|
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
-| F01 | EN_CURSO | M01.1, M01.2 y M01.3 completadas; M01.4 en curso |
-| F02–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
+| F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
+| F02 | EN_CURSO | M02.1 en curso |
+| F03–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
 
@@ -49,6 +50,11 @@ Actualizado: 2026-08-09.
 - Completada: validación aislada de la implementación objetivo en escritorio y 375 × 812, con estructura semántica y sin overflow horizontal.
 - Completada: ejecución GitHub Actions `31333777914` con lint, typecheck, 12/12 pruebas, build y despliegue correctos.
 - Completada: producción sirve el bundle `index-CPN-M36E.js` de M01.3 con HTTPS 200.
+- Completada: `M01.4`; manifest instalable con iconos 192/512, Service Worker versionado y registro exclusivo de producción.
+- Completada: contratos públicos v1 para capacidades web, desktop y mobile sin dependencias nativas en dominio.
+- Completada: 17/17 pruebas, lint, typecheck y build con `sw.js` que precachea los hashes actuales.
+- Completada: prueba browser en origen limpio; tras detener totalmente el servidor, React volvió a renderizar desde caché sin overlay ni overflow.
+- Completada: puerta G1 y fase F01 cerradas.
 
 
 ## Plantilla de relevo
