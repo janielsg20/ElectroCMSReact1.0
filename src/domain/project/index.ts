@@ -157,3 +157,17 @@ export {
   type CmsDiagnostic,
   type CmsDiagnosticCode,
 } from './validate-cms'
+export {
+  createMigrationRegistry,
+  DEFAULT_PROJECT_MIGRATIONS,
+  LegacyProjectEnvelopeV0Schema,
+  migrateProjectJson,
+  MigrationBackupSchema,
+  readCurrentProject,
+  restoreMigrationBackup,
+  type MigrationBackup,
+  type MigrationRegistry,
+  type MigrationStep,
+  type ProjectMigrationError,
+  type ProjectMigrationSuccess,
+} from './migrations'

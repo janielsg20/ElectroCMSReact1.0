@@ -51,3 +51,6 @@
 - Cerrada `M02.3`: añadidos modelos normalizados y schemas estrictos para CPT, taxonomías, 27 tipos de campo, registros, relaciones, consultas, formularios, RBAC, usuarios, menús y pantallas backend.
 - Añadidos diagnósticos semánticos para propietarios, referencias cruzadas, campos obligatorios, jerarquías, consultas, formularios, permisos, menús y compatibilidad entre pantallas y contenido.
 - Probadas las cardinalidades 1:1, 1:N y N:N y los contratos JSON Schema; la suite alcanza 36/36 pruebas.
+- Cerrada `M02.4` y F02: añadido registry inmutable de migraciones forward consecutivas con paso v0→v1 y validación de entrada/salida.
+- Añadida copia previa exacta y recuperable, incluida en errores posteriores al versionado, más diagnósticos para versiones futuras y cadenas incompletas.
+- Añadidos fixtures de proyecto v0/v1 y pruebas de migración, lectura actual, configuración del registry, fallo, restauración byte por byte y reintento; la suite alcanza 42/42 pruebas.

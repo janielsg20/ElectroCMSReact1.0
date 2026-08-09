@@ -1,6 +1,6 @@
 # Modelos de datos
 
-Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS y backend aceptados en `M02.3`; migraciones pendientes de `M02.4`.
+Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS/backend aceptados en `M02.3`; registry y recuperación aceptados en `M02.4`. F02 completada.
 
 ## Contrato implementado en M02.1
 
@@ -51,6 +51,19 @@ La semántica de relaciones es explícita: `1:1` limita ambos extremos a una ent
 Los diagnósticos cubren propietarios incoherentes, referencias ausentes, campos obligatorios, cronología, ciclos de términos, extremos y cardinalidades, predicados y órdenes incompatibles, controles y pasos inválidos, permisos rotos, ciclos de menú y pantallas que mezclan agregados de tipos diferentes.
 
 Este contrato modela y valida datos; no declara implementados los constructores visuales, ejecución de consultas, persistencia, autorización ni render del backend, que pertenecen a fases posteriores.
+
+## Contrato implementado en M02.4
+
+`src/domain/project/migrations.ts` mantiene un registry de pasos forward consecutivos. El primer paso soportado migra el fixture legado v0 al envelope v1 actual, incorporando `revision` y `metadata` sin alterar el payload.
+
+- Cada paso avanza exactamente una versión y no puede duplicar un origen.
+- Una versión futura produce `newer-version`; una cadena incompleta produce `missing-migration`.
+- El dato antiguo se valida antes de transformarse y el resultado se valida contra el schema actual antes de aceptarse.
+- Antes del primer paso se conserva una copia exacta del texto original; los errores posteriores transportan esa copia para recuperación.
+- La restauración devuelve byte por byte el origen y permite reintentar la migración.
+- Los fixtures `project-v0.json` y `project-v1.json` prueban migración, lectura actual, incompatibilidad, fallo y recuperación.
+
+El registry no escribe en almacenamiento: su integración transaccional con repositorios corresponde a F03.
 
 ## Agregados mínimos
 

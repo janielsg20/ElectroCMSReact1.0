@@ -1,0 +1,11 @@
+{
+  "format": "electrocms.project",
+  "schemaVersion": 0,
+  "projectId": "01989d97-41f0-7d62-a0b3-7f30e657ea38",
+  "name": "Proyecto legado",
+  "createdAt": "2026-08-09T20:40:00.000Z",
+  "updatedAt": "2026-08-09T20:40:00.000Z",
+  "payload": {
+    "title": "Inicio"
+  }
+}
