@@ -9,7 +9,7 @@ Actualizado: 2026-08-09.
 - Estado: `EN_CURSO`.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: commit `16d76f3` publicado; pipeline `31334792028` completo en verde; Cloudflare Pages sirve el manifest y Service Worker de M01.4 con HTTPS 200.
+- Última evidencia: commit `ea034f2` publicado; pipeline `31336177234` completo en verde; Cloudflare Pages responde HTTPS 200.
 
 ## Tablero compacto
 
@@ -61,6 +61,7 @@ Actualizado: 2026-08-09.
 - Completada: Zod 4.4.3 fijado exactamente y JSON Schema estricto generado desde la misma fuente.
 - Completada: validación de versión, propiedades desconocidas y cronología; serialización determinista y deserialización con errores tipados.
 - Completada: puerta local de M02.1 con lint, typecheck, 22/22 pruebas y build reproducible.
+- Completada: ejecución GitHub Actions `31336177234` con calidad, build y despliegue correctos para `ea034f2`.
 
 
 ## Plantilla de relevo

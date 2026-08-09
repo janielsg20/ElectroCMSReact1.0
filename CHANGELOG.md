@@ -37,3 +37,4 @@
 - Incorporado Zod 4.4.3 como dependencia exacta y fuente común para tipos, validación y JSON Schema estricto.
 - Añadida serialización JSON determinista con claves ordenadas, deserialización segura y errores tipados sin excepciones para entradas no confiables.
 - Añadidas pruebas de identidad, cronología, versiones incompatibles, propiedades desconocidas, determinismo, round-trip y JSON Schema.
+- Publicado `ea034f2`; GitHub Actions `31336177234` y el despliegue posterior a M02.1 finalizaron correctamente.
