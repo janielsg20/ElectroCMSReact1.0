@@ -48,3 +48,6 @@
 - Ampliados Button e Icon con variantes, tamaños y un catálogo SVG outline coherente; añadidos tokens de superficies, éxito y advertencia.
 - Verificada la UI en desktop, tablet, móvil y landscape sin overflow horizontal; búsqueda, tabs, tema y foco de sheets funcionan localmente.
 - Publicado `14a00e9`; GitHub Actions `31339361393` y el despliegue del prototipo UI en Cloudflare Pages finalizaron correctamente.
+- Cerrada `M02.3`: añadidos modelos normalizados y schemas estrictos para CPT, taxonomías, 27 tipos de campo, registros, relaciones, consultas, formularios, RBAC, usuarios, menús y pantallas backend.
+- Añadidos diagnósticos semánticos para propietarios, referencias cruzadas, campos obligatorios, jerarquías, consultas, formularios, permisos, menús y compatibilidad entre pantallas y contenido.
+- Probadas las cardinalidades 1:1, 1:N y N:N y los contratos JSON Schema; la suite alcanza 36/36 pruebas.

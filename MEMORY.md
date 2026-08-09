@@ -19,7 +19,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M01.4 — PWA y adaptadores de plataforma` completada; puerta G1 y F01 cerradas.
 - `M02.1 — Identidad y versionado` completada con envelope v1, Zod y serialización determinista.
 - `M02.2 — Documentos, nodos y propiedades responsive` completada con schemas estrictos, diagnósticos e herencia probada.
-- Fase activa: `F02 / M02.3 — Modelos CMS y backend`.
+- `M02.3 — Modelos CMS y backend` completada con schemas estrictos, referencias cruzadas y cardinalidades probadas.
+- Fase activa: `F02 / M02.4 — Migraciones`.
 - Por prioridad expresa del usuario se implementó anticipadamente un prototipo visual integral del editor; no equivale a cerrar F04–F07.
 
 ## Decisiones vigentes
@@ -32,7 +33,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Reanudar y cerrar `M02.3`: documentar y publicar los modelos ya iniciados de CPT, taxonomías, campos, registros, consultas, formularios, roles, menús y pantallas.
+Implementar `M02.4`: registry de migraciones exclusivamente forward, backup previo, diagnóstico de versiones incompatibles y recuperación probada con fixtures de al menos dos versiones.
 
 ## Riesgos abiertos
 
@@ -47,7 +48,7 @@ Reanudar y cerrar `M02.3`: documentar y publicar los modelos ya iniciados de CPT
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 28/28 pruebas.
+- `npm run test`: 36/36 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -64,6 +65,9 @@ Reanudar y cerrar `M02.3`: documentar y publicar los modelos ya iniciados de CPT
 - Modelo M02.2: documentos y componentes globales normalizados, nodos widget/instancia, slots, properties, styles, bindings, condiciones y overrides responsive.
 - Responsive: seis breakpoints base configurables con herencia acíclica; la resolución acumula overrides desde desktop hasta el breakpoint objetivo.
 - Integridad estructural: diagnósticos para claves/IDs, duplicados, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes y breakpoints.
+- Modelo M02.3: CPT, taxonomías/términos, 27 campos, registros, relaciones, consultas, formularios, RBAC, usuarios, menús y pantallas backend normalizados.
+- Integridad CMS: propietarios y referencias cruzadas coherentes, campos obligatorios, jerarquías, permisos, formularios, consultas y pantallas validados semánticamente.
+- Relaciones: fixtures y pruebas para 1:1, 1:N y N:N, pares duplicados y extremos incompatibles.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.

@@ -1,6 +1,6 @@
 # Modelos de datos
 
-Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS pendientes de `M02.3`.
+Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS y backend aceptados en `M02.3`; migraciones pendientes de `M02.4`.
 
 ## Contrato implementado en M02.1
 
@@ -33,6 +33,24 @@ La estructura persistente se define en `src/domain/project/structure-schema.ts` 
 - JSON Schema estricto generado desde el mismo schema Zod.
 
 La validación devuelve diagnósticos tipados y no corrige ni elimina datos silenciosamente. Detecta claves que no coinciden con sus IDs, IDs de nodo repetidos entre árboles, referencias ausentes, nodos huérfanos, padres múltiples, ciclos de nodos, bindings rotos, overrides sin breakpoint, componentes ausentes, recursión de componentes y ciclos de herencia responsive.
+
+## Contrato implementado en M02.3
+
+El modelo normalizado vive en `src/domain/project/cms-schema.ts` y su validación semántica en `src/domain/project/validate-cms.ts`.
+
+- CPT, taxonomías jerárquicas, términos, 27 tipos de campo, registros y estados de contenido.
+- Relaciones con entradas independientes y cardinalidades `one-to-one`, `one-to-many` y `many-to-many`.
+- Consultas guardadas con grupos de predicados, fuentes de datos, orden, límite, offset y paginación.
+- Formularios con controles, condiciones, pasos, acciones, borradores, protección CSRF y mensajes.
+- Roles, usuarios, capacidades y permisos por tipo de contenido y campo.
+- Menús jerárquicos y pantallas backend enlazables con contenido, consultas, formularios, documentos y roles.
+- IDs nominales para cada agregado, registros normalizados por ID y JSON Schema estricto generado desde Zod.
+
+La semántica de relaciones es explícita: `1:1` limita ambos extremos a una entrada; `1:N` permite varios destinos por origen pero un solo origen por destino; `N:N` permite múltiples entradas en ambos extremos. En todos los casos se rechazan pares duplicados y registros cuyo tipo no coincide con el extremo declarado.
+
+Los diagnósticos cubren propietarios incoherentes, referencias ausentes, campos obligatorios, cronología, ciclos de términos, extremos y cardinalidades, predicados y órdenes incompatibles, controles y pasos inválidos, permisos rotos, ciclos de menú y pantallas que mezclan agregados de tipos diferentes.
+
+Este contrato modela y valida datos; no declara implementados los constructores visuales, ejecución de consultas, persistencia, autorización ni render del backend, que pertenecen a fases posteriores.
 
 ## Agregados mínimos
 
