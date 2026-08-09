@@ -1,25 +1,31 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from './App'
 
 describe('App', () => {
-  it('identifica la pantalla como una fundación técnica sin simular módulos terminados', () => {
+  it('presenta el editor como prototipo visual sin habilitar publicación', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /base verificable de ElectroCMS/i })).toBeInTheDocument()
-    expect(screen.getByText(/no se presentan aquí como funciones terminadas/i)).toBeInTheDocument()
+    expect(screen.getByText(/prototipo UI/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /publicar/i })).toBeDisabled()
   })
 
-  it('declara que el producto se construye desde sus contratos canónicos', () => {
+  it('expone navegación, canvas y paneles con regiones semánticas', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 2, name: /desarrollo desde cero/i })).toBeInTheDocument()
-    expect(screen.getByText(/exclusivamente desde sus contratos y requisitos canónicos/i)).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: /navegación principal/i })).toBeInTheDocument()
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
+    expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toBeInTheDocument()
   })
 
-  it('expone las capacidades de calidad y despliegue como una lista semántica', () => {
+  it('expone una biblioteca de widgets filtrable', () => {
     render(<App />)
 
-    expect(screen.getByRole('list')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 3, name: 'Cloudflare Pages' })).toBeInTheDocument()
+    const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
+    const search = within(library).getByRole('searchbox', { name: /buscar elementos/i })
+    expect(search).toBeInTheDocument()
+    expect(within(library).getByRole('button', { name: /contenedor/i })).toBeInTheDocument()
+    fireEvent.change(search, { target: { value: 'Formulario' } })
+    expect(within(library).queryByRole('button', { name: /contenedor/i })).not.toBeInTheDocument()
+    expect(within(library).getByRole('button', { name: /formulario/i })).toBeInTheDocument()
   })
 })

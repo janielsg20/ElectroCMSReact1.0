@@ -1,5 +1,5 @@
-import { FoundationScreen } from './editor-ui/foundation/FoundationScreen'
+import { EditorShell } from './editor-ui/editor/EditorShell'
 
 export function App() {
-  return <FoundationScreen />
+  return <EditorShell />
 }

@@ -17,6 +17,9 @@
   --color-destructive: #b91c1c;
   --color-on-destructive: #ffffff;
   --color-focus: #7c3aed;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-elevated: #ffffff;
 
   --shadow-sm: 0 1px 2px rgb(46 16 101 / 0.08);
   --shadow-md: 0 6px 18px rgb(46 16 101 / 0.12);
@@ -53,6 +56,9 @@
   --color-destructive: #f87171;
   --color-on-destructive: #2b0a0a;
   --color-focus: #c4b5fd;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-elevated: #281a38;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -71,6 +77,9 @@
     --color-destructive: #f87171;
     --color-on-destructive: #2b0a0a;
     --color-focus: #c4b5fd;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-elevated: #281a38;
   }
 }
 
@@ -116,6 +125,52 @@ button,
 ::selection {
   background: var(--color-primary-soft);
   color: var(--color-primary-strong);
+}
+
+.editor-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 4rem minmax(0, 1fr);
+}
+
+.bg-editor-grid {
+  background-color: var(--color-muted);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border) 35%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 35%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@media (min-width: 48rem) {
+  .editor-shell {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    grid-template-rows: 4rem minmax(0, 1fr) 1.75rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .editor-shell {
+    grid-template-columns: 4.5rem minmax(0, 1fr) 21rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .editor-shell {
+    grid-template-columns: 4.5rem 18.5rem minmax(26rem, 1fr) 21rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .editor-shell {
+    grid-template-columns: 4.5rem 20rem minmax(32rem, 1fr) 23rem;
+  }
+}
+
+@supports (scrollbar-color: auto) {
+  * {
+    scrollbar-color: var(--color-border) transparent;
+    scrollbar-width: thin;
+  }
 }
 
 .skip-link {

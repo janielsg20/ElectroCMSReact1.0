@@ -43,3 +43,7 @@
 - Añadida resolución de estado responsive por cadena de herencia y diagnósticos tipados para referencias rotas, huérfanos, padres múltiples y ciclos estructurales.
 - Añadidas pruebas de invariantes, componentes recursivos, bindings rotos, herencia y JSON Schema; la suite alcanza 28/28 pruebas.
 - Publicado `f987869`; GitHub Actions `31337310722` y el despliegue de M02.2 en Cloudflare Pages finalizaron correctamente.
+- Añadido por petición expresa un prototipo visual anticipado de la interfaz final de ElectroCMS sin declarar completos los motores funcionales posteriores.
+- Implementados header, rail principal, biblioteca de widgets, árbol de capas, canvas responsive, inspector de propiedades, status bar y navegación móvil con sheets.
+- Ampliados Button e Icon con variantes, tamaños y un catálogo SVG outline coherente; añadidos tokens de superficies, éxito y advertencia.
+- Verificada la UI en desktop, tablet, móvil y landscape sin overflow horizontal; búsqueda, tabs, tema y foco de sheets funcionan localmente.

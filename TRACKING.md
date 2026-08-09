@@ -7,6 +7,7 @@ Actualizado: 2026-08-09.
 - Fase actual: `F02 — Modelo canónico, esquemas y migraciones`.
 - Microfase actual: `M02.3 — Modelos CMS y backend`.
 - Estado: `EN_CURSO`.
+- Entrega anticipada solicitada: prototipo visual integral del editor completado sin cerrar las fases funcionales F04–F07; M02.3 continúa siendo la microfase activa.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
 - Última evidencia: commit `f987869` publicado; pipeline `31337310722` completo en verde; Cloudflare Pages responde HTTPS 200.
@@ -68,6 +69,10 @@ Actualizado: 2026-08-09.
 - Completada: puerta local de M02.2 con lint, typecheck, 28/28 pruebas y build Vite reproducible.
 - Completada: ejecución GitHub Actions `31337310722` con calidad, 28/28 pruebas, build y despliegue correctos para `f987869`.
 - Completada: producción verificada tras M02.2 en `https://electrocms-react.pages.dev/` con HTTPS 200.
+- Completada: prototipo UI del editor con header, rail, biblioteca, capas, canvas, inspector, status bar, navegación móvil y sheets accesibles.
+- Completada: búsqueda de widgets, pestañas, selector de viewport, modo oscuro y apertura/cierre de sheets como interacciones reales del prototipo.
+- Completada: validación browser en 320, 375, 768, 1024, 1440 y landscape 812 × 375 sin overflow horizontal ni errores de consola.
+- No completada por este prototipo: publicación, historial, mutaciones del documento, rutas y módulos CMS; permanecen deshabilitados o etiquetados como planificados.
 
 
 ## Plantilla de relevo

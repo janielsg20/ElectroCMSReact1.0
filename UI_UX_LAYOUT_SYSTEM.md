@@ -1,5 +1,7 @@
 # Sistema de layout UI/UX — ElectroCMS
 
+Estado de implementación: existe un prototipo visual anticipado en `src/editor-ui/editor/`. Representa la composición objetivo y sus adaptaciones, pero no cierra las fases funcionales F04–F07.
+
 ## Decisión de producto
 
 ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarquía funcional se conserva en todos los tamaños; solo cambia el contenedor que la presenta.
@@ -66,6 +68,14 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Drag, resize y reordenar tienen alternativa de una sola activación y teclado.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
 
+## Prototipo anticipado implementado
+
+- Desktop: header, rail, biblioteca/capas, canvas, inspector y barra de estado.
+- Tablet: rail, canvas prioritario e inspector persistente a partir de 1024 px.
+- Móvil: canvas prioritario, dock de cinco destinos y paneles como bottom sheets.
+- Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
+- Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
+
 ## Fuentes
 
 - UI/UX Pro Max: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
@@ -75,4 +85,3 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - WAI-ARIA APG Patterns: https://www.w3.org/WAI/ARIA/apg/patterns/
 - Tailwind responsive design y container queries: https://tailwindcss.com/docs/responsive-design
 - MDN container queries: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Containment/Container_queries
-

@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'destructive'
+type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost'
+type ButtonSize = 'small' | 'medium' | 'icon'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly variant?: ButtonVariant
   readonly isLoading?: boolean
   readonly loadingLabel?: string
+  readonly size?: ButtonSize
   readonly children: ReactNode
 }
 
@@ -13,12 +15,20 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary: 'border-primary bg-primary text-on-primary hover:bg-primary-strong',
   secondary: 'border-border bg-surface text-foreground hover:bg-muted',
   destructive: 'border-destructive bg-destructive text-on-destructive hover:opacity-90',
+  ghost: 'border-transparent bg-transparent text-foreground hover:bg-muted',
+}
+
+const sizeClasses: Record<ButtonSize, string> = {
+  small: 'min-h-11 px-3 py-2 text-sm',
+  medium: 'min-h-11 px-4 py-2',
+  icon: 'size-11 shrink-0 p-0',
 }
 
 export function Button({
   variant = 'primary',
   isLoading = false,
   loadingLabel = 'Procesando',
+  size = 'medium',
   className = '',
   disabled,
   children,
@@ -29,7 +39,7 @@ export function Button({
     <button
       {...props}
       aria-busy={isLoading || undefined}
-      className={`inline-flex min-h-11 cursor-pointer touch-manipulation items-center justify-center gap-2 rounded-lg border px-4 py-2 font-semibold transition-[background-color,color,border-color,opacity,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-45 ${variantClasses[variant]} ${className}`}
+      className={`inline-flex cursor-pointer touch-manipulation items-center justify-center gap-2 rounded-lg border font-semibold transition-[background-color,color,border-color,opacity,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-45 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       disabled={disabled || isLoading}
       type={type}
     >
