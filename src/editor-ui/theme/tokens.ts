@@ -64,5 +64,38 @@ export const bentoColorThemes = {
   },
 } as const
 
+export const flowColorThemes = {
+  light: {
+    canvas: '#f5f7fb',
+    surface: '#ffffff',
+    foreground: '#20242d',
+    muted: '#f1f3f7',
+    mutedForeground: '#667085',
+    border: '#e1e5eb',
+    primary: '#6c5ce7',
+    primaryStrong: '#5746d7',
+    primarySoft: '#f0edff',
+    onPrimary: '#ffffff',
+    destructive: '#c43232',
+    onDestructive: '#ffffff',
+    focus: '#6c5ce7',
+  },
+  dark: {
+    canvas: '#11131a',
+    surface: '#191c24',
+    foreground: '#f4f5f7',
+    muted: '#222630',
+    mutedForeground: '#aeb6c5',
+    border: '#313744',
+    primary: '#a89cf7',
+    primaryStrong: '#c4bcff',
+    primarySoft: '#2a2548',
+    onPrimary: '#171126',
+    destructive: '#ff7b7b',
+    onDestructive: '#2b0b0b',
+    focus: '#b9afff',
+  },
+} as const
+
 export type ThemeMode = keyof typeof colorThemes
 export type ColorToken = keyof (typeof colorThemes)['light']
