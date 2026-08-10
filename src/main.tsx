@@ -5,6 +5,7 @@ import { App } from './App'
 import { registerElectroCmsServiceWorker } from './infrastructure/pwa/register-service-worker'
 import './styles.css'
 import './professional-ui.css'
+import './professional-ui-v2.css'
 
 const rootElement = document.getElementById('root')
 
