@@ -102,7 +102,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Escala compacta: padding/gap de 4–8 px, radios pequeños y ausencia de márgenes decorativos amplios en el chrome del editor; el espacio del canvas se conserva como área de trabajo.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
-- Publicación UI vigente: densidad minimalista integral en commit `a6c13c7`, ejecución `31419886499` verde y producción HTTPS 200 con `index-B09363my.js`.
+- Publicación UI vigente: auditoría high-density en commit `dfd64c7`, ejecución `31431938727` verde y producción HTTPS 200 con `index-q6ZcTbfS.js`.
 
 ## Punteros
 
