@@ -19,7 +19,6 @@ export type IconName =
   | 'layers'
   | 'lock'
   | 'menu'
-  | 'maximize'
   | 'minus'
   | 'mobile'
   | 'moon'
@@ -31,7 +30,6 @@ export type IconName =
   | 'plus'
   | 'redo'
   | 'resize'
-  | 'restore'
   | 'search'
   | 'settings'
   | 'sparkles'
@@ -47,7 +45,7 @@ export type IconName =
 export interface IconProps {
   readonly name: IconName
   readonly label?: string
-  readonly size?: 14 | 16 | 18 | 20 | 24
+  readonly size?: number
   readonly className?: string
 }
 
@@ -72,7 +70,6 @@ const paths: Record<IconName, string> = {
   layers: 'm12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5',
   lock: 'M6 10h12v10H6zM8 10V7a4 4 0 0 1 8 0v3',
   menu: 'M4 6h16M4 12h16M4 18h16',
-  maximize: 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5',
   minus: 'M5 12h14',
   mobile: 'M7 2h10v20H7zM11 18h2',
   moon: 'M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5z',
@@ -84,7 +81,6 @@ const paths: Record<IconName, string> = {
   plus: 'M12 5v14M5 12h14',
   redo: 'M20 7h-7a6 6 0 0 0-6 6v4m13-10-4-4m4 4-4 4',
   resize: 'M8 20 20 8M14 20l6-6M18 20l2-2',
-  restore: 'M7 7V4h13v13h-3M4 7h13v13H4z',
   search: 'm21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z',
   settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4.9 4.9l2 2M17.1 17.1l2 2M19.1 4.9l-2 2M6.9 17.1l-2 2M2 12h3M19 12h3M12 2v3M12 19v3',
   sparkles: 'm12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4zM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z',

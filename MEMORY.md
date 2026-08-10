@@ -27,13 +27,13 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M03.3 — Guardado incremental y recuperación` completada con debounce, snapshots, journal y reapertura recuperable.
 - Fase activa: `F03 / M03.4 — Command bus e historial`; todavía no implementada.
 - Por prioridad expresa del usuario se rediseñó anticipadamente el editor usando únicamente la imagen adjunta autorizada; no equivale a cerrar F04–F07.
-- El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar, desacoplar, mover, redimensionar, minimizar, maximizar, fijar, restaurar y cerrar, con equivalentes de teclado.
+- El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar a izquierda/derecha/rail, desacoplar, mover, redimensionar, minimizar en pestañas verticales, fijar, restaurar y cerrar, con equivalentes de teclado. Maximizar fue eliminado por decisión expresa del usuario.
 
 ## Decisiones vigentes
 
 - Núcleo web local-first/PWA; envolturas desktop y móvil desacopladas.
 - Dominio y modelo canónico independientes de React/Tailwind.
-- Layout adaptativo: rail + biblioteca + canvas + inspector desde 1024 px; biblioteca e inspector son colapsables, redimensionables y convertibles en ventanas; tablet usa overlays y móvil usa sheets.
+- Layout adaptativo: rail redimensionable 44–168 px + biblioteca + canvas + inspector desde 1024 px; biblioteca e inspector son colapsables, redimensionables y acoplables por arrastre; tablet usa overlays y móvil usa sheets.
 - Densidad adaptativa: header/toolbar de 40 px, rail de 44 px, controles y filas de 32 px en escritorio; targets táctiles de 44 px en tablet/móvil.
 - WCAG 2.2 AA como objetivo verificable.
 - Todo drag-and-drop tendrá alternativa por clic y teclado.
@@ -55,9 +55,9 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 76/76 pruebas.
+- `npm run test`: 78/78 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
-- UI high-density: Inter Variable local, ventanas con acciones completas, movimiento/resize por puntero y teclado, acentos semánticos azul/violeta/cian/verde/ámbar/rojo y movimiento reducido.
+- UI high-density: Inter Variable local; fuentes de menú de 9 px y títulos de panel de 10 px; movimiento, resize y dock por puntero/teclado; acentos azul/violeta/cian/verde/ámbar/rojo y movimiento reducido.
 - Browser local: composición desktop y navegación móvil revisadas visualmente; bottom sheet y modo oscuro conservan jerarquía, legibilidad y foco accesible.
 - Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal ni errores de consola. Paneles desktop colapsables y redimensionables por puntero/teclado; 36 px solo en desktop y 44 px en superficies touch.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).

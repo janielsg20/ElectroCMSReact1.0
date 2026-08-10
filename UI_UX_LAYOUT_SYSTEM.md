@@ -11,13 +11,14 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 ### Desktop/laptop horizontal — desde 1024 px
 
 - Header y toolbar superior persistentes de 40 px.
-- Rail de navegación de alta densidad: 44 px colapsado con etiquetas accesibles.
+- Rail de navegación de alta densidad: 44 px colapsado y 44–168 px redimensionable; desde 96 px muestra etiquetas compactas junto a los iconos.
 - Panel izquierdo contextual de 192 px por defecto para páginas, capas o componentes; rango 168–280 px.
 - Canvas central flexible con mínimo útil y zoom independiente.
 - Inspector derecho de 224 px por defecto; rango 216–320 px.
 - Status bar de 24 px para sincronización, selección y diagnóstico.
-- Los paneles se redimensionan y colapsan de forma independiente. La persistencia del workspace se implementará en su microfase funcional; no se simula.
+- Los paneles se redimensionan, desacoplan y acoplan de forma independiente a izquierda, derecha o rail. Soltar en el rail los minimiza como pestañas verticales de borde; la persistencia del workspace se implementará en su microfase funcional y no se simula.
 - Los separadores admiten arrastre por puntero y teclado: flechas en pasos de 16 px, `Home` al mínimo y `End` al máximo, con valores ARIA expuestos.
+- El rail usa el mismo patrón de resize accesible. Los paneles flotantes muestran destinos de dock durante el arrastre y ofrecen botones equivalentes; maximizar no forma parte del sistema.
 
 ### Tablet — 768 a 1023 px
 
@@ -77,7 +78,7 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
 - Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
-- Paneles desktop habilitados: colapso independiente y resize por puntero o teclado dentro de límites explícitos.
+- Paneles desktop habilitados: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, cierre y restauración por puntero o teclado dentro de límites explícitos.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
 - Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 32 px en desktop y 44 px en tablet/móvil.
 

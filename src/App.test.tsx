@@ -84,9 +84,9 @@ describe('App', () => {
     expect(floatingPanel).toHaveStyle({ width: '268px' })
 
     const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
-    firePointer(moveHandle, 'pointerdown', 100, 100)
-    firePointer(window, 'pointermove', 120, 112)
-    firePointer(window, 'pointerup', 120, 112)
+    firePointer(moveHandle, 'pointerdown', 500, 100)
+    firePointer(window, 'pointermove', 520, 112)
+    firePointer(window, 'pointerup', 520, 112)
     expect(floatingPanel).toHaveStyle({ left: '96px', top: '76px' })
 
     const resizeHandle = screen.getByRole('button', { name: /redimensionar ventana páginas y capas/i })
@@ -101,23 +101,56 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /minimizar páginas y capas/i }))
     expect(screen.queryByRole('region', { name: /páginas y capas · flotante/i })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /restaurar páginas y capas/i }))
+    const edgeTab = screen.getByRole('button', { name: /restaurar páginas y capas/i })
+    expect(edgeTab).toHaveClass('panel-edge-tab', 'flex-1')
+    fireEvent.click(edgeTab)
     expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
   })
 
-  it('maximiza, restaura, acopla y cierra paneles sin depender del arrastre', () => {
+  it('acopla paneles a ambos lados o a la barra sin ofrecer maximización', () => {
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /maximizar inspector/i }))
-    expect(screen.getByRole('region', { name: /inspector · maximizado/i })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /restaurar inspector/i }))
+    expect(screen.queryByRole('button', { name: /maximizar/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /desacoplar inspector/i }))
+    fireEvent.click(screen.getByRole('button', { name: /acoplar inspector a la izquierda/i }))
     expect(screen.getByRole('region', { name: /inspector · acoplado/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /desacoplar inspector/i }))
-    fireEvent.click(screen.getByRole('button', { name: /acoplar inspector/i }))
-    expect(screen.getByRole('region', { name: /inspector · acoplado/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /acoplar inspector a la barra lateral/i }))
+    expect(screen.getByRole('button', { name: /restaurar inspector/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /restaurar inspector/i }))
+    expect(screen.getByRole('region', { name: /inspector · flotante/i })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /cerrar inspector/i }))
     expect(screen.queryByRole('complementary', { name: /inspector de propiedades/i })).not.toBeInTheDocument()
+  })
+
+  it('redimensiona y expande la barra lateral mostrando etiquetas compactas', () => {
+    render(<App />)
+
+    const separator = screen.getByRole('separator', { name: /redimensionar menú lateral/i })
+    expect(separator).toHaveAttribute('aria-valuenow', '44')
+    fireEvent.keyDown(separator, { key: 'End' })
+    expect(separator).toHaveAttribute('aria-valuenow', '168')
+    expect(screen.getByRole('button', { name: /contraer menú lateral/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /contraer menú lateral/i }))
+    expect(screen.getByRole('button', { name: /expandir menú lateral/i })).toBeInTheDocument()
+    firePointer(separator, 'pointerdown', 100, 100)
+    firePointer(window, 'pointermove', 132, 100)
+    firePointer(window, 'pointerup', 132, 100)
+    expect(separator).toHaveAttribute('aria-valuenow', '76')
+  })
+
+  it('acopla por arrastre al borde derecho y mantiene alternativa por botones', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
+    const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
+    firePointer(moveHandle, 'pointerdown', 500, 100)
+    firePointer(window, 'pointermove', window.innerWidth - 20, 140)
+    expect(screen.getByText(/acoplar a la derecha/i)).toBeInTheDocument()
+    firePointer(window, 'pointerup', window.innerWidth - 20, 140)
+    expect(screen.getByRole('region', { name: /páginas y capas · acoplado/i })).toBeInTheDocument()
   })
 })

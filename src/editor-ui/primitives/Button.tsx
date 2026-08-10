@@ -19,8 +19,8 @@ const variantClasses: Record<ButtonVariant, string> = {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  small: 'min-h-11 px-3 py-2 text-sm lg:min-h-8 lg:px-2 lg:py-0.5 lg:text-xs',
-  medium: 'min-h-11 px-4 py-2 lg:min-h-8 lg:px-2.5 lg:py-0.5 lg:text-sm',
+  small: 'min-h-11 px-3 py-2 text-xs lg:min-h-8 lg:px-1.5 lg:py-0.5 lg:text-[0.625rem]',
+  medium: 'min-h-11 px-4 py-2 text-xs lg:min-h-8 lg:px-2 lg:py-0.5 lg:text-[0.6875rem]',
   icon: 'size-11 shrink-0 p-0 lg:size-8',
 }
 
@@ -39,7 +39,7 @@ export function Button({
     <button
       {...props}
       aria-busy={isLoading || undefined}
-      className={`inline-flex cursor-pointer touch-manipulation items-center justify-center gap-2 rounded-md border font-semibold transition-[background-color,color,border-color,opacity,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-45 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex cursor-pointer touch-manipulation items-center justify-center gap-1 rounded-md border font-semibold transition-[background-color,color,border-color,opacity,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-45 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       disabled={disabled || isLoading}
       type={type}
     >
