@@ -1,0 +1,219 @@
+/*
+ * ElectroCMS — professional UI refinement, pass 5
+ * Micro-UX: contextual hints, selection feedback, empty states and compact
+ * interaction affordances without changing the editor's functional scope.
+ */
+
+:root {
+  --ui-tooltip-bg: #151922;
+  --ui-tooltip-fg: #ffffff;
+  --ui-tooltip-shadow: 0 6px 18px rgb(15 23 42 / 0.18);
+}
+
+:root[data-theme="dark"] {
+  --ui-tooltip-bg: #f3f5f7;
+  --ui-tooltip-fg: #111827;
+  --ui-tooltip-shadow: 0 8px 22px rgb(0 0 0 / 0.34);
+}
+
+/* ---------- Contextual tooltips ---------- */
+[data-tooltip] {
+  position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-tooltip]::before,
+  [data-tooltip]::after {
+    position: absolute;
+    z-index: 120;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms var(--ease-standard), transform 120ms var(--ease-standard), visibility 120ms;
+  }
+
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    inset-block-start: calc(100% + 0.4rem);
+    inset-inline-start: 50%;
+    max-width: min(15rem, 60vw);
+    transform: translate(-50%, -2px);
+    overflow-wrap: anywhere;
+    border-radius: var(--ui-radius-md, 0.375rem);
+    background: var(--ui-tooltip-bg);
+    box-shadow: var(--ui-tooltip-shadow);
+    color: var(--ui-tooltip-fg);
+    padding: 0.25rem 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  [data-tooltip]::before {
+    content: "";
+    inset-block-start: calc(100% + 0.15rem);
+    inset-inline-start: 50%;
+    width: 0.45rem;
+    height: 0.45rem;
+    transform: translate(-50%, -2px) rotate(45deg);
+    border-radius: 1px;
+    background: var(--ui-tooltip-bg);
+  }
+
+  [data-tooltip]:hover::before,
+  [data-tooltip]:hover::after,
+  [data-tooltip]:focus-visible::before,
+  [data-tooltip]:focus-visible::after,
+  [data-tooltip]:focus-within::before,
+  [data-tooltip]:focus-within::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [data-tooltip]:hover::after,
+  [data-tooltip]:focus-visible::after,
+  [data-tooltip]:focus-within::after {
+    transform: translate(-50%, 0);
+  }
+
+  [data-tooltip]:hover::before,
+  [data-tooltip]:focus-visible::before,
+  [data-tooltip]:focus-within::before {
+    transform: translate(-50%, 0) rotate(45deg);
+  }
+}
+
+/* ---------- Canvas context ---------- */
+.canvas-breadcrumb {
+  max-width: min(18rem, 25vw);
+  overflow: hidden;
+}
+
+.canvas-breadcrumb ol,
+.canvas-breadcrumb li {
+  min-width: 0;
+}
+
+.canvas-breadcrumb li[aria-current="page"] {
+  color: var(--color-foreground);
+}
+
+.canvas-zoom-status {
+  min-width: 2.75rem;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: center;
+}
+
+.canvas-selection-chip {
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+  letter-spacing: 0;
+}
+
+.canvas-selection-chip svg {
+  flex: none;
+}
+
+/* The selected element gets a cleaner professional focus contour. */
+.canvas-scroll .outline-blue-500 {
+  outline-width: 1px;
+  outline-offset: 3px;
+  outline-color: color-mix(in srgb, var(--color-primary) 84%, #ffffff);
+}
+
+/* ---------- Widget search feedback ---------- */
+.widget-empty-state {
+  min-height: 9rem;
+  border-color: color-mix(in srgb, var(--color-border) 86%, transparent);
+  background: color-mix(in srgb, var(--color-muted) 44%, var(--color-surface));
+}
+
+.widget-empty-state > span:first-child {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.widget-empty-state button {
+  box-shadow: none;
+}
+
+#library-panel-widgets input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* ---------- Disabled and planned feedback ---------- */
+.editor-shell button:disabled {
+  position: relative;
+}
+
+.editor-shell button:disabled svg {
+  opacity: 0.72;
+}
+
+.app-navigation .nav-option:disabled,
+.canvas-toolbar button:disabled,
+.app-topbar button:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------- Selection/state clarity ---------- */
+#library-panel-layers [role="treeitem"][aria-selected="true"] button {
+  position: relative;
+}
+
+#library-panel-layers [role="treeitem"][aria-selected="true"] button::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.32rem;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.canvas-toolbar button[aria-pressed="true"],
+.theme-choice[aria-checked="true"],
+.library-panel [role="tab"][aria-selected="true"],
+.inspector-panel [role="tab"][aria-selected="true"] {
+  isolation: isolate;
+}
+
+/* ---------- Dock feedback ---------- */
+.dock-guide .dock-preview-zone {
+  transition: background-color 120ms var(--ease-standard), border-color 120ms var(--ease-standard), opacity 120ms var(--ease-standard);
+}
+
+.dock-guide .dock-preview-zone:not(.dock-preview-zone--active) {
+  opacity: 0.72;
+}
+
+.dock-guide .dock-preview-zone--active {
+  opacity: 1;
+}
+
+/* ---------- Responsive tooltip/collision rules ---------- */
+@media (max-width: 79.99rem) {
+  .canvas-breadcrumb {
+    display: none;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .canvas-selection-chip {
+    max-width: calc(100% - 0.5rem);
+  }
+
+  .widget-empty-state {
+    min-height: 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tooltip]::before,
+  [data-tooltip]::after,
+  .dock-guide .dock-preview-zone {
+    transition: none !important;
+  }
+}
