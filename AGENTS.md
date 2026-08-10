@@ -9,10 +9,13 @@ Estas reglas son obligatorias para cualquier IA que trabaje en ElectroCMS.
 3. Lee la fase activa en `DETAILED_EXECUTION_PHASES.md`.
 4. Lee solo los documentos de dominio enlazados por esa microfase.
 5. Consulta `PROMPT_MAESTRO_ELECTROCMS.md` únicamente para validar alcance o resolver ambigüedad.
+6. Consulta `FLUTTERFLOW_PARITY_ADDENDUM.md` únicamente si la tarea cae en F19–F31 o si necesitas comprobar un `PARITY_GAP`.
 
 ## Fuente de verdad
 
-- Alcance: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Alcance ampliado visual-builder: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
+- Trazabilidad: `REQUIREMENTS.md`.
 - Reglas de ejecución: `RULES.md`.
 - Estado actual: `TRACKING.md`.
 - Memoria breve: `MEMORY.md`.
@@ -28,13 +31,16 @@ Estas reglas son obligatorias para cualquier IA que trabaje en ElectroCMS.
 - Después de verificar, actualiza `TRACKING.md`, `MEMORY.md` y `CHANGELOG.md` en la misma entrega.
 - Si falta información, marca `BLOQUEADA`; no inventes contratos, estados ni funciones terminadas.
 - No avances si los criterios de salida de la microfase no se cumplen.
+- F19–F31 no se activan solo porque ya estén documentadas; deben respetar dependencias y el orden real del proyecto.
 
 ## Integridad
 
-- No elimines requisitos del prompt maestro.
+- No elimines requisitos del prompt maestro ni del Addendum.
 - No presentes placeholders, mocks permanentes o botones inertes como funciones completas.
 - Conserva compatibilidad de esquemas mediante versiones y migraciones.
 - Toda función visual debe ser usable con teclado, puntero y touch cuando aplique.
 - Todo drag-and-drop debe tener alternativa sin arrastre.
 - Nunca guardes secretos o contraseñas en texto plano.
-
+- No dupliques Selection Manager, State Manager, Action Flow, History, DataProvider, Auth o exportadores si ya existe un contrato equivalente.
+- Toda mutación AI o Action Flow que afecte el proyecto debe pasar por contratos y Command Bus cuando corresponda.
+- Una capacidad tipo FlutterFlow ausente se registra `PARITY_GAP`; no se improvisa fuera de fase.
