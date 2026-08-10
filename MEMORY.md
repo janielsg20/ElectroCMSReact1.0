@@ -29,6 +29,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - Por prioridad expresa del usuario se rediseñó anticipadamente el editor usando únicamente la imagen adjunta autorizada; no equivale a cerrar F04–F07.
 - El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar a izquierda/derecha/rail, desacoplar, mover, redimensionar, minimizar en pestañas verticales, fijar y restaurar, con equivalentes de teclado. Cerrar y maximizar fueron eliminados por decisión expresa del usuario.
 - Auditoría UI integral 2026-08-10: paneles flex con scroll interno correcto, cero overflow en 320/375/768/1024/1440/812×375, tabs y selección con ARIA enlazada, formularios numéricos accesibles, drag con umbral de 4 px y paleta azul sincronizada entre CSS, tokens TypeScript, manifest e icono PWA.
+- Tema visual alternativo `Bento Motion`: seleccionable desde Ajustes de apariencia en header, conserva Studio, usa módulos Bento neutrales con azul de marca, claro/oscuro, Lottie local lazy sin loop, `prefers-reduced-motion` y targets 44 px en touch. Especificación: `design-system/electrocms/pages/bento-motion.md`.
 
 ## Decisiones vigentes
 

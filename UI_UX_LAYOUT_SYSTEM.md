@@ -82,6 +82,7 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito. Texto de controles, tabs, páginas, árbol e inspector a 12 px.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
 - Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 32 px en desktop y 44 px en tablet/móvil.
+- Tema alternativo seleccionable `Bento Motion`: base neutral, azul de marca, paneles/secciones modulares, Lottie local diferido y movimiento adaptativo. Especificación en `design-system/electrocms/pages/bento-motion.md`.
 
 ## Fuentes
 

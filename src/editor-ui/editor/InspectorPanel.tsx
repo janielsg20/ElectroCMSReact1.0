@@ -30,7 +30,7 @@ function SectionTitle({ children, icon = 'settings' }: { readonly children: Reac
 
 export function InspectorPanel({ activeTab, onTabChange, className = '' }: InspectorPanelProps) {
   return (
-    <aside aria-label="Inspector de propiedades" className={`flex min-h-0 flex-col border-l border-border bg-surface ${className}`}>
+    <aside aria-label="Inspector de propiedades" className={`inspector-panel flex min-h-0 flex-col border-l border-border bg-surface ${className}`}>
       <div className="grid shrink-0 grid-cols-3 gap-px border-b border-border bg-border p-1.5 lg:p-1" role="tablist" aria-label="Propiedades">
         {tabs.map((tab) => <button aria-controls="inspector-active-panel" aria-selected={activeTab === tab.id} className={`flex min-h-11 cursor-pointer items-center justify-center gap-0.5 rounded border-b-2 px-0.5 text-xs font-semibold transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === tab.id ? 'border-primary bg-primary-soft text-primary-strong shadow-sm' : 'border-transparent bg-surface text-foreground hover:bg-primary-soft hover:text-primary-strong'}`} id={`inspector-tab-${tab.id}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button"><Icon name={tab.icon} size={11} />{tab.label}</button>)}
       </div>

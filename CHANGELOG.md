@@ -2,6 +2,12 @@
 
 ## 2026-08-10
 
+- Añadido `Bento Motion` como segundo tema seleccionable desde Ajustes de apariencia en el header, conservando intacto el tema Studio.
+- Transformados header, rail, canvas, paneles, secciones del inspector, widgets, dock y sheets en un sistema Bento neutral, limpio y modular con resaltados azules y temas claro/oscuro.
+- Incorporado un icono Lottie local cargado de forma diferida, sin loop continuo y con autoplay desactivado bajo `prefers-reduced-motion`; el runtime usa el player light para reducir el chunk de 82.71 a 51.98 kB gzip y eliminar `eval` del build.
+- Añadidas transiciones de 200–280 ms, entrada escalonada de tarjetas, respuesta animada de SVG y estados hover/active/focus sin desplazar el layout.
+- Implementado selector accesible mediante dialog/radiogroup, click/touch, flechas, `Home`, `End` y `Escape`, con restauración de foco y reflow correcto a 320 px.
+- Verificados 320, 375, 768, 1024, 1440 y 812 × 375, temas claro/oscuro, Lottie, sheets, targets touch, consola sin errores, contraste automático, lint, typecheck, 86/86 pruebas y build.
 - Completada una auditoría integral del editor high-density: layout, paneles, botones, formularios, tipografía, color, responsive, modo oscuro, accesibilidad e interacciones.
 - Corregido el recorte vertical de biblioteca e inspector en sheets móviles mediante estructura flex y scroll interno; eliminado también el overflow horizontal del selector de alineación a 320 px.
 - Enlazadas pestañas y paneles con `id`, `aria-controls` y `aria-labelledby`; añadidos estados semánticos a página/capa seleccionadas, inputs de espaciado numéricos y muestra de color identificable.

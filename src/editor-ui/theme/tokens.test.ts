@@ -1,4 +1,4 @@
-import { colorThemes } from './tokens'
+import { bentoColorThemes, colorThemes } from './tokens'
 
 function relativeLuminance(hex: string): number {
   const channels = hex.slice(1).match(/.{2}/g)
@@ -19,7 +19,7 @@ function contrastRatio(first: string, second: string): number {
 }
 
 describe('tokens de color', () => {
-  it.each(Object.entries(colorThemes))('%s mantiene contraste AA en pares de texto', (_mode, colors) => {
+  it.each([...Object.entries(colorThemes).map(([mode, colors]) => [`studio-${mode}`, colors] as const), ...Object.entries(bentoColorThemes).map(([mode, colors]) => [`bento-${mode}`, colors] as const)])('%s mantiene contraste AA en pares de texto', (_mode, colors) => {
     expect(contrastRatio(colors.foreground, colors.canvas)).toBeGreaterThanOrEqual(4.5)
     expect(contrastRatio(colors.foreground, colors.surface)).toBeGreaterThanOrEqual(4.5)
     expect(contrastRatio(colors.mutedForeground, colors.surface)).toBeGreaterThanOrEqual(4.5)

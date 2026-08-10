@@ -18,6 +18,8 @@ Actualizado: 2026-08-10.
 
 ## Tablero compacto
 
+- Tema alternativo Bento Motion solicitado `COMPLETADA`: selector accesible en header, superficies neutras, jerarquía Bento, Lottie local diferido y optimizado, transiciones adaptativas, claro/oscuro y responsive 320–1440 px; lint, typecheck, 86/86 pruebas y build verdes; no modifica el estado de `M03.4`.
+
 | Fase | Estado | Evidencia requerida para cerrar |
 |---|---|---|
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |

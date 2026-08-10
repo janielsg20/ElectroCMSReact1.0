@@ -12,11 +12,11 @@ interface AppNavigationProps {
 
 export function AppNavigation({ expanded, width, onToggleExpanded, onResizePointerDown, onResizeKeyDown }: AppNavigationProps) {
   return (
-    <nav aria-label="Navegación principal" className="relative hidden min-h-0 border-r border-border bg-surface md:block">
+    <nav aria-label="Navegación principal" className="app-navigation relative hidden min-h-0 border-r border-border bg-surface md:block">
       <div className="flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className={`flex h-7 shrink-0 items-center px-1 ${expanded ? 'justify-between' : 'justify-center'}`}>
+        <div className={`flex h-12 shrink-0 items-center lg:h-7 lg:px-1 ${expanded ? 'justify-between' : 'justify-center'}`}>
           {expanded ? <span className="truncate text-xs font-bold uppercase tracking-[0.04em] text-primary">Menú principal</span> : null}
-          <button aria-label={expanded ? 'Contraer menú lateral' : 'Expandir menú lateral'} aria-pressed={expanded} className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-sm bg-primary-soft text-primary transition-colors hover:bg-primary hover:text-on-primary" onClick={onToggleExpanded} title={expanded ? 'Contraer menú' : 'Mostrar nombres del menú'} type="button"><Icon name="panel-left" size={12} /></button>
+          <button aria-label={expanded ? 'Contraer menú lateral' : 'Expandir menú lateral'} aria-pressed={expanded} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-sm bg-primary-soft text-primary transition-colors hover:bg-primary hover:text-on-primary lg:size-6" onClick={onToggleExpanded} title={expanded ? 'Contraer menú' : 'Mostrar nombres del menú'} type="button"><Icon name="panel-left" size={12} /></button>
         </div>
         <ul className="grid w-full gap-px px-0.5">
           {navigationItems.map((item) => (

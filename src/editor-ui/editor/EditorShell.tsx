@@ -5,7 +5,7 @@ import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
 import { MobileDock, type MobilePanel } from './MobileDock'
 import { PanelWindow, type DockSide, type PanelBounds, type PanelMode, type WorkspacePanel } from './PanelWindow'
-import { TopBar } from './TopBar'
+import { TopBar, type UiTheme } from './TopBar'
 import { Button, Icon } from '../primitives'
 
 type RestorableMode = 'docked' | 'floating'
@@ -99,6 +99,7 @@ function PanelContent({ panel, libraryTab, inspectorTab, onLibraryTabChange, onI
 
 export function EditorShell() {
   const [darkMode, setDarkMode] = useState(false)
+  const [uiTheme, setUiTheme] = useState<UiTheme>('studio')
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('layers')
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('style')
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
@@ -126,6 +127,11 @@ export function EditorShell() {
     document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'
     return () => { delete document.documentElement.dataset.theme }
   }, [darkMode])
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.uiTheme = uiTheme
+    return () => { delete document.documentElement.dataset.uiTheme }
+  }, [uiTheme])
 
   useEffect(() => {
     if (!mobilePanel) return
@@ -432,7 +438,7 @@ export function EditorShell() {
       className="editor-shell h-dvh overflow-hidden bg-canvas text-foreground"
       style={{ '--rail-width': `${railWidth}px`, '--left-panel-width': `${leftDockWidth}px`, '--right-panel-width': `${rightDockWidth}px` } as CSSProperties}
     >
-      <TopBar darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} />
+      <TopBar darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
       <AppNavigation expanded={railWidth >= 96} onResizeKeyDown={resizeRailWithKeyboard} onResizePointerDown={startRailResize} onToggleExpanded={() => setRailWidth((current) => current >= 96 ? 44 : 144)} width={railWidth} />
 
       {leftDockPanel ? (
@@ -465,7 +471,7 @@ export function EditorShell() {
 
       {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
 
-      <footer className="col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
+      <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
         <span>Inicio / Hero / Encabezado</span>
         <span className="ml-auto">Ventanas personalizables · Sin errores</span>
@@ -476,7 +482,7 @@ export function EditorShell() {
       {mobilePanel ? (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Ocultar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
-          <div className="absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
+          <div className="mobile-sheet absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
             <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-8 rounded-full bg-primary" /><h2 className="mt-0.5 flex items-center gap-1 font-heading text-xs font-bold text-primary-strong"><Icon name={mobilePanel === 'inspector' ? 'settings' : libraryTab === 'widgets' ? 'plus' : 'layers'} size={13} />{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Ocultar panel" className="text-primary" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="chevron-down" size={16} /></Button></div>
             {mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={libraryTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setLibraryTab} />}
           </div>

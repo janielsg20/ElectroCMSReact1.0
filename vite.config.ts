@@ -4,6 +4,11 @@ import { defineConfig } from 'vite'
 import { createServiceWorkerSource } from './build/pwa-service-worker'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'lottie-web': 'lottie-web/build/player/lottie_light',
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

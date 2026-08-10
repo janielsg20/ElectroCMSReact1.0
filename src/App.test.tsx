@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from './App'
 
+vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" /> }))
+
 function firePointer(target: Element | Window, type: string, clientX: number, clientY: number) {
   const event = new Event(type, { bubbles: true })
   Object.defineProperties(event, { clientX: { value: clientX }, clientY: { value: clientY } })
@@ -180,5 +182,44 @@ describe('App', () => {
     const propertiesTab = screen.getByRole('tab', { name: /propiedades/i })
     expect(propertiesTab).toHaveAttribute('aria-controls', 'inspector-active-panel')
     expect(screen.getByRole('tabpanel', { name: /propiedades/i })).toHaveAttribute('id', 'inspector-active-panel')
+  })
+
+  it('aplica el tema Bento Motion desde los ajustes del header sin sustituir Studio', () => {
+    render(<App />)
+
+    const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
+    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+    fireEvent.click(settings)
+
+    const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
+    expect(within(appearance).getByRole('radio', { name: /studio/i })).toHaveAttribute('aria-checked', 'true')
+    const bento = within(appearance).getByRole('radio', { name: /bento motion/i })
+    expect(bento).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(bento)
+
+    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'bento')
+    expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()
+    expect(settings).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(settings)
+    const reopened = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
+    expect(within(reopened).getByRole('radio', { name: /bento motion/i })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(within(reopened).getByRole('radio', { name: /studio/i }))
+    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+  })
+
+  it('cierra los ajustes de apariencia con Escape y devuelve el foco al disparador', () => {
+    render(<App />)
+
+    const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
+    fireEvent.click(settings)
+    const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
+    const studio = within(appearance).getByRole('radio', { name: /studio/i })
+    fireEvent.keyDown(studio, { key: 'ArrowRight' })
+    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'bento')
+    expect(within(appearance).getByRole('radio', { name: /bento motion/i })).toHaveFocus()
+    fireEvent.keyDown(appearance, { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()
   })
 })

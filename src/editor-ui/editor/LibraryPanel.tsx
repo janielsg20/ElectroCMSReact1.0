@@ -25,7 +25,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
   }, [query])
 
   return (
-    <aside aria-label="Biblioteca y capas" className={`flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
+    <aside aria-label="Biblioteca y capas" className={`library-panel flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
       <div className="grid shrink-0 grid-cols-2 border-b border-border bg-muted/60 p-1.5 lg:p-1" role="tablist" aria-label="Panel izquierdo">
         <button aria-controls="library-panel-layers" aria-selected={activeTab === 'layers'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === 'layers' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-layers" onClick={() => onTabChange('layers')} role="tab" type="button"><Icon name="layers" size={13} />Páginas</button>
         <button aria-controls="library-panel-widgets" aria-selected={activeTab === 'widgets'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === 'widgets' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-widgets" onClick={() => onTabChange('widgets')} role="tab" type="button"><Icon name="plus" size={13} />Componentes</button>
