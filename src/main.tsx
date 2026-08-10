@@ -4,6 +4,7 @@ import '@fontsource-variable/inter'
 import { App } from './App'
 import { registerElectroCmsServiceWorker } from './infrastructure/pwa/register-service-worker'
 import './styles.css'
+import './professional-ui.css'
 
 const rootElement = document.getElementById('root')
 
