@@ -6,6 +6,7 @@
 - Implementado protocolo de autosave preparar→guardar→confirmar con debounce, límites configurables y conservación de entradas pendientes.
 - Añadida recuperación de escrituras interrumpidas, confirmaciones fallidas, proyectos corruptos, entradas superadas y conflictos de revisión sin sobrescritura.
 - Conectado el estado de recuperación al namespace IndexedDB `project-recovery` y probada reapertura con journal pendiente; la suite alcanza 72/72 pruebas.
+- Publicado `f394d63`; GitHub Actions `31404629844` y el despliegue de M03.3 en Cloudflare Pages finalizaron correctamente.
 
 ## 2026-08-09
 

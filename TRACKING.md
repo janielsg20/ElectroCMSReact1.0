@@ -10,7 +10,7 @@ Actualizado: 2026-08-10.
 - Entrega anticipada solicitada: prototipo visual integral del editor completado sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia publicada: M03.2 en commit `8e9b333`; pipeline `31341648227` completo en verde; Cloudflare Pages responde HTTPS 200.
+- Última evidencia publicada: M03.3 en commit `f394d63`; pipeline `31404629844` completo en verde; Cloudflare Pages responde HTTPS 200.
 
 ## Tablero compacto
 
@@ -103,6 +103,7 @@ Actualizado: 2026-08-10.
 - Completada: debounce sustituible con `flush`/`cancel`, poda configurable que conserva pendientes y factoría IndexedDB para recuperación.
 - Completada: cierre/reapertura IndexedDB con journal pendiente y aplicación de la revisión objetivo.
 - Completada: puerta local de M03.3 con lint, typecheck, 72/72 pruebas y build Vite reproducible.
+- Completada: publicación M03.3 en commit `f394d63`, ejecución GitHub Actions `31404629844` verde y producción HTTPS 200.
 - En curso: `M03.4`; comandos reversibles, transacciones compuestas, undo/redo, ramas nuevas e historial persistente aún no implementados.
 
 

@@ -87,6 +87,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Autosave M03.3: debounce con último cambio, snapshots limitados y journal preparar→guardar→confirmar.
 - Recuperación M03.3: pendientes reaplicados, commits reconciliados, corrupción restaurada y conflictos sin sobrescritura.
 - Persistencia M03.3: namespace `project-recovery` y recuperación real tras cerrar/reabrir IndexedDB.
+- Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
