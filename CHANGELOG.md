@@ -7,6 +7,7 @@
 - Eliminada la acción de cerrar ventanas; ocultar usa el mismo flujo recuperable de minimizar/restaurar y las sheets móviles conservan un control explícito «Ocultar panel» más `Escape`.
 - Mejorado el drag-and-drop con tres guías simultáneas, destino activo resaltado, acoplamiento izquierda/derecha/rail, reemplazo seguro del panel ocupado y cancelación sin dock.
 - Ampliada la suite a 79/79 pruebas; lint, typecheck, build y navegador en 375/768/1440 px correctos, sin overflow ni errores de consola.
+- Publicada la iteración en `b5698fd`; GitHub Actions `31429823913` finalizó en verde y Cloudflare Pages sirve `index-DfL3r9PX.js` e `index-DrRQ4Zf5.css` por HTTPS 200.
 - Rehecho el sistema de ventanas con dock por arrastre y preview explícita para izquierda, derecha y rail lateral; cada destino dispone también de botón y alternativa de teclado.
 - Eliminada completamente la acción de maximizar paneles; se conservan desacoplar, acoplar, mover, resize, minimizar, fijar, restaurar y cerrar.
 - Convertidos los paneles minimizados en pestañas verticales de borde que ocupan toda la altura útil y comparten la barra cuando se minimizan ambos.

@@ -12,7 +12,7 @@ Actualizado: 2026-08-10.
 - Iteración visual solicitada: fidelidad a la referencia adjunta, normalización azul, tipografía de controles a 12 px y sistema de dock sin acción de cerrar `COMPLETADA`; no modifica el estado de `M03.4`.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia local: paleta azul normalizada, controles a 12 px y dock sin cerrar/maximizar validados con lint, typecheck, 79/79 pruebas, build y navegador en 375/768/1440 px; publicación pendiente de esta entrega.
+- Última evidencia: paleta azul normalizada, controles a 12 px y dock sin cerrar/maximizar validados con lint, typecheck, 79/79 pruebas, build y navegador en 375/768/1440 px; commit `b5698fd`, GitHub Actions `31429823913` verde y producción HTTPS 200 con `index-DfL3r9PX.js` e `index-DrRQ4Zf5.css`.
 
 ## Tablero compacto
 
