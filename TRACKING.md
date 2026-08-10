@@ -7,141 +7,88 @@ Actualizado: 2026-08-10.
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
 - Microfase actual: `M03.4 — Command bus e historial`.
 - Estado: `EN_CURSO`.
-- Entrega anticipada solicitada: sistema de ventanas high-density con paneles acoplables, flotantes, minimizables y accesibles `COMPLETADA`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
-- Iteración anticipada solicitada: dock por arrastre, pestañas verticales minimizadas, rail redimensionable con etiquetas y compactación tipográfica global `COMPLETADA`; no modifica el estado de `M03.4`.
-- Iteración visual solicitada: fidelidad a la referencia adjunta, normalización azul, tipografía de controles a 12 px y sistema de dock sin acción de cerrar `COMPLETADA`; no modifica el estado de `M03.4`.
-- Auditoría integral UI/UX solicitada `COMPLETADA`: corregidos scroll y alturas de biblioteca/inspector, overflow del control de alineación a 320 px, semántica de tabs/selección, inputs numéricos, feedback activo, umbral de drag, safe area del canvas, parpadeo de tema y tokens/manifest/icono azules; lint, typecheck, 80/80 pruebas y build verdes; no modifica el estado de `M03.4`.
-- Publicada la auditoría UI en `dfd64c7`; GitHub Actions `31431938727` completó CI/despliegue y Cloudflare Pages sirve `index-q6ZcTbfS.js` con manifest azul y HTTPS 200.
-- Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
-- Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: paleta azul normalizada, controles a 12 px y dock sin cerrar/maximizar validados con lint, typecheck, 79/79 pruebas, build y navegador en 375/768/1440 px; commit `b5698fd`, GitHub Actions `31429823913` verde y producción HTTPS 200 con `index-DfL3r9PX.js` e `index-DrRQ4Zf5.css`.
+- F00–F02: `COMPLETADA`.
+- F04–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran las fases funcionales.
+- F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
+- La incorporación del Addendum no cambia ni adelanta la microfase activa.
 
-## Tablero compacto
+## Ampliación de alcance 2026-08-10
 
-- Tema alternativo Bento Motion solicitado `COMPLETADA`: selector accesible en header, superficies neutras, jerarquía Bento, Lottie local diferido y optimizado, transiciones adaptativas, claro/oscuro y responsive 320–1440 px; lint, typecheck, 86/86 pruebas y build verdes; no modifica el estado de `M03.4`.
-- Publicado Bento Motion en `c82b2ac`; GitHub Actions `31434946512` completó CI/despliegue y Cloudflare Pages sirve `index-DxcgV_3s.js`, `index-CA0iNCsS.css` y el chunk Lottie por HTTPS 200.
+- `FLUTTERFLOW_PARITY_ADDENDUM.md` creado como alcance normativo adicional.
+- `PHASES.md` ampliado de F00–F18 a F00–F31 sin renumerar fases existentes.
+- `DETAILED_EXECUTION_PHASES.md` ampliado con microfases M19.1–M31.8.
+- `REQUIREMENTS.md` actualizado con trazabilidad de cada área del Addendum.
+- `RULES.md`, `AGENTS.md`, `README.md` y `MEMORY.md` actualizados para preservar continuidad y evitar ejecución prematura.
+- Nueva regla: capacidades faltantes se registran como `PARITY_GAP` y no se presentan como implementadas.
+- Nueva regla: no crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
 
-| Fase | Estado | Evidencia requerida para cerrar |
+## Roadmap ampliado
+
+| Fase | Estado | Alcance |
 |---|---|---|
-| F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
-| F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
-| F02 | COMPLETADA | M02.1–M02.4: schemas, invariantes, cardinalidades, migraciones y recuperación probadas |
-| F03 | EN_CURSO | M03.1–M03.3 completadas; M03.4 en curso |
-| F04–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
+| F00 | COMPLETADA | Descubrimiento y contratos |
+| F01 | COMPLETADA | Plataforma React/Tailwind/PWA |
+| F02 | COMPLETADA | Modelo canónico y migraciones |
+| F03 | EN_CURSO | Persistencia e historial; M03.4 activa |
+| F04–F18 | NO_INICIADA | Roadmap base existente |
+| F19 | NO_INICIADA | Visual Builder avanzado y workspace |
+| F20 | NO_INICIADA | Component/Design System |
+| F21 | NO_INICIADA | Data Types, State, Variables y condiciones |
+| F22 | NO_INICIADA | Action Flow/Graph y App Events |
+| F23 | NO_INICIADA | Database Builder y Backend Queries |
+| F24 | NO_INICIADA | API Manager/Tester/Mapping |
+| F25 | NO_INICIADA | Authentication/RBAC/Security |
+| F26 | NO_INICIADA | Media/Routing/Storyboard/Responsive/Localization/SEO |
+| F27 | NO_INICIADA | Custom Code/Dependencies/Environments/Integrations |
+| F28 | NO_INICIADA | Test Mode/Debug/Automated Tests |
+| F29 | NO_INICIADA | Versioning/Branching/Collaboration |
+| F30 | NO_INICIADA | AI Builder/Agents/Command Palette |
+| F31 | NO_INICIADA | Export ampliado/Deployment/Production validation |
+
+## Entregas UI anticipadas
+
+- Existe un shell high-density con navegación, Page/Widget Tree, canvas, inspector y status bar.
+- Biblioteca e Inspector admiten dock, float, minimize, pin, restore y resize con alternativas de teclado.
+- Móvil usa navegación de builder y tool sheets.
+- Estas entregas son prototipos/implementaciones anticipadas y no cierran F04–F07 ni F19.
+- Cuando las fases propietarias entren en curso se debe consolidar el CSS/estructura y eliminar overrides redundantes.
+
+## Próximo paso exacto
+
+`M03.4 — Command bus e historial`:
+
+- comandos reversibles;
+- transacciones compuestas;
+- undo/redo;
+- ramas nuevas;
+- límites configurables;
+- persistencia del historial;
+- pruebas de recuperación e invariantes.
 
 ## Bloqueos
 
-- Ninguno. La ausencia de una referencia autorizada quedó resuelta mediante decisión explícita del usuario y clasificación `AUSENTE` en `REFERENCE_INVENTORY.md`.
+- Ninguno para M03.4.
+- F19–F31 están deliberadamente pendientes de sus dependencias, no bloqueadas.
 
-## Verificaciones de esta actualización
+## Criterio para cambiar de fase
 
-- Completada: encabezados numerados 1–33 presentes en el prompt convertido.
-- Completada: todos los archivos mínimos de la sección 30 están presentes.
-- Completada: no quedan referencias de plataforma Flutter dentro del prompt convertido.
-- Completada: 19 fases y 89 microfases detectadas en el plan detallado.
-- Pendiente: validación de enlaces cuando exista código y estructura definitiva.
-- Completada: `npm run lint` sin warnings.
-- Completada: `npm run typecheck`.
-- Completada: 2/2 pruebas Vitest.
-- Completada: build Vite en `dist/`.
-- Completada: verificación visual sin overlay/logs y sin overflow horizontal a 375 px.
-- Completada: repositorio público `janielsg20/ElectroCMSReact1.0` con rama `main`.
-- Completada: secretos `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` configurados sin persistir sus valores en el repositorio.
-- Completada: ejecución GitHub Actions `31332151380` con calidad y despliegue correctos.
-- Completada: Cloudflare Pages `electrocms-react` verificado con HTTPS 200.
-- Completada: `M00.2`; inventario de referencia cerrado sin sustituir el artefacto ausente por aplicaciones externas.
-- Completada: `M00.3`; secciones 1–33 y equivalencias objetivo enlazadas sin requisitos huérfanos.
-- Completada: `M00.4`; ADR iniciales aceptados, dependencias justificadas y puerta G0 cerrada.
-- Completada: `M01.2`; seis capas creadas, contratos mínimos tipados y pruebas contra inversiones y ciclos.
-- Completada: puerta local de M01.2 con lint, typecheck, 7/7 pruebas y build.
-- Completada: `M01.3`; tokens semánticos light/dark, reset, tipografía local, iconos SVG y primitives accesibles.
-- Completada: puerta local de M01.3 con lint, typecheck, 12/12 pruebas, build y contraste WCAG AA automatizado.
-- Completada: validación aislada de la implementación objetivo en escritorio y 375 × 812, con estructura semántica y sin overflow horizontal.
-- Completada: ejecución GitHub Actions `31333777914` con lint, typecheck, 12/12 pruebas, build y despliegue correctos.
-- Completada: producción sirve el bundle `index-CPN-M36E.js` de M01.3 con HTTPS 200.
-- Completada: `M01.4`; manifest instalable con iconos 192/512, Service Worker versionado y registro exclusivo de producción.
-- Completada: contratos públicos v1 para capacidades web, desktop y mobile sin dependencias nativas en dominio.
-- Completada: 17/17 pruebas, lint, typecheck y build con `sw.js` que precachea los hashes actuales.
-- Completada: prueba browser en origen limpio; tras detener totalmente el servidor, React volvió a renderizar desde caché sin overlay ni overflow.
-- Completada: puerta G1 y fase F01 cerradas.
-- Completada: ejecución GitHub Actions `31334792028` con 17/17 pruebas, build y despliegue correctos para `16d76f3`.
-- Completada: producción entrega `manifest.webmanifest` como `application/manifest+json` y `sw.js` con política `no-cache, no-store, must-revalidate`.
-- Completada: `M02.1`; UUID de proyecto, timestamps UTC canónicos, revisión, metadatos JSON y envelope v1 tipado.
-- Completada: Zod 4.4.3 fijado exactamente y JSON Schema estricto generado desde la misma fuente.
-- Completada: validación de versión, propiedades desconocidas y cronología; serialización determinista y deserialización con errores tipados.
-- Completada: puerta local de M02.1 con lint, typecheck, 22/22 pruebas y build reproducible.
-- Completada: ejecución GitHub Actions `31336177234` con calidad, build y despliegue correctos para `ea034f2`.
-- Completada: `M02.2`; documentos y componentes globales normalizados, nodos discriminados, slots, propiedades, estilos, bindings y condiciones con schemas estrictos.
-- Completada: seis breakpoints configurables con herencia explícita y resolución acumulativa de overrides responsive.
-- Completada: diagnósticos tipados para invariantes de IDs, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes o breakpoints.
-- Completada: puerta local de M02.2 con lint, typecheck, 28/28 pruebas y build Vite reproducible.
-- Completada: ejecución GitHub Actions `31337310722` con calidad, 28/28 pruebas, build y despliegue correctos para `f987869`.
-- Completada: producción verificada tras M02.2 en `https://electrocms-react.pages.dev/` con HTTPS 200.
-- Completada: prototipo UI del editor con header, rail, biblioteca, capas, canvas, inspector, status bar, navegación móvil y sheets accesibles.
-- Completada: búsqueda de widgets, pestañas, selector de viewport, modo oscuro y apertura/cierre de sheets como interacciones reales del prototipo.
-- Completada: validación browser en 320, 375, 768, 1024, 1440 y landscape 812 × 375 sin overflow horizontal ni errores de consola.
-- No completada por este prototipo: publicación, historial, mutaciones del documento, rutas y módulos CMS; permanecen deshabilitados o etiquetados como planificados.
-- Completada: ejecución GitHub Actions `31339361393` con lint, typecheck, pruebas, build y despliegue correctos para `14a00e9`.
-- Completada: producción sirve el prototipo UI desde `https://electrocms-react.pages.dev/` con HTTPS 200.
-- Completada: `M02.3`; schemas estrictos y normalizados para CPT, taxonomías, 27 tipos de campo, registros, relaciones, consultas, formularios, roles, usuarios, menús y pantallas backend.
-- Completada: validación semántica de propietarios, referencias cruzadas, registros, términos, consultas, formularios, permisos, menús y pantallas.
-- Completada: relaciones 1:1, 1:N y N:N verificadas, incluidos extremos incompatibles, pares duplicados y límites por cardinalidad.
-- Completada: puerta local de M02.3 con lint, typecheck, 36/36 pruebas y build Vite reproducible.
-- Completada: publicación M02.3 en commit `5eec589`, ejecución GitHub Actions `31339942743` verde y producción HTTPS 200.
-- Completada: `M02.4`; registry forward v0→v1, validación por versión, backup previo y errores tipados para JSON, envelope, versión futura, cadena incompleta, paso fallido y resultado actual inválido.
-- Completada: fixtures reales v0/v1 y restauración byte por byte con reintento de migración probado.
-- Completada: puerta local de M02.4 con lint, typecheck, 42/42 pruebas y build Vite reproducible; F02 cerrada.
-- Completada: publicación M02.4 en commit `3fbe4fe`, ejecución GitHub Actions `31340253571` verde y producción HTTPS 200.
-- Completada: `M03.1`; puerto `LocalRepository` con resultados y errores tipados, sin filtrar excepciones de infraestructura.
-- Completada: Dexie 4.4.4 sobre IndexedDB con clave compuesta por namespace/ID e índices de namespace, versión y actualización.
-- Completada: escritura `saveMany` atómica, validación canónica previa y verificación de huella/schema/ID/versión al leer.
-- Completada: cierre/reapertura, rollback por cuota, corrupción detectable, conexión cerrada y consultas indexadas probadas.
-- Completada: puerta local de M03.1 con lint, typecheck, 47/47 pruebas y build Vite reproducible.
-- Completada: publicación M03.1 en commit `a4431fe`, ejecución GitHub Actions `31340890680` verde y producción HTTPS 200.
-- Completada: `M03.2`; `ProjectRecord` estricto con estados activo, archivado y papelera recuperable.
-- Completada: crear, duplicar, renombrar, archivar, eliminar a papelera y recuperar al estado previo con revisión/timestamps coherentes.
-- Completada: exportación canónica e importación migrada v0/v1, rechazo de conflictos o duplicado explícito sin sobrescritura silenciosa.
-- Completada: factoría del repositorio de proyectos y reapertura sobre IndexedDB real probada.
-- Completada: puerta local de M03.2 con lint, typecheck, 60/60 pruebas y build Vite reproducible.
-- Completada: publicación M03.2 en commit `8e9b333`, ejecución GitHub Actions `31341648227` verde y producción HTTPS 200.
-- Completada: `M03.3`; schemas de snapshots y journal con IDs nominales, revisiones y referencias coherentes.
-- Completada: protocolo preparar→guardar→confirmar que conserva el último proyecto válido si falla la escritura.
-- Completada: recuperación de journal pendiente, reconciliación de confirmación fallida, restauración por corrupción, superseded y conflictos sin sobrescritura.
-- Completada: debounce sustituible con `flush`/`cancel`, poda configurable que conserva pendientes y factoría IndexedDB para recuperación.
-- Completada: cierre/reapertura IndexedDB con journal pendiente y aplicación de la revisión objetivo.
-- Completada: puerta local de M03.3 con lint, typecheck, 72/72 pruebas y build Vite reproducible.
-- Completada: publicación M03.3 en commit `f394d63`, ejecución GitHub Actions `31404629844` verde y producción HTTPS 200.
-- En curso: `M03.4`; comandos reversibles, transacciones compuestas, undo/redo, ramas nuevas e historial persistente aún no implementados.
-- Completada: evolución high-density del shell con paneles acoplables, flotantes, minimizables, fijables y restaurables, sin acciones de maximizar o cerrar.
-- Completada: movimiento y resize por puntero con alternativas de teclado; controles SVG con nombres accesibles, tooltips, foco visible y animaciones de 180–200 ms compatibles con `prefers-reduced-motion`.
-- Completada: Inter Variable empaquetada localmente, azul de marca como acento común y colores semánticos reservados para estados; targets adaptativos de 32 px en escritorio y 44 px en superficies touch.
-- Completada: puerta local de la entrega UI con lint, typecheck, 76/76 pruebas, build y revisión browser en escritorio y móvil, incluidos modo oscuro y bottom sheet.
-- Completada: eliminación total de maximizar y sustitución por dock directo a izquierda, derecha o barra lateral mediante botones, teclado y arrastre con preview visible.
-- Completada: minimizados convertidos en pestañas verticales de borde que ocupan la altura disponible y se reparten la barra cuando existen varios.
-- Completada: rail de navegación redimensionable 44–168 px, expandible a etiquetas de 12 px y operable por puntero, teclado, `Home` y `End`.
-- Completada: navegación, tabs, páginas, widgets, inspector, toolbar y dock móvil normalizados al azul `#2563EB`; rojo, ámbar y verde quedan reservados para error, advertencia y éxito.
-- Completada: puerta local de esta iteración con lint, typecheck, 79/79 pruebas, build Vite y navegador sin overflow; fuentes de controles, páginas, árbol e inspector comprobadas a 12 px.
-- Completada: entrega anticipada de rediseño UI con shell compacto, panel unificado de páginas/capas, canvas punteado con marcos de dispositivo e inspector Diseño/Acciones/Datos.
-- Completada: adaptación con dock y bottom sheets en móvil, paneles contextuales en 768–1279 px y cuatro regiones persistentes desde 1280 px.
-- Completada: verificación browser en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow, errores de consola ni targets activos menores de 44 px; `Escape` y restauración de foco probados.
-- No completada por este rediseño: publicación, historial, mutaciones del documento y módulos posteriores; permanecen deshabilitados o claramente presentados como prototipo.
-- Publicada: entrega UI en `30d846d`; GitHub Actions `31407539886` completó calidad y despliegue, y producción sirve `index-2JEzV0jm.js` con HTTPS 200.
-- Completada: fidelidad visual de alta densidad con azul `#2563EB`, grises fríos, rail de iconos, menús Páginas/Componentes, inspector Propiedades/Acción/Backend y Generador IA planificado.
-- Completada: biblioteca e inspector compactos con anchos iniciales 208/248 px, colapso independiente, arrastre por puntero y redimensionado de teclado con límites ARIA.
-- Completada: densidad adaptativa de 36 px en escritorio y 44 px en tablet/móvil; 74/74 pruebas y seis viewports sin overflow ni errores de consola.
-- Completada: segunda compactación integral con header/canvas toolbar de 40 px, rail de 44 px, controles/filas de 32 px, paneles 192/224 px y espaciado funcional de 4–8 px.
-- Completada: targets touch de 44 px preservados fuera de desktop; validación responsive sin overflow ni errores de consola.
-- Completada: cuatro regiones simultáneas desde 1024 px; overlays accesibles en 768–1023 px y dock/sheets en móvil.
-- Publicada: refinamiento de alta densidad en `7bad321`; GitHub Actions `31412507711` y el despliegue Cloudflare finalizaron correctamente.
-- Publicada: compactación y paneles redimensionables en `b57b85a`; GitHub Actions `31417203626` y Cloudflare Pages finalizaron correctamente con `index-CRq1OgZM.js` verificado en producción.
-- Publicada: densidad minimalista integral en `a6c13c7`; GitHub Actions `31419886499` y Cloudflare Pages finalizaron correctamente con `index-B09363my.js` verificado en producción.
+No avanzar hasta cerrar la microfase activa con evidencia reproducible. La documentación de funciones futuras no cuenta como implementación.
 
+## Evidencia técnica histórica resumida
 
-## Plantilla de relevo
+- CI/CD GitHub Actions + Cloudflare Pages configurados y verificados en entregas previas.
+- PWA offline, manifest y Service Worker implementados.
+- Modelo canónico v1, Zod, migraciones, breakpoints, CMS models y relaciones probados.
+- Dexie/IndexedDB, ciclo de proyecto, import/export y recovery journal probados.
+- UI high-density responsive fue verificada previamente en 320/375/768/1024/1440/812×375; cualquier cambio posterior requiere nueva validación antes de afirmarlo como verificado.
+- Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
-- Cambié:
-- Verifiqué:
-- No verifiqué:
-- Decidí:
-- Riesgo nuevo:
-- Próxima microfase:
+## Documentos de control
+
+- Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Alcance ampliado: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
+- Trazabilidad: `REQUIREMENTS.md`.
+- Reglas: `RULES.md`.
+- Plan: `PHASES.md`.
+- Microfases: `DETAILED_EXECUTION_PHASES.md`.
+- Memoria: `MEMORY.md`.
