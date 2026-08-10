@@ -6,6 +6,7 @@ import { registerElectroCmsServiceWorker } from './infrastructure/pwa/register-s
 import './styles.css'
 import './professional-ui.css'
 import './professional-ui-v2.css'
+import './component-system.css'
 
 const rootElement = document.getElementById('root')
 
