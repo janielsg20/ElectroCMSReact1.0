@@ -2,6 +2,12 @@
 
 ## 2026-08-10
 
+- Añadido `FLUTTERFLOW_PARITY_ADDENDUM.md` como ampliación normativa no destructiva del Prompt Maestro para cubrir capacidades de visual app builder equivalentes en alcance a FlutterFlow mediante arquitectura propia de ElectroCMS.
+- Restauradas y preservadas íntegramente las 33 secciones originales de `PROMPT_MAESTRO_ELECTROCMS.md` y añadida la nueva sección 34 que incorpora el Addendum sin sustituir requisitos previos.
+- Ampliado `PHASES.md` con F19–F31 y `DETAILED_EXECUTION_PHASES.md` con M19.1–M31.8 para Visual Builder avanzado, Component/Design System, Data/State, Action Flow, Database/API/Auth, Custom Code, Test/Debug, Versioning/Collaboration, AI Builder y Deployment.
+- Actualizados `REQUIREMENTS.md`, `RULES.md`, `AGENTS.md`, `README.md`, `MEMORY.md` y `TRACKING.md` para hacer trazable el nuevo alcance y evitar que una IA futura salte la microfase activa.
+- La fase activa permanece `F03 / M03.4 — Command bus e historial`; F19–F31 se registran `NO_INICIADA` y su documentación no se considera implementación.
+- Introducida la clasificación `PARITY_GAP` para capacidades futuras faltantes, con obligación de fase propietaria, arquitectura, criterios de aceptación y pruebas.
 - Añadido `Bento Motion` como segundo tema seleccionable desde Ajustes de apariencia en el header, conservando intacto el tema Studio.
 - Transformados header, rail, canvas, paneles, secciones del inspector, widgets, dock y sheets en un sistema Bento neutral, limpio y modular con resaltados azules y temas claro/oscuro.
 - Incorporado un icono Lottie local cargado de forma diferida, sin loop continuo y con autoplay desactivado bajo `prefers-reduced-motion`; el runtime usa el player light para reducir el chunk de 82.71 a 51.98 kB gzip y eliminar `eval` del build.
@@ -11,7 +17,7 @@
 - Publicado Bento Motion en `c82b2ac`; GitHub Actions `31434946512` finalizó correctamente y Cloudflare Pages sirve los assets `index-DxcgV_3s.js`, `index-CA0iNCsS.css` y `BentoMotionIcon-C_InfoPI.js` por HTTPS 200.
 - Completada una auditoría integral del editor high-density: layout, paneles, botones, formularios, tipografía, color, responsive, modo oscuro, accesibilidad e interacciones.
 - Corregido el recorte vertical de biblioteca e inspector en sheets móviles mediante estructura flex y scroll interno; eliminado también el overflow horizontal del selector de alineación a 320 px.
-- Enlazadas pestañas y paneles con `id`, `aria-controls` y `aria-labelledby`; añadidos estados semánticos a página/capa seleccionadas, inputs de espaciado numéricos y muestra de color identificable.
+- Enlazadas pestañas y paneles con `id`, `aria-controls` y `aria-labelledby`; añadidos estados semánticos a página/capa seleccionadas, inputs numéricos y muestra de color identificable.
 - Añadido umbral de 4 px al drag-and-drop, feedback activo en controles, padding con safe area en canvas y aplicación de tema previa al pintado para evitar parpadeos claro/oscuro.
 - Sincronizados al azul de marca `#2563EB` los tokens TypeScript, CSS, manifest PWA e icono instalable, eliminando restos de la paleta violeta anterior.
 - Verificados navegador y layout en 320, 375, 768, 1024, 1440 y 812 × 375, temas claro/oscuro, fuentes de botones a 12 px y consola de la aplicación sin errores; lint, typecheck, 80/80 pruebas y build verdes.
@@ -66,7 +72,7 @@
 - Convertido el prompt maestro de Flutter a React + TypeScript + Tailwind CSS, preservando sus 33 secciones.
 - Añadido sistema documental para IA de poco contexto: reglas, memoria, tracking, fases y microfases.
 - Añadido layout adaptativo accesible para desktop, tablet y móvil.
-- Persistido el sistema de diseño inicial generado por `ui-ux-pro-max`.
+- Persistido el sistema de diseño inicial generado con `ui-ux-pro-max`.
 - Verificados los 22 documentos mínimos, la secuencia completa 1–33 y 89 microfases distribuidas en 19 fases.
 - Creado scaffold React 19 + TypeScript + Tailwind 4 con Vite 7.
 - Añadidos ESLint, Vitest, Testing Library y scripts de lint/typecheck/test/build.
