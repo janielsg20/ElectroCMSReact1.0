@@ -14,7 +14,7 @@ describe('App', () => {
     render(<App />)
 
     expect(screen.getByText(/ElectroCMS/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /ejecutar app/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /run/i })).toBeDisabled()
   })
 
   it('expone navegación, canvas y paneles con regiones semánticas', () => {
@@ -60,17 +60,17 @@ describe('App', () => {
     render(<App />)
 
     const librarySeparator = screen.getByRole('separator', { name: /páginas y capas/i })
-    expect(librarySeparator).toHaveAttribute('aria-valuenow', '192')
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '216')
     fireEvent.keyDown(librarySeparator, { key: 'ArrowRight' })
-    expect(librarySeparator).toHaveAttribute('aria-valuenow', '208')
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '232')
     fireEvent.keyDown(librarySeparator, { key: 'Home' })
-    expect(librarySeparator).toHaveAttribute('aria-valuenow', '168')
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '184')
 
     const inspectorSeparator = screen.getByRole('separator', { name: /inspector/i })
     fireEvent.keyDown(inspectorSeparator, { key: 'ArrowLeft' })
-    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '240')
+    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '304')
     fireEvent.keyDown(inspectorSeparator, { key: 'End' })
-    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '320')
+    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '360')
   })
 
   it('desacopla, mueve, redimensiona, fija y minimiza una ventana con alternativas de teclado', () => {
@@ -78,12 +78,12 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
     const floatingPanel = screen.getByRole('region', { name: /páginas y capas · flotante/i })
-    expect(floatingPanel).toHaveStyle({ left: '60px', width: '252px' })
+    expect(floatingPanel).toHaveStyle({ left: '60px', width: '268px' })
 
     fireEvent.keyDown(screen.getByRole('button', { name: /mover páginas y capas/i }), { key: 'ArrowRight' })
     expect(floatingPanel).toHaveStyle({ left: '76px' })
     fireEvent.keyDown(screen.getByRole('button', { name: /redimensionar ventana páginas y capas/i }), { key: 'ArrowRight' })
-    expect(floatingPanel).toHaveStyle({ width: '268px' })
+    expect(floatingPanel).toHaveStyle({ width: '284px' })
 
     const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
     firePointer(moveHandle, 'pointerdown', 500, 100)
@@ -95,7 +95,7 @@ describe('App', () => {
     firePointer(resizeHandle, 'pointerdown', 100, 100)
     firePointer(window, 'pointermove', 116, 116)
     firePointer(window, 'pointerup', 116, 116)
-    expect(floatingPanel).toHaveStyle({ width: '284px', height: '556px' })
+    expect(floatingPanel).toHaveStyle({ width: '300px', height: '556px' })
 
     const pinButton = screen.getByRole('button', { name: /fijar páginas y capas/i })
     fireEvent.click(pinButton)
@@ -206,6 +206,21 @@ describe('App', () => {
     expect(within(reopened).getByRole('radio', { name: /bento motion/i })).toHaveAttribute('aria-checked', 'true')
     fireEvent.click(within(reopened).getByRole('radio', { name: /studio/i }))
     expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+  })
+
+  it('aplica Flow Builder como tema independiente', () => {
+    render(<App />)
+
+    const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
+    fireEvent.click(settings)
+    const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
+    const flow = within(appearance).getByRole('radio', { name: /flow builder/i })
+    expect(flow).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(flow)
+
+    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'flow')
+    expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()
+    expect(settings).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('cierra los ajustes de apariencia con Escape y devuelve el foco al disparador', () => {
