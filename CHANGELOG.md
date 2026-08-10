@@ -8,6 +8,7 @@
 - Añadidas transiciones de 200–280 ms, entrada escalonada de tarjetas, respuesta animada de SVG y estados hover/active/focus sin desplazar el layout.
 - Implementado selector accesible mediante dialog/radiogroup, click/touch, flechas, `Home`, `End` y `Escape`, con restauración de foco y reflow correcto a 320 px.
 - Verificados 320, 375, 768, 1024, 1440 y 812 × 375, temas claro/oscuro, Lottie, sheets, targets touch, consola sin errores, contraste automático, lint, typecheck, 86/86 pruebas y build.
+- Publicado Bento Motion en `c82b2ac`; GitHub Actions `31434946512` finalizó correctamente y Cloudflare Pages sirve los assets `index-DxcgV_3s.js`, `index-CA0iNCsS.css` y `BentoMotionIcon-C_InfoPI.js` por HTTPS 200.
 - Completada una auditoría integral del editor high-density: layout, paneles, botones, formularios, tipografía, color, responsive, modo oscuro, accesibilidad e interacciones.
 - Corregido el recorte vertical de biblioteca e inspector en sheets móviles mediante estructura flex y scroll interno; eliminado también el overflow horizontal del selector de alineación a 320 px.
 - Enlazadas pestañas y paneles con `id`, `aria-controls` y `aria-labelledby`; añadidos estados semánticos a página/capa seleccionadas, inputs de espaciado numéricos y muestra de color identificable.

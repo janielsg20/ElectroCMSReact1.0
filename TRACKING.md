@@ -19,6 +19,7 @@ Actualizado: 2026-08-10.
 ## Tablero compacto
 
 - Tema alternativo Bento Motion solicitado `COMPLETADA`: selector accesible en header, superficies neutras, jerarquía Bento, Lottie local diferido y optimizado, transiciones adaptativas, claro/oscuro y responsive 320–1440 px; lint, typecheck, 86/86 pruebas y build verdes; no modifica el estado de `M03.4`.
+- Publicado Bento Motion en `c82b2ac`; GitHub Actions `31434946512` completó CI/despliegue y Cloudflare Pages sirve `index-DxcgV_3s.js`, `index-CA0iNCsS.css` y el chunk Lottie por HTTPS 200.
 
 | Fase | Estado | Evidencia requerida para cerrar |
 |---|---|---|
