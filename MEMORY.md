@@ -4,115 +4,100 @@ Actualizado: 2026-08-10.
 
 ## Objetivo
 
-Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual y exportadores Local, React, LAMP y WordPress.
+Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual, lógica/estado/datos visuales y exportadores Local, React, LAMP y WordPress.
+
+## Alcance normativo
+
+- Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Ampliación funcional tipo FlutterFlow: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
+- La ampliación añade F19–F31 sin renumerar ni reabrir F00–F18.
+- FlutterFlow se usa como referencia de capacidades y flujos profesionales, no como fuente de código/branding/activos propietarios.
+- Toda capacidad faltante del Addendum se registra como `PARITY_GAP` y se implementa solo en su fase propietaria.
 
 ## Estado real
 
-- Existe un scaffold funcional React 19 + TypeScript + Tailwind 4 con pantalla de fundación accesible.
-- Prompt Flutter convertido a React sin eliminar ninguna de sus 33 secciones.
-- Sistema de diseño base generado con `ui-ux-pro-max`; sus tokens semánticos y primitives ya tienen validación técnica inicial.
-- `M01.1 — Scaffold y calidad` completada, incluido CI/CD y despliegue verificable.
-- `M00.2 — Inventario de la referencia` completada: el usuario ordenó no usar ninguna aplicación externa y construir desde cero.
-- Fase `F00` completada y puerta G0 cerrada.
-- `M01.2 — Capas y contratos` completada con pruebas de dirección y ciclos.
-- `M01.3 — Tokens y primitives` completada con contraste, foco, movimiento reducido y targets táctiles verificados.
-- `M01.4 — PWA y adaptadores de plataforma` completada; puerta G1 y F01 cerradas.
-- `M02.1 — Identidad y versionado` completada con envelope v1, Zod y serialización determinista.
-- `M02.2 — Documentos, nodos y propiedades responsive` completada con schemas estrictos, diagnósticos e herencia probada.
-- `M02.3 — Modelos CMS y backend` completada con schemas estrictos, referencias cruzadas y cardinalidades probadas.
-- `M02.4 — Migraciones` completada con registry forward, backup recuperable y fixtures v0/v1.
-- Fase F02 completada.
-- `M03.1 — Repositorios locales` completada con IndexedDB/Dexie, transacciones, errores tipados e integridad verificada.
-- `M03.2 — Ciclo de proyecto` completada con catálogo local, papelera recuperable e import/export validado.
-- `M03.3 — Guardado incremental y recuperación` completada con debounce, snapshots, journal y reapertura recuperable.
-- Fase activa: `F03 / M03.4 — Command bus e historial`; todavía no implementada.
-- Por prioridad expresa del usuario se rediseñó anticipadamente el editor usando únicamente la imagen adjunta autorizada; no equivale a cerrar F04–F07.
-- El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar a izquierda/derecha/rail, desacoplar, mover, redimensionar, minimizar en pestañas verticales, fijar y restaurar, con equivalentes de teclado. Cerrar y maximizar fueron eliminados por decisión expresa del usuario.
-- Auditoría UI integral 2026-08-10: paneles flex con scroll interno correcto, cero overflow en 320/375/768/1024/1440/812×375, tabs y selección con ARIA enlazada, formularios numéricos accesibles, drag con umbral de 4 px y paleta azul sincronizada entre CSS, tokens TypeScript, manifest e icono PWA.
-- Tema visual alternativo `Bento Motion`: seleccionable desde Ajustes de apariencia en header, conserva Studio, usa módulos Bento neutrales con azul de marca, claro/oscuro, Lottie local lazy sin loop, `prefers-reduced-motion` y targets 44 px en touch. Especificación: `design-system/electrocms/pages/bento-motion.md`.
+- React 19 + TypeScript estricto + Tailwind 4 + Vite + PWA local-first.
+- F00, F01 y F02 completadas.
+- F03 activa.
+- M03.1 repositorios locales: completada.
+- M03.2 ciclo de proyecto: completada.
+- M03.3 autosave/recuperación: completada.
+- Microfase actual: `M03.4 — Command bus e historial` `EN_CURSO`.
+- F04–F18 siguen `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
+- F19–F31 existen solo como roadmap ampliado y están `NO_INICIADA`.
 
 ## Decisiones vigentes
 
-- Núcleo web local-first/PWA; envolturas desktop y móvil desacopladas.
-- Dominio y modelo canónico independientes de React/Tailwind.
-- Layout adaptativo: rail redimensionable 44–168 px + biblioteca + canvas + inspector desde 1024 px; biblioteca e inspector son colapsables, redimensionables y acoplables por arrastre; tablet usa overlays y móvil usa sheets.
-- Densidad adaptativa: header/toolbar de 40 px, rail de 44 px, controles y filas de 32 px en escritorio; targets táctiles de 44 px en tablet/móvil.
-- WCAG 2.2 AA como objetivo verificable.
-- Todo drag-and-drop tendrá alternativa por clic y teclado.
+- Núcleo web local-first/PWA; envolturas desktop/móvil desacopladas.
+- Dominio/modelo canónico independientes de React, Tailwind, almacenamiento y exportadores.
+- Modelo, preview y exportación deben compartir una sola fuente de verdad.
+- Toda mutación futura relevante debe integrarse con Command Bus/History cuando aplique.
+- No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components o exportadores.
+- Integraciones externas son adapters/providers opcionales.
+- AI Agents futuros no persisten directamente; producen comandos validados.
+- Custom Code futuro requiere aislamiento, diagnostics, typecheck y seguridad.
+
+## UI/UX vigente
+
+- Dirección visual: High Density + Minimal Clean + builder/IDE profesional.
+- Desktop: rail compacto, Page/Widget Tree, canvas central y Properties Panel; paneles docked/floating/minimized/pinned y resize.
+- Tablet: rail compacto + canvas + panel contextual/overlays.
+- Móvil: Topbar compacta + Canvas + bottom navigation `Widgets / Pages / Canvas / Properties / More` + tool sheets.
+- Desktop objetivo: controles/filas ~32 px, spacing 4–8 px, rail ~44 px.
+- Touch: targets objetivo 44 px.
+- Azul reservado principalmente para selección, foco, active y primary actions.
+- WCAG 2.2 AA; drag/resize/reorder siempre con alternativa de teclado/clic.
+- Las múltiples capas CSS anticipadas deben consolidarse en primitives/componentes base cuando F04–F07/F19 entren formalmente.
+
+## Roadmap ampliado F19–F31
+
+- F19: Visual Builder avanzado, Selection Manager, Pages/Tree/Canvas/Workspace/mobile builder.
+- F20: Component System, Component Studio y Design System.
+- F21: Data Types, State, Set From Variable y Conditional Values.
+- F22: Action Flow, Action Graph y App Events.
+- F23: DataProvider, Database Builder y Backend Queries.
+- F24: API Manager/Tester/Response Mapping.
+- F25: Authentication, sessions, RBAC y security.
+- F26: Media, Routing, Storyboard, Responsive, Animations, Localization, SEO.
+- F27: Custom Code, Dependencies, Environments, Integrations.
+- F28: Test Mode, Debug, State Inspector y Automated Tests.
+- F29: Versioning, checkpoints, branching, comments/collaboration.
+- F30: AI Builder, Agents y Command Palette.
+- F31: Project Settings, export ampliado, Deployment Center y pre-deploy validation.
 
 ## Próximo paso exacto
 
-Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites configurables y persistencia de undo/redo con prueba de ramas nuevas.
+Continuar `M03.4`: comandos reversibles, transacciones compuestas, límites configurables y persistencia de undo/redo con prueba de ramas nuevas.
+
+No avanzar a F19 ni a otra fase por la ampliación documental.
 
 ## Riesgos abiertos
 
-- La imagen adjunta del editor visual es la única referencia externa autorizada para este rediseño; no se consultaron otras aplicaciones.
-- El scaffold pertenece a la implementación objetivo y no se utilizará como referencia circular.
-- La densidad y legibilidad del editor completo todavía requieren pruebas con sus flujos funcionales reales; el shell visual ya fue probado en sus breakpoints críticos.
-- Las envolturas desktop/móvil permanecen planificadas; solo existe el contrato de capacidades v1 y no se presentan como implementadas.
-- Direct Upload de Cloudflare Pages no puede convertirse después a Git Integration; cambiar requeriría otro proyecto Pages.
-- El token de CI está restringido a Cloudflare Pages y almacenado solo como secreto cifrado de GitHub; deberá rotarse si cambia el responsable del repositorio.
+- La UI anticipada debe consolidarse para evitar acumulación indefinida de CSS/overrides.
+- La densidad y legibilidad deben revalidarse cuando el editor tenga flujos funcionales reales.
+- Collaboration/AI/integraciones remotas deben mantener funcionamiento local completo.
+- Secrets nunca deben aparecer en frontend, logs o exports.
+- Cada export target debe diagnosticar capacidades no soportadas; prohibida la pérdida silenciosa.
 
-## Evidencia técnica reciente
+## Evidencia técnica base conservada
 
-- `npm run lint`: correcto.
-- `npm run typecheck`: correcto.
-- `npm run test`: 79/79 pruebas.
-- `npm run build`: correcto; Vite 7.3.6.
-- UI high-density: Inter Variable local; controles, tabs, páginas, árbol e inspector a 12 px; movimiento, resize y dock por puntero/teclado; azul `#2563EB` dominante y colores de estado reservados para significado semántico.
-- Browser local: composición desktop y navegación móvil revisadas visualmente; bottom sheet y modo oscuro conservan jerarquía, legibilidad y foco accesible.
-- Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal ni errores de consola. Paneles desktop colapsables y redimensionables por puntero/teclado; 36 px solo en desktop y 44 px en superficies touch.
-- GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
-- Publicación UI high-density: commit `4a11d67`, GitHub Actions `31423720024` verde y bundle productivo `index-vIDVryQI.js` verificado por HTTPS 200.
-- Publicación UI dockable previa: commit `d22e67c`, GitHub Actions `31426810726` verde y bundles productivos `index-DcJefDTZ.js`/`index-B6qq0Yp1.css` verificados por HTTPS 200.
-- Publicación UI azul vigente: commit `b5698fd`, GitHub Actions `31429823913` verde y bundles productivos `index-DfL3r9PX.js`/`index-DrRQ4Zf5.css` verificados por HTTPS 200.
-- GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
-- Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
-- Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.
-- UI foundation: tokens light/dark con pares WCAG AA, reset global, movimiento reducido, SVG semánticos, Button y TextField accesibles.
-- PWA: manifest con iconos 192/512, `sw.js` versionado desde el bundle y cabeceras no-cache para actualizaciones.
-- Offline browser: en origen limpio, React volvió a renderizar después de detener por completo el servidor.
-- Plataformas: contrato público v1 documentado en `PLATFORM_ADAPTERS.md`; solo el adaptador web está implementado.
-- Modelo M02.1: `electrocms.project`, `schemaVersion: 1`, UUID, revisión, UTC con milisegundos, metadata/payload JSON y objetos estrictos.
-- Serialización: claves de objeto ordenadas recursivamente, arrays preservados y errores `invalid-json`/`invalid-value` tipados.
-- Dependencia: Zod 4.4.3 exacto; schemas y tipos comparten una única fuente.
-- Modelo M02.2: documentos y componentes globales normalizados, nodos widget/instancia, slots, properties, styles, bindings, condiciones y overrides responsive.
-- Responsive: seis breakpoints base configurables con herencia acíclica; la resolución acumula overrides desde desktop hasta el breakpoint objetivo.
-- Integridad estructural: diagnósticos para claves/IDs, duplicados, referencias rotas, huérfanos, padres múltiples y ciclos de nodos, componentes y breakpoints.
-- Modelo M02.3: CPT, taxonomías/términos, 27 campos, registros, relaciones, consultas, formularios, RBAC, usuarios, menús y pantallas backend normalizados.
-- Integridad CMS: propietarios y referencias cruzadas coherentes, campos obligatorios, jerarquías, permisos, formularios, consultas y pantallas validados semánticamente.
-- Relaciones: fixtures y pruebas para 1:1, 1:N y N:N, pares duplicados y extremos incompatibles.
-- Migraciones M02.4: registry inmutable de pasos forward consecutivos, v0→v1, validación antes/después y diagnósticos tipados.
-- Recuperación M02.4: backup exacto incluido también en fallos; fixtures v0/v1, restauración byte por byte y reintento probados.
-- Publicación M02.4: commit `3fbe4fe`, ejecución `31340253571` y producción HTTPS 200.
-- Persistencia M03.1: `LocalRepository` tipado y adaptador Dexie/IndexedDB con namespace, clave compuesta e índices de versión.
-- Integridad M03.1: serialización validada, huella por registro y rechazo de JSON/schema/ID/versión incoherentes.
-- Resiliencia M03.1: reapertura real, transacción por lote revertida ante cuota y conexión cerrada diferenciada; 5 pruebas de integración.
-- Publicación M03.1: commit `a4431fe`, ejecución `31340890680` y producción HTTPS 200.
-- Ciclo M03.2: creación, duplicado, renombrado, archivo, papelera, recuperación, exportación e importación migrada con errores tipados.
-- Integridad M03.2: IDs repetidos y conflictos de importación no sobrescriben; duplicado explícito obtiene identidad y fechas nuevas.
-- Persistencia M03.2: factoría `projects` conectada a IndexedDB y reapertura de `ProjectRecord` verificada.
-- Publicación M03.2: commit `8e9b333`, ejecución `31341648227` y producción HTTPS 200.
-- Autosave M03.3: debounce con último cambio, snapshots limitados y journal preparar→guardar→confirmar.
-- Recuperación M03.3: pendientes reaplicados, commits reconciliados, corrupción restaurada y conflictos sin sobrescritura.
-- Persistencia M03.3: namespace `project-recovery` y recuperación real tras cerrar/reabrir IndexedDB.
-- Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
-- Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
-- UI anticipada: estudio de densidad 10/10 en React/Tailwind con paleta azul/gris, rail de iconos, páginas/capas, canvas punteado, inspector Propiedades/Acción/Backend, dock móvil y sheets.
-- Menús del editor: biblioteca 192 px e inspector 224 px por defecto, límites 168–280/216–320 px, colapso independiente y separadores accesibles con puntero, flechas, `Home` y `End`.
-- Escala compacta: padding/gap de 4–8 px, radios pequeños y ausencia de márgenes decorativos amplios en el chrome del editor; el espacio del canvas se conserva como área de trabajo.
-- Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
-- Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
-- Publicación UI vigente: Bento Motion en commit `c82b2ac`, ejecución `31434946512` verde y producción HTTPS 200 con `index-DxcgV_3s.js`, `index-CA0iNCsS.css` y Lottie lazy verificado.
+- CI/CD y Cloudflare Pages existen y han sido verificados en entregas previas.
+- PWA offline, manifest y Service Worker están implementados.
+- Modelo canónico v1, schemas Zod, migraciones v0→v1, breakpoints, CMS models y relaciones están implementados y probados.
+- Dexie/IndexedDB, ProjectRecord, import/export y recovery journal están implementados y probados.
+- Las cifras exactas de ejecuciones, bundles y suites históricas viven en `TRACKING.md` y `CHANGELOG.md`; no duplicarlas aquí.
 
 ## Punteros
 
-- Alcance completo: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Alcance ampliado: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - Reglas: `RULES.md`.
-- Fases: `DETAILED_EXECUTION_PHASES.md`.
-- Diseño adaptable: `UI_UX_LAYOUT_SYSTEM.md`.
+- Trazabilidad: `REQUIREMENTS.md`.
+- Fases: `PHASES.md`.
+- Microfases: `DETAILED_EXECUTION_PHASES.md`.
 - Estado: `TRACKING.md`.
-- CI/CD: `CI_CD.md`.
-- Plataformas: `PLATFORM_ADAPTERS.md`.
-- Modelo canónico: `DATA_MODELS.md`.
+- Diseño: `design-system/electrocms/MASTER.md`, `UI_UX_LAYOUT_SYSTEM.md`.
+- Arquitectura: `ARCHITECTURE.md`.
+- Modelo: `DATA_MODELS.md`.
 - Persistencia: `PERSISTENCE.md`.
+- CI/CD: `CI_CD.md`.
