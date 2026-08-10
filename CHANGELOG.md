@@ -2,6 +2,10 @@
 
 ## 2026-08-10
 
+- Rediseñado el estudio visual a partir de la única imagen adjunta autorizada: header compacto, rail, páginas/capas, canvas punteado, marco de dispositivo e inspector Diseño/Acciones/Datos.
+- Mejorada la adaptación responsive con paneles contextuales en tablet/laptop, dock y bottom sheets en móvil, cierre por `Escape` y restauración de foco.
+- Normalizados los controles activos a targets mínimos de 44 px y verificados 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola.
+- Conservados como deshabilitados los controles aún no funcionales; el rediseño anticipado no cierra F04–F07 ni `M03.4`.
 - Cerrada `M03.3`: añadidos schemas estrictos para snapshots, journal y estado de recuperación por proyecto.
 - Implementado protocolo de autosave preparar→guardar→confirmar con debounce, límites configurables y conservación de entradas pendientes.
 - Añadida recuperación de escrituras interrumpidas, confirmaciones fallidas, proyectos corruptos, entradas superadas y conflictos de revisión sin sobrescritura.

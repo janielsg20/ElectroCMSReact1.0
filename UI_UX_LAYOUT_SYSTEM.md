@@ -70,11 +70,12 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 ## Prototipo anticipado implementado
 
-- Desktop: header, rail, biblioteca/capas, canvas, inspector y barra de estado.
-- Tablet: rail, canvas prioritario e inspector persistente a partir de 1024 px.
-- Móvil: canvas prioritario, dock de cinco destinos y paneles como bottom sheets.
+- Desktop: header compacto, rail de 64 px, panel unificado de páginas/capas, canvas punteado, inspector y barra de estado.
+- Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
+- Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
+- Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal, logs de consola ni controles activos menores de 44 px.
 
 ## Fuentes
 

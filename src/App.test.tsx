@@ -21,6 +21,7 @@ describe('App', () => {
     render(<App />)
 
     const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
+    fireEvent.click(within(library).getByRole('tab', { name: /componentes/i }))
     const search = within(library).getByRole('searchbox', { name: /buscar elementos/i })
     expect(search).toBeInTheDocument()
     expect(within(library).getByRole('button', { name: /contenedor/i })).toBeInTheDocument()

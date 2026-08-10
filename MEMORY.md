@@ -26,7 +26,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M03.2 — Ciclo de proyecto` completada con catálogo local, papelera recuperable e import/export validado.
 - `M03.3 — Guardado incremental y recuperación` completada con debounce, snapshots, journal y reapertura recuperable.
 - Fase activa: `F03 / M03.4 — Command bus e historial`; todavía no implementada.
-- Por prioridad expresa del usuario se implementó anticipadamente un prototipo visual integral del editor; no equivale a cerrar F04–F07.
+- Por prioridad expresa del usuario se rediseñó anticipadamente el editor usando únicamente la imagen adjunta autorizada; no equivale a cerrar F04–F07.
 
 ## Decisiones vigentes
 
@@ -42,7 +42,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 
 ## Riesgos abiertos
 
-- El prompt menciona una aplicación React adjunta, pero no se proporcionó un artefacto autorizado; por decisión del usuario, no se sustituirá con otras aplicaciones.
+- La imagen adjunta del editor visual es la única referencia externa autorizada para este rediseño; no se consultaron otras aplicaciones.
 - El scaffold pertenece a la implementación objetivo y no se utilizará como referencia circular.
 - La densidad y legibilidad del editor completo todavía requieren pruebas con sus flujos reales; la fundación ya supera contraste automatizado.
 - Las envolturas desktop/móvil permanecen planificadas; solo existe el contrato de capacidades v1 y no se presentan como implementadas.
@@ -55,7 +55,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - `npm run typecheck`: correcto.
 - `npm run test`: 72/72 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
-- Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
+- Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal, warnings, errores de consola ni targets interactivos menores de 44 px.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
 - GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
@@ -89,7 +89,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Persistencia M03.3: namespace `project-recovery` y recuperación real tras cerrar/reabrir IndexedDB.
 - Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
-- UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
+- UI anticipada: estudio compacto en React/Tailwind con header, rail, páginas/capas, canvas punteado, marcos responsive, inspector Diseño/Acciones/Datos, dock móvil y sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
 - Publicación UI: commit `14a00e9`, ejecución `31339361393` y producción HTTPS 200.
