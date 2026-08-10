@@ -7,6 +7,7 @@
 - Reducidos controles, pestañas, filas y opciones a 36 px en escritorio, conservando targets táctiles de 44 px en tablet y móvil.
 - Verificados seis viewports sin overflow horizontal; colapso, restauración, arrastre, teclado, sheets de tablet y consola sin errores. Suite ampliada a 74/74 pruebas.
 - La entrega anticipada no cierra `M03.4` ni presenta controles planificados como funciones completas.
+- Publicado `b57b85a`; GitHub Actions `31417203626` y Cloudflare Pages finalizaron correctamente con `index-CRq1OgZM.js` validado en producción.
 - Refinada la UI a densidad 10/10 y mayor fidelidad con la referencia autorizada: azul eléctrico, grises fríos, superficies blancas y sombras neutrales.
 - Compactados header, rail de iconos y menús; renombradas las pestañas visibles a Páginas/Componentes y Propiedades/Acción/Backend.
 - Ajustado el breakpoint de escritorio para mostrar rail, páginas/capas, canvas e inspector simultáneamente desde 1024 px; tablet y móvil conservan paneles accesibles.

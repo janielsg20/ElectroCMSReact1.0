@@ -94,7 +94,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Menús del editor: biblioteca 208 px e inspector 248 px por defecto, límites 184–320/224–360 px, colapso independiente y separadores accesibles con puntero, flechas, `Home` y `End`.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
-- Publicación UI vigente: alta densidad azul en commit `7bad321`, ejecución `31412507711` verde y producción HTTPS 200 con `index-FlnSUMKE.js`.
+- Publicación UI vigente: paneles compactos y redimensionables en commit `b57b85a`, ejecución `31417203626` verde y producción HTTPS 200 con `index-CRq1OgZM.js`.
 
 ## Punteros
 

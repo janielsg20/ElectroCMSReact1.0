@@ -10,7 +10,7 @@ Actualizado: 2026-08-10.
 - Entrega anticipada solicitada: paneles compactos, colapsables y redimensionables `COMPLETADO`, basados exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia publicada: UI azul de alta densidad en commit `7bad321`; pipeline `31412507711` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-FlnSUMKE.js`.
+- Última evidencia publicada: paneles compactos y redimensionables en commit `b57b85a`; pipeline `31417203626` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-CRq1OgZM.js`.
 
 ## Tablero compacto
 
@@ -115,6 +115,7 @@ Actualizado: 2026-08-10.
 - Completada: densidad adaptativa de 36 px en escritorio y 44 px en tablet/móvil; 74/74 pruebas y seis viewports sin overflow ni errores de consola.
 - Completada: cuatro regiones simultáneas desde 1024 px; overlays accesibles en 768–1023 px y dock/sheets en móvil.
 - Publicada: refinamiento de alta densidad en `7bad321`; GitHub Actions `31412507711` y el despliegue Cloudflare finalizaron correctamente.
+- Publicada: compactación y paneles redimensionables en `b57b85a`; GitHub Actions `31417203626` y Cloudflare Pages finalizaron correctamente con `index-CRq1OgZM.js` verificado en producción.
 
 
 ## Plantilla de relevo
