@@ -2,6 +2,12 @@
 
 ## 2026-08-10
 
+- Evolucionado el shell existente a un sistema profesional de ventanas high-density sin sustituir su estructura ni identidad visual.
+- Añadidas acciones funcionales para desacoplar, acoplar, mover, redimensionar, minimizar, maximizar, fijar, restaurar y cerrar biblioteca e inspector.
+- Incorporadas alternativas de teclado para movimiento y resize, controles SVG accesibles con tooltip y estados de interacción, y animaciones de 180–200 ms respetando `prefers-reduced-motion`.
+- Empaquetada Inter Variable localmente y añadidos acentos semánticos equilibrados por navegación, contenido, IA, formularios, estados y advertencias en light/dark.
+- Conservados controles compactos de aproximadamente 32 px en escritorio y áreas táctiles de 44 px en tablet/móvil; ampliada la suite a 76/76 pruebas y validado el build.
+- La entrega anticipada no implementa ni cierra `M03.4`; historial, undo/redo y command bus continúan pendientes.
 - Aplicada una segunda compactación integral explícita: header y toolbar de 40 px, rail de 44 px, controles y filas de 32 px, y status bar de 24 px.
 - Reducidos paneles a 192/224 px por defecto con rangos 168–280/216–320 px; minimizados padding, gaps, radios y separación de secciones al ritmo funcional de 4–8 px.
 - Conservados targets de 44 px en tablet/móvil, foco visible, colapso y resize accesible; verificados 320, 375, 768, 1024, 1440 y landscape sin overflow ni errores de consola.

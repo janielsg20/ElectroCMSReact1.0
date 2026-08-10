@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Icon } from '../primitives'
 
 export type InspectorTab = 'content' | 'style' | 'advanced'
@@ -9,10 +9,10 @@ interface InspectorPanelProps {
   readonly className?: string
 }
 
-const tabs: readonly { id: InspectorTab; label: string }[] = [
-  { id: 'style', label: 'Propiedades' },
-  { id: 'content', label: 'Acción' },
-  { id: 'advanced', label: 'Backend' },
+const tabs: readonly { id: InspectorTab; label: string; accent: string }[] = [
+  { id: 'style', label: 'Propiedades', accent: 'var(--color-primary)' },
+  { id: 'content', label: 'Acción', accent: 'var(--color-warning)' },
+  { id: 'advanced', label: 'Backend', accent: 'var(--color-accent-data)' },
 ]
 
 function PropertyRow({ label, children }: { readonly label: string; readonly children: ReactNode }) {
@@ -31,7 +31,7 @@ export function InspectorPanel({ activeTab, onTabChange, className = '' }: Inspe
   return (
     <aside aria-label="Inspector de propiedades" className={`min-h-0 border-l border-border bg-surface ${className}`}>
       <div className="grid grid-cols-3 gap-px border-b border-border bg-border p-1.5 lg:p-1" role="tablist" aria-label="Propiedades">
-        {tabs.map((tab) => <button aria-selected={activeTab === tab.id} className={`min-h-11 cursor-pointer rounded px-1 text-[0.625rem] font-semibold transition-colors lg:min-h-8 ${activeTab === tab.id ? 'bg-surface text-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-surface hover:text-foreground'}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button">{tab.label}</button>)}
+        {tabs.map((tab) => <button aria-selected={activeTab === tab.id} className={`min-h-11 cursor-pointer rounded border-b-2 px-1 text-[0.625rem] font-semibold transition-colors lg:min-h-8 ${activeTab === tab.id ? 'border-[var(--tab-accent)] bg-surface text-[var(--tab-accent)] shadow-sm' : 'border-transparent bg-muted text-muted-foreground hover:bg-surface hover:text-foreground'}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" style={{ '--tab-accent': tab.accent } as CSSProperties} type="button">{tab.label}</button>)}
       </div>
 
       <div className="h-full overflow-y-auto pb-16 lg:pb-6" role="tabpanel">

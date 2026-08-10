@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-heading: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-heading: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --color-canvas: #f7f8fa;
@@ -19,6 +19,9 @@
   --color-focus: #2563eb;
   --color-success: #15803d;
   --color-warning: #b45309;
+  --color-accent-ai: #7c3aed;
+  --color-accent-data: #0e7490;
+  --color-accent-form: #15803d;
   --color-elevated: #ffffff;
 
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.07);
@@ -58,6 +61,9 @@
   --color-focus: #93c5fd;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
+  --color-accent-ai: #c4b5fd;
+  --color-accent-data: #22d3ee;
+  --color-accent-form: #4ade80;
   --color-elevated: #281a38;
 }
 
@@ -79,6 +85,9 @@
     --color-focus: #93c5fd;
     --color-success: #4ade80;
     --color-warning: #fbbf24;
+    --color-accent-ai: #c4b5fd;
+    --color-accent-data: #22d3ee;
+    --color-accent-form: #4ade80;
     --color-elevated: #281a38;
   }
 }
@@ -133,6 +142,56 @@ button,
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 3rem minmax(0, 1fr);
+}
+
+.panel-window {
+  border-top-color: var(--panel-accent);
+  animation: panel-window-enter 180ms var(--ease-standard);
+}
+
+.panel-window--library {
+  --panel-accent: var(--color-accent-data);
+}
+
+.panel-window--inspector {
+  --panel-accent: var(--color-accent-ai);
+}
+
+.panel-window--active {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--panel-accent) 45%, transparent), var(--shadow-md);
+}
+
+.panel-window__bar {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--panel-accent) 11%, var(--color-surface)), var(--color-surface) 58%);
+}
+
+.panel-window__dot {
+  background: var(--panel-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--panel-accent) 15%, transparent);
+}
+
+.panel-minimized-shelf {
+  transition: opacity 180ms var(--ease-standard), translate 180ms var(--ease-standard);
+}
+
+.panel-minimized-shelf > button {
+  animation: panel-window-enter 180ms var(--ease-standard);
+}
+
+.nav-accent-icon {
+  color: var(--nav-accent);
+  background: color-mix(in srgb, var(--nav-accent) 11%, transparent);
+}
+
+@keyframes panel-window-enter {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .bg-editor-grid {

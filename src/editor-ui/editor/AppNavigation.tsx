@@ -1,5 +1,16 @@
+import type { CSSProperties } from 'react'
 import { Icon } from '../primitives'
 import { navigationItems } from './editor-data'
+
+const navigationAccents: Readonly<Record<string, string>> = {
+  Inicio: 'var(--color-warning)',
+  Editor: 'var(--color-primary)',
+  Contenido: 'var(--color-accent-data)',
+  Temas: 'var(--color-accent-ai)',
+  Formularios: 'var(--color-accent-form)',
+  Usuarios: 'var(--color-accent-data)',
+  Ajustes: 'var(--color-muted-foreground)',
+}
 
 export function AppNavigation() {
   return (
@@ -13,10 +24,13 @@ export function AppNavigation() {
               aria-label={item.label}
               className={`group relative grid min-h-11 min-w-11 w-full cursor-pointer place-items-center border-l-2 transition-colors lg:min-h-8 lg:min-w-8 ${item.label === 'Editor' ? 'border-primary bg-primary-soft text-primary' : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'} disabled:cursor-not-allowed disabled:opacity-55`}
               disabled={!item.available}
+              style={{ '--nav-accent': navigationAccents[item.label] ?? 'var(--color-muted-foreground)' } as CSSProperties}
               title={item.available ? item.label : `${item.label} · planificado`}
               type="button"
             >
-              <Icon name={item.icon} size={16} />
+              <span className="nav-accent-icon grid size-7 place-items-center rounded-md transition-[color,background-color,transform] duration-200 group-hover:scale-105 group-active:scale-95">
+                <Icon name={item.icon} size={16} />
+              </span>
               <span className="sr-only">{item.label}</span>
             </button>
           </li>

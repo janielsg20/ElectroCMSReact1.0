@@ -1,6 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from './App'
 
+function firePointer(target: Element | Window, type: string, clientX: number, clientY: number) {
+  const event = new Event(type, { bubbles: true })
+  Object.defineProperties(event, { clientX: { value: clientX }, clientY: { value: clientY } })
+  fireEvent(target, event)
+}
+
 describe('App', () => {
   it('presenta el editor visual sin habilitar la ejecución de la app', () => {
     render(<App />)
@@ -63,5 +69,55 @@ describe('App', () => {
     expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '240')
     fireEvent.keyDown(inspectorSeparator, { key: 'End' })
     expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '320')
+  })
+
+  it('desacopla, mueve, redimensiona, fija y minimiza una ventana con alternativas de teclado', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
+    const floatingPanel = screen.getByRole('region', { name: /páginas y capas · flotante/i })
+    expect(floatingPanel).toHaveStyle({ left: '60px', width: '252px' })
+
+    fireEvent.keyDown(screen.getByRole('button', { name: /mover páginas y capas/i }), { key: 'ArrowRight' })
+    expect(floatingPanel).toHaveStyle({ left: '76px' })
+    fireEvent.keyDown(screen.getByRole('button', { name: /redimensionar ventana páginas y capas/i }), { key: 'ArrowRight' })
+    expect(floatingPanel).toHaveStyle({ width: '268px' })
+
+    const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
+    firePointer(moveHandle, 'pointerdown', 100, 100)
+    firePointer(window, 'pointermove', 120, 112)
+    firePointer(window, 'pointerup', 120, 112)
+    expect(floatingPanel).toHaveStyle({ left: '96px', top: '76px' })
+
+    const resizeHandle = screen.getByRole('button', { name: /redimensionar ventana páginas y capas/i })
+    firePointer(resizeHandle, 'pointerdown', 100, 100)
+    firePointer(window, 'pointermove', 116, 116)
+    firePointer(window, 'pointerup', 116, 116)
+    expect(floatingPanel).toHaveStyle({ width: '284px', height: '556px' })
+
+    const pinButton = screen.getByRole('button', { name: /fijar páginas y capas/i })
+    fireEvent.click(pinButton)
+    expect(screen.getByRole('button', { name: /desfijar páginas y capas/i })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: /minimizar páginas y capas/i }))
+    expect(screen.queryByRole('region', { name: /páginas y capas · flotante/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /restaurar páginas y capas/i }))
+    expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
+  })
+
+  it('maximiza, restaura, acopla y cierra paneles sin depender del arrastre', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /maximizar inspector/i }))
+    expect(screen.getByRole('region', { name: /inspector · maximizado/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /restaurar inspector/i }))
+    expect(screen.getByRole('region', { name: /inspector · acoplado/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /desacoplar inspector/i }))
+    fireEvent.click(screen.getByRole('button', { name: /acoplar inspector/i }))
+    expect(screen.getByRole('region', { name: /inspector · acoplado/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /cerrar inspector/i }))
+    expect(screen.queryByRole('complementary', { name: /inspector de propiedades/i })).not.toBeInTheDocument()
   })
 })

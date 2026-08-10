@@ -7,10 +7,10 @@ Actualizado: 2026-08-10.
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
 - Microfase actual: `M03.4 — Command bus e historial`.
 - Estado: `EN_CURSO`.
-- Entrega anticipada solicitada: compactación integral minimalista de alta densidad `COMPLETADO`, basada exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
+- Entrega anticipada solicitada: sistema de ventanas high-density con paneles acoplables, flotantes, minimizables y accesibles `COMPLETADA`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia publicada: compactación integral de alta densidad en commit `a6c13c7`; pipeline `31419886499` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-B09363my.js`.
+- Última evidencia local: sistema de ventanas high-density validado con lint, typecheck, 76/76 pruebas, build Vite y revisión visual responsive light/dark; publicación pendiente de esta entrega.
 
 ## Tablero compacto
 
@@ -105,6 +105,10 @@ Actualizado: 2026-08-10.
 - Completada: puerta local de M03.3 con lint, typecheck, 72/72 pruebas y build Vite reproducible.
 - Completada: publicación M03.3 en commit `f394d63`, ejecución GitHub Actions `31404629844` verde y producción HTTPS 200.
 - En curso: `M03.4`; comandos reversibles, transacciones compuestas, undo/redo, ramas nuevas e historial persistente aún no implementados.
+- Completada: evolución high-density del shell con paneles acoplables, flotantes, minimizables, maximizables, fijables, cerrables y restaurables, conservando la estructura y paleta existentes.
+- Completada: movimiento y resize por puntero con alternativas de teclado; controles SVG con nombres accesibles, tooltips, foco visible y animaciones de 180–200 ms compatibles con `prefers-reduced-motion`.
+- Completada: Inter Variable empaquetada localmente, acentos semánticos por área y targets adaptativos de 32 px en escritorio y 44 px en superficies touch.
+- Completada: puerta local de la entrega UI con lint, typecheck, 76/76 pruebas, build y revisión browser en escritorio y móvil, incluidos modo oscuro y bottom sheet.
 - Completada: entrega anticipada de rediseño UI con shell compacto, panel unificado de páginas/capas, canvas punteado con marcos de dispositivo e inspector Diseño/Acciones/Datos.
 - Completada: adaptación con dock y bottom sheets en móvil, paneles contextuales en 768–1279 px y cuatro regiones persistentes desde 1280 px.
 - Completada: verificación browser en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow, errores de consola ni targets activos menores de 44 px; `Escape` y restauración de foco probados.
