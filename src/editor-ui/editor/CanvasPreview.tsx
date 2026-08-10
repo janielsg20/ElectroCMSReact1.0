@@ -1,12 +1,14 @@
 import { Button, Icon } from '../primitives'
-import type { MobilePanel } from './MobileDock'
 
 export type ViewportMode = 'desktop' | 'tablet' | 'mobile'
 
 interface CanvasPreviewProps {
   readonly viewport: ViewportMode
   readonly onViewportChange: (viewport: ViewportMode) => void
-  readonly onOpenPanel: (panel: MobilePanel) => void
+  readonly onToggleLibrary: () => void
+  readonly onToggleInspector: () => void
+  readonly libraryOpen: boolean
+  readonly inspectorOpen: boolean
 }
 
 const viewportWidths: Record<ViewportMode, string> = {
@@ -21,13 +23,13 @@ const viewportLabels: Record<ViewportMode, string> = {
   mobile: 'Móvil · 390',
 }
 
-export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: CanvasPreviewProps) {
+export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onToggleInspector, libraryOpen, inspectorOpen }: CanvasPreviewProps) {
   const isDevice = viewport !== 'desktop'
   return (
-    <main className="relative min-h-0 min-w-0 overflow-hidden bg-editor-grid" id="editor-canvas" tabIndex={-1}>
+    <main className="relative row-start-2 min-h-0 min-w-0 overflow-hidden bg-editor-grid md:col-start-2 lg:col-start-3" id="editor-canvas" tabIndex={-1}>
       <div className="absolute inset-x-0 top-0 z-10 flex min-h-12 items-center justify-between gap-2 border-b border-border bg-surface/95 px-2 backdrop-blur sm:px-3">
         <div className="flex items-center gap-1" role="toolbar" aria-label="Herramientas del canvas">
-          <span className="hidden md:block lg:hidden"><Button aria-label="Abrir páginas y capas" onClick={() => onOpenPanel('layers')} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
+          <span className="hidden md:block"><Button aria-label="Alternar páginas y capas" className={libraryOpen ? 'bg-primary-soft text-primary-strong' : ''} onClick={onToggleLibrary} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
           <Button aria-label="Herramienta de selección" className="bg-primary-soft text-primary-strong" size="icon" variant="ghost"><Icon name="cursor" /></Button>
           <span className="hidden sm:block"><Button aria-label="Herramienta de estructura, no disponible" disabled size="icon" variant="ghost"><Icon name="columns" /></Button></span>
           <span className="ml-1 hidden text-xs text-muted-foreground xl:inline">Inicio / Hero / Encabezado</span>
@@ -35,14 +37,14 @@ export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: Canva
 
         <div className="absolute left-1/2 flex -translate-x-1/2 items-center rounded-lg border border-border bg-canvas p-0.5 shadow-sm" role="group" aria-label="Viewport del documento">
           {(['mobile', 'tablet', 'desktop'] as const).map((mode) => (
-            <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} key={mode} onClick={() => onViewportChange(mode)} type="button"><Icon name={mode} size={16} /></button>
+            <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors lg:size-9 ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} key={mode} onClick={() => onViewportChange(mode)} type="button"><Icon name={mode} size={16} /></button>
           ))}
         </div>
 
         <div className="flex items-center gap-1">
           <span className="hidden xl:block"><Button aria-label="Generador IA, planificado" disabled size="small"><Icon name="sparkles" size={16} />Generador IA</Button></span>
           <span className="hidden rounded-md bg-muted px-2 py-1 font-heading text-xs text-muted-foreground sm:inline">− &nbsp;90%&nbsp; +</span>
-          <span className="hidden md:block lg:hidden"><Button aria-label="Abrir inspector" onClick={() => onOpenPanel('inspector')} size="icon" variant="ghost"><Icon name="settings" /></Button></span>
+          <span className="hidden md:block"><Button aria-label="Alternar inspector" className={inspectorOpen ? 'bg-primary-soft text-primary-strong' : ''} onClick={onToggleInspector} size="icon" variant="ghost"><Icon name="settings" /></Button></span>
           <span className="hidden sm:block"><Button aria-label="Opciones del canvas" size="icon" variant="ghost"><Icon name="more" /></Button></span>
         </div>
       </div>

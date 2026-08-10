@@ -11,7 +11,7 @@ Estado: aplicado al prototipo visual anticipado solicitado por el usuario. No ci
 
 ## Composición
 
-- Desktop/laptop horizontal desde 1024 px: header compacto, rail de iconos, panel de páginas/capas, canvas punteado con marco de dispositivo, inspector y status bar.
+- Desktop/laptop horizontal desde 1024 px: header compacto, rail de iconos, panel de páginas/capas, canvas punteado con marco de dispositivo, inspector y status bar. Biblioteca e inspector se colapsan por separado y se redimensionan en rangos 184–320/224–360 px.
 - Laptop: rail, canvas e inspector persistente; biblioteca accesible como panel contextual.
 - Móvil: header compacto, canvas prioritario, dock de cinco destinos y biblioteca/inspector como bottom sheet.
 - El canvas del documento mantiene su propio viewport y nunca fuerza overflow horizontal en la página.
@@ -22,7 +22,8 @@ Estado: aplicado al prototipo visual anticipado solicitado por el usuario. No ci
 - Azul eléctrico `#2563EB` reservado para selección, foco y acciones primarias; superficies blancas, grises fríos y canvas neutral.
 - Tipografía local del sistema para conservar funcionamiento offline.
 - Iconografía SVG outline coherente, sin emoji.
-- Densidad 10/10 en desktop; se compactan rail, gutters, tipografía y agrupaciones sin reducir controles críticos por debajo de 44 × 44 px.
+- Densidad 10/10 en desktop con controles de 36 px; tablet y móvil conservan targets táctiles de 44 × 44 px.
+- Los separadores de panel ofrecen arrastre y alternativa de teclado con flechas, `Home` y `End`, además de límites y valor ARIA.
 - El inspector agrupa Propiedades, Acción y Backend; la selección se comunica con etiqueta, contorno y semántica, no solo con color.
 
 ## Estado del prototipo
@@ -30,4 +31,4 @@ Estado: aplicado al prototipo visual anticipado solicitado por el usuario. No ci
 - Búsqueda de widgets, tabs, selector de viewport, tema y sheets móviles son interactivos.
 - Publicar, preview, historial y módulos fuera del editor permanecen deshabilitados y etiquetados como planificados.
 - Los ejemplos del canvas son contenido propio de demostración de ElectroCMS, no una referencia externa.
-- Verificado en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal, errores de consola ni targets activos menores de 44 px.
+- Verificado en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; colapso, puntero, teclado y overlays responsive comprobados.

@@ -29,4 +29,39 @@ describe('App', () => {
     expect(within(library).queryByRole('button', { name: /contenedor/i })).not.toBeInTheDocument()
     expect(within(library).getByRole('button', { name: /formulario/i })).toBeInTheDocument()
   })
+
+  it('permite colapsar y restaurar los paneles laterales en escritorio', () => {
+    const originalMatchMedia = window.matchMedia ? window.matchMedia.bind(window) : undefined
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true })
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /alternar páginas y capas/i }))
+    expect(screen.queryByRole('complementary', { name: /biblioteca y capas/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /alternar páginas y capas/i }))
+    expect(screen.getByRole('complementary', { name: /biblioteca y capas/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /alternar inspector/i }))
+    expect(screen.queryByRole('complementary', { name: /inspector de propiedades/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /alternar inspector/i }))
+    expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toBeInTheDocument()
+    if (originalMatchMedia) window.matchMedia = originalMatchMedia
+    else Reflect.deleteProperty(window, 'matchMedia')
+  })
+
+  it('redimensiona los paneles con teclado y límites accesibles', () => {
+    render(<App />)
+
+    const librarySeparator = screen.getByRole('separator', { name: /páginas y capas/i })
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '208')
+    fireEvent.keyDown(librarySeparator, { key: 'ArrowRight' })
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '224')
+    fireEvent.keyDown(librarySeparator, { key: 'Home' })
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '184')
+
+    const inspectorSeparator = screen.getByRole('separator', { name: /inspector/i })
+    fireEvent.keyDown(inspectorSeparator, { key: 'ArrowLeft' })
+    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '264')
+    fireEvent.keyDown(inspectorSeparator, { key: 'End' })
+    expect(inspectorSeparator).toHaveAttribute('aria-valuenow', '360')
+  })
 })

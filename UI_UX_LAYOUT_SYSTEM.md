@@ -12,11 +12,12 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 - Header/toolbar superior persistente.
 - Rail de navegación de alta densidad: 52 px colapsado con etiquetas accesibles.
-- Panel izquierdo contextual de 240–272 px para páginas, capas o componentes.
+- Panel izquierdo contextual de 208 px por defecto para páginas, capas o componentes; rango 184–320 px.
 - Canvas central flexible con mínimo útil y zoom independiente.
-- Inspector derecho de 280–320 px.
+- Inspector derecho de 248 px por defecto; rango 224–360 px.
 - Status bar opcional para sincronización, selección y diagnóstico.
-- Los paneles se redimensionan, colapsan y recuerdan el workspace.
+- Los paneles se redimensionan y colapsan de forma independiente. La persistencia del workspace se implementará en su microfase funcional; no se simula.
+- Los separadores admiten arrastre por puntero y teclado: flechas en pasos de 16 px, `Home` al mínimo y `End` al máximo, con valores ARIA expuestos.
 
 ### Tablet — 768 a 1023 px
 
@@ -64,7 +65,7 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Ninguna función desaparece en pantallas pequeñas.
 - No hay scroll horizontal a nivel página a 320 CSS px.
 - El foco nunca queda oculto por header, sheet o toolbar sticky.
-- Todos los targets críticos alcanzan 44 × 44 CSS px como estándar interno.
+- Todos los targets críticos alcanzan 44 × 44 CSS px en superficies touch; escritorio de alta densidad admite 36 px con foco visible y operación por puntero/teclado.
 - Drag, resize y reordenar tienen alternativa de una sola activación y teclado.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
 
@@ -74,8 +75,9 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
 - Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
+- Paneles desktop habilitados: colapso independiente y resize por puntero o teclado dentro de límites explícitos.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
-- Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal, logs de consola ni controles activos menores de 44 px.
+- Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 36 px en desktop y 44 px en tablet/móvil.
 
 ## Fuentes
 

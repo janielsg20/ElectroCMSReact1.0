@@ -7,7 +7,7 @@ Actualizado: 2026-08-10.
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
 - Microfase actual: `M03.4 — Command bus e historial`.
 - Estado: `EN_CURSO`.
-- Entrega anticipada solicitada: ajuste de alta densidad y fidelidad visual del editor `COMPLETADO`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
+- Entrega anticipada solicitada: paneles compactos, colapsables y redimensionables `COMPLETADO`, basados exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
 - Última evidencia publicada: UI azul de alta densidad en commit `7bad321`; pipeline `31412507711` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-FlnSUMKE.js`.
@@ -111,6 +111,8 @@ Actualizado: 2026-08-10.
 - No completada por este rediseño: publicación, historial, mutaciones del documento y módulos posteriores; permanecen deshabilitados o claramente presentados como prototipo.
 - Publicada: entrega UI en `30d846d`; GitHub Actions `31407539886` completó calidad y despliegue, y producción sirve `index-2JEzV0jm.js` con HTTPS 200.
 - Completada: fidelidad visual de alta densidad con azul `#2563EB`, grises fríos, rail de iconos, menús Páginas/Componentes, inspector Propiedades/Acción/Backend y Generador IA planificado.
+- Completada: biblioteca e inspector compactos con anchos iniciales 208/248 px, colapso independiente, arrastre por puntero y redimensionado de teclado con límites ARIA.
+- Completada: densidad adaptativa de 36 px en escritorio y 44 px en tablet/móvil; 74/74 pruebas y seis viewports sin overflow ni errores de consola.
 - Completada: cuatro regiones simultáneas desde 1024 px; overlays accesibles en 768–1023 px y dock/sheets en móvil.
 - Publicada: refinamiento de alta densidad en `7bad321`; GitHub Actions `31412507711` y el despliegue Cloudflare finalizaron correctamente.
 

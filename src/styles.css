@@ -128,6 +128,8 @@ button,
 }
 
 .editor-shell {
+  --library-width: 0px;
+  --inspector-width: 0px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 3.5rem minmax(0, 1fr);
@@ -148,19 +150,7 @@ button,
 
 @media (min-width: 64rem) {
   .editor-shell {
-    grid-template-columns: 3.25rem 15rem minmax(18rem, 1fr) 17.5rem;
-  }
-}
-
-@media (min-width: 80rem) {
-  .editor-shell {
-    grid-template-columns: 3.25rem 16rem minmax(24rem, 1fr) 19rem;
-  }
-}
-
-@media (min-width: 96rem) {
-  .editor-shell {
-    grid-template-columns: 3.25rem 17rem minmax(30rem, 1fr) 20rem;
+    grid-template-columns: 3.25rem var(--library-width) minmax(18rem, 1fr) var(--inspector-width);
   }
 }
 

@@ -32,7 +32,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 - Núcleo web local-first/PWA; envolturas desktop y móvil desacopladas.
 - Dominio y modelo canónico independientes de React/Tailwind.
-- Layout adaptativo: shell de tres regiones en desktop; paneles contraíbles en tablet; canvas + sheets en móvil.
+- Layout adaptativo: rail + biblioteca + canvas + inspector desde 1024 px; biblioteca e inspector son colapsables y redimensionables; tablet usa overlays y móvil usa sheets.
+- Densidad adaptativa: controles de 36 px en escritorio y targets táctiles de 44 px en tablet/móvil.
 - WCAG 2.2 AA como objetivo verificable.
 - Todo drag-and-drop tendrá alternativa por clic y teclado.
 
@@ -44,7 +45,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 
 - La imagen adjunta del editor visual es la única referencia externa autorizada para este rediseño; no se consultaron otras aplicaciones.
 - El scaffold pertenece a la implementación objetivo y no se utilizará como referencia circular.
-- La densidad y legibilidad del editor completo todavía requieren pruebas con sus flujos reales; la fundación ya supera contraste automatizado.
+- La densidad y legibilidad del editor completo todavía requieren pruebas con sus flujos funcionales reales; el shell visual ya fue probado en sus breakpoints críticos.
 - Las envolturas desktop/móvil permanecen planificadas; solo existe el contrato de capacidades v1 y no se presentan como implementadas.
 - Direct Upload de Cloudflare Pages no puede convertirse después a Git Integration; cambiar requeriría otro proyecto Pages.
 - El token de CI está restringido a Cloudflare Pages y almacenado solo como secreto cifrado de GitHub; deberá rotarse si cambia el responsable del repositorio.
@@ -53,9 +54,9 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 72/72 pruebas.
+- `npm run test`: 74/74 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
-- Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal, warnings, errores de consola ni targets interactivos menores de 44 px.
+- Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal ni errores de consola. Paneles desktop colapsables y redimensionables por puntero/teclado; 36 px solo en desktop y 44 px en superficies touch.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
 - GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
@@ -90,6 +91,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: estudio de densidad 10/10 en React/Tailwind con paleta azul/gris, rail de iconos, páginas/capas, canvas punteado, inspector Propiedades/Acción/Backend, dock móvil y sheets.
+- Menús del editor: biblioteca 208 px e inspector 248 px por defecto, límites 184–320/224–360 px, colapso independiente y separadores accesibles con puntero, flechas, `Home` y `End`.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
 - Publicación UI vigente: alta densidad azul en commit `7bad321`, ejecución `31412507711` verde y producción HTTPS 200 con `index-FlnSUMKE.js`.
