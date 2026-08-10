@@ -8,6 +8,7 @@
 - Empaquetada Inter Variable localmente y añadidos acentos semánticos equilibrados por navegación, contenido, IA, formularios, estados y advertencias en light/dark.
 - Conservados controles compactos de aproximadamente 32 px en escritorio y áreas táctiles de 44 px en tablet/móvil; ampliada la suite a 76/76 pruebas y validado el build.
 - La entrega anticipada no implementa ni cierra `M03.4`; historial, undo/redo y command bus continúan pendientes.
+- Publicado `4a11d67`; GitHub Actions `31423720024` y Cloudflare Pages finalizaron correctamente con `index-vIDVryQI.js` validado en producción.
 - Aplicada una segunda compactación integral explícita: header y toolbar de 40 px, rail de 44 px, controles y filas de 32 px, y status bar de 24 px.
 - Reducidos paneles a 192/224 px por defecto con rangos 168–280/216–320 px; minimizados padding, gaps, radios y separación de secciones al ritmo funcional de 4–8 px.
 - Conservados targets de 44 px en tablet/móvil, foco visible, colapso y resize accesible; verificados 320, 375, 768, 1024, 1440 y landscape sin overflow ni errores de consola.

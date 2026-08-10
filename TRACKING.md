@@ -10,7 +10,7 @@ Actualizado: 2026-08-10.
 - Entrega anticipada solicitada: sistema de ventanas high-density con paneles acoplables, flotantes, minimizables y accesibles `COMPLETADA`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia local: sistema de ventanas high-density validado con lint, typecheck, 76/76 pruebas, build Vite y revisión visual responsive light/dark; publicación pendiente de esta entrega.
+- Última evidencia publicada: sistema de ventanas high-density en commit `4a11d67`; pipeline `31423720024` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-vIDVryQI.js`.
 
 ## Tablero compacto
 
