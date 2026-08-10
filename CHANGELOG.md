@@ -2,6 +2,12 @@
 
 ## 2026-08-10
 
+- Completada una auditoría integral del editor high-density: layout, paneles, botones, formularios, tipografía, color, responsive, modo oscuro, accesibilidad e interacciones.
+- Corregido el recorte vertical de biblioteca e inspector en sheets móviles mediante estructura flex y scroll interno; eliminado también el overflow horizontal del selector de alineación a 320 px.
+- Enlazadas pestañas y paneles con `id`, `aria-controls` y `aria-labelledby`; añadidos estados semánticos a página/capa seleccionadas, inputs de espaciado numéricos y muestra de color identificable.
+- Añadido umbral de 4 px al drag-and-drop, feedback activo en controles, padding con safe area en canvas y aplicación de tema previa al pintado para evitar parpadeos claro/oscuro.
+- Sincronizados al azul de marca `#2563EB` los tokens TypeScript, CSS, manifest PWA e icono instalable, eliminando restos de la paleta violeta anterior.
+- Verificados navegador y layout en 320, 375, 768, 1024, 1440 y 812 × 375, temas claro/oscuro, fuentes de botones a 12 px y consola de la aplicación sin errores; lint, typecheck, 80/80 pruebas y build verdes.
 - Ajustada la UI a la referencia adjunta con superficies claras/grises y azul `#2563EB` como acento dominante; eliminados los colores decorativos distintos entre paneles, menús, páginas, widgets, inspector y dock móvil.
 - Normalizados a 12 px los textos de botones, pestañas Páginas/Componentes y Propiedades/Acción/Backend, nombres de páginas, árbol de widgets y controles del inspector.
 - Eliminada la acción de cerrar ventanas; ocultar usa el mismo flujo recuperable de minimizar/restaurar y las sheets móviles conservan un control explícito «Ocultar panel» más `Escape`.

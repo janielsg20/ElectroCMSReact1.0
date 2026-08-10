@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { AppNavigation } from './AppNavigation'
 import { CanvasPreview, type ViewportMode } from './CanvasPreview'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
@@ -122,7 +122,7 @@ export function EditorShell() {
   const libraryVisible = workspace.library.mode !== 'minimized'
   const inspectorVisible = workspace.inspector.mode !== 'minimized'
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'
     return () => { delete document.documentElement.dataset.theme }
   }, [darkMode])
@@ -151,6 +151,10 @@ export function EditorShell() {
       }
 
       if (interaction.kind === 'move') {
+        const deltaX = event.clientX - interaction.startX
+        const deltaY = event.clientY - interaction.startY
+        if (Math.hypot(deltaX, deltaY) < 4) return
+        setDraggingPanel(interaction.panel)
         const target: DockTarget = event.clientX <= railWidth + 34
           ? 'rail'
           : event.clientX <= Math.min(240, window.innerWidth * 0.22)
@@ -334,7 +338,6 @@ export function EditorShell() {
     if (kind === 'move') {
       dockTargetRef.current = null
       setDockPreview(null)
-      setDraggingPanel(panel)
     }
     interactionRef.current = { kind, panel, startX: event.clientX, startY: event.clientY, startBounds: workspace[panel].bounds }
   }

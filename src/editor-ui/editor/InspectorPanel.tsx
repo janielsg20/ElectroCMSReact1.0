@@ -25,17 +25,17 @@ function SelectControl({ value }: { readonly value: string }) {
 }
 
 function SectionTitle({ children, icon = 'settings' }: { readonly children: ReactNode; readonly icon?: IconName }) {
-  return <div className="flex items-center justify-between"><h3 className="flex items-center gap-1 text-xs font-bold"><Icon className="text-primary" name={icon} size={12} />{children}</h3><Icon className="text-primary" name="chevron-down" size={12} /></div>
+  return <h3 className="flex items-center gap-1 text-xs font-bold"><Icon className="text-primary" name={icon} size={12} />{children}</h3>
 }
 
 export function InspectorPanel({ activeTab, onTabChange, className = '' }: InspectorPanelProps) {
   return (
-    <aside aria-label="Inspector de propiedades" className={`min-h-0 border-l border-border bg-surface ${className}`}>
-      <div className="grid grid-cols-3 gap-px border-b border-border bg-border p-1.5 lg:p-1" role="tablist" aria-label="Propiedades">
-        {tabs.map((tab) => <button aria-selected={activeTab === tab.id} className={`flex min-h-11 cursor-pointer items-center justify-center gap-0.5 rounded border-b-2 px-0.5 text-xs font-semibold transition-colors lg:min-h-8 ${activeTab === tab.id ? 'border-primary bg-primary-soft text-primary-strong shadow-sm' : 'border-transparent bg-surface text-foreground hover:bg-primary-soft hover:text-primary-strong'}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button"><Icon name={tab.icon} size={11} />{tab.label}</button>)}
+    <aside aria-label="Inspector de propiedades" className={`flex min-h-0 flex-col border-l border-border bg-surface ${className}`}>
+      <div className="grid shrink-0 grid-cols-3 gap-px border-b border-border bg-border p-1.5 lg:p-1" role="tablist" aria-label="Propiedades">
+        {tabs.map((tab) => <button aria-controls="inspector-active-panel" aria-selected={activeTab === tab.id} className={`flex min-h-11 cursor-pointer items-center justify-center gap-0.5 rounded border-b-2 px-0.5 text-xs font-semibold transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === tab.id ? 'border-primary bg-primary-soft text-primary-strong shadow-sm' : 'border-transparent bg-surface text-foreground hover:bg-primary-soft hover:text-primary-strong'}`} id={`inspector-tab-${tab.id}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button"><Icon name={tab.icon} size={11} />{tab.label}</button>)}
       </div>
 
-      <div className="h-full overflow-y-auto pb-16 lg:pb-6" role="tabpanel">
+      <div aria-labelledby={`inspector-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-16 lg:pb-6" id="inspector-active-panel" role="tabpanel">
         {activeTab === 'style' ? (
           <div className="divide-y divide-border">
             <section className="grid gap-1.5 p-2 lg:p-1.5">
@@ -44,20 +44,20 @@ export function InspectorPanel({ activeTab, onTabChange, className = '' }: Inspe
             </section>
             <section className="grid gap-1.5 p-2 lg:p-1.5">
               <SectionTitle icon="columns">Alineación y padding</SectionTitle>
-              <div className="grid grid-cols-[minmax(0,1fr)_6.75rem] gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_8.75rem] gap-2 lg:grid-cols-[minmax(0,1fr)_6.75rem]">
                 <div className="grid gap-1.5"><PropertyRow label="Eje X"><SelectControl value="Inicio" /></PropertyRow><PropertyRow label="Eje Y"><SelectControl value="Centro" /></PropertyRow></div>
                 <div className="grid grid-cols-3 gap-0.5 rounded-md bg-muted p-0.5" role="group" aria-label="Alineación visual">{Array.from({ length: 9 }, (_, index) => <button aria-label={`Posición ${index + 1}`} className={`grid size-11 cursor-pointer place-items-center rounded hover:bg-surface lg:size-8 ${index === 3 ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground'}`} key={index} type="button"><span className="size-1.5 rounded-sm bg-current" /></button>)}</div>
               </div>
             </section>
             <section className="grid gap-1.5 p-2 lg:p-1.5">
               <SectionTitle icon="resize">Espaciado</SectionTitle>
-              <div className="grid grid-cols-2 gap-1">{['Arriba', 'Derecha', 'Abajo', 'Izquierda'].map((side, index) => <label className="grid min-w-0 gap-0.5 text-xs text-muted-foreground" key={side}><span>{side}</span><span className="flex min-h-11 min-w-0 items-center rounded border border-border bg-surface px-1.5 lg:min-h-8"><input aria-label={`Padding ${side.toLowerCase()}`} className="h-11 w-0 min-w-0 flex-1 bg-transparent text-right text-xs text-foreground outline-none lg:h-8" defaultValue={index % 2 === 0 ? '40' : '24'} inputMode="numeric" /><span className="ml-1">px</span></span></label>)}</div>
+              <div className="grid grid-cols-2 gap-1">{['Arriba', 'Derecha', 'Abajo', 'Izquierda'].map((side, index) => <label className="grid min-w-0 gap-0.5 text-xs text-muted-foreground" key={side}><span>{side}</span><span className="flex min-h-11 min-w-0 items-center rounded border border-border bg-surface px-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-focus lg:min-h-8"><input aria-label={`Padding ${side.toLowerCase()}`} className="h-11 w-0 min-w-0 flex-1 bg-transparent text-right text-xs text-foreground outline-none lg:h-8" defaultValue={index % 2 === 0 ? 40 : 24} inputMode="numeric" min={0} type="number" /><span className="ml-1">px</span></span></label>)}</div>
               <button className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-1 rounded border border-border bg-surface text-xs font-semibold text-primary hover:border-primary hover:bg-primary-soft lg:min-h-8" type="button"><Icon name="lock" size={12} />Vincular valores</button>
             </section>
             <section className="grid gap-1.5 p-2 lg:p-1.5">
               <SectionTitle icon="heading">Tipografía</SectionTitle>
               <div className="grid grid-cols-2 gap-1"><PropertyRow label="Peso"><SelectControl value="700 · Bold" /></PropertyRow><PropertyRow label="Tamaño"><SelectControl value="48 px" /></PropertyRow></div>
-              <div className="flex items-center gap-1"><span className="size-8 rounded border border-border bg-slate-950" aria-label="Color #0F172A" /><code className="text-xs text-muted-foreground">#0F172A</code><button className="ml-auto min-h-11 rounded border border-border bg-surface px-2 text-xs font-semibold text-primary hover:border-primary hover:bg-primary-soft lg:min-h-8 lg:px-1.5" type="button">Cambiar</button></div>
+              <div className="flex items-center gap-1"><span aria-label="Color #0F172A" className="size-8 rounded border border-border bg-slate-950" role="img" /><code className="text-xs text-muted-foreground">#0F172A</code><button className="ml-auto min-h-11 rounded border border-border bg-surface px-2 text-xs font-semibold text-primary hover:border-primary hover:bg-primary-soft active:bg-primary/15 lg:min-h-8 lg:px-1.5" type="button">Cambiar</button></div>
             </section>
           </div>
         ) : null}

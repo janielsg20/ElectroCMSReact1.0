@@ -49,7 +49,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
         </div>
       </div>
 
-      <div className="h-full overflow-auto px-2 pb-20 pt-14 sm:px-4 sm:pb-10 sm:pt-16 lg:px-2 lg:pb-7 lg:pt-11">
+      <div className="h-full overflow-auto overscroll-contain px-2 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-14 sm:px-4 sm:pb-10 sm:pt-16 lg:px-2 lg:pb-7 lg:pt-11">
         <div className="mx-auto transition-[width] duration-200" style={{ width: viewportWidths[viewport] }}>
           <div className={isDevice ? `relative mx-auto border-slate-950 bg-slate-950 p-2 shadow-[0_24px_55px_rgba(30,20,50,.28)] ${viewport === 'mobile' ? 'max-w-[24.5rem] rounded-[2.75rem] border-[5px]' : 'rounded-[2rem] border-[4px]'}` : 'overflow-hidden rounded-xl border border-border bg-white shadow-lg'}>
             {isDevice ? <div className={`absolute left-1/2 top-3 z-20 -translate-x-1/2 bg-slate-950 ${viewport === 'mobile' ? 'h-6 w-24 rounded-full' : 'h-2 w-16 rounded-full'}`} aria-hidden="true" /> : null}

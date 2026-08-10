@@ -25,14 +25,14 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
   }, [query])
 
   return (
-    <aside aria-label="Biblioteca y capas" className={`min-h-0 border-r border-border bg-surface ${className}`}>
-      <div className="grid grid-cols-2 border-b border-border bg-muted/60 p-1.5 lg:p-1" role="tablist" aria-label="Panel izquierdo">
-        <button aria-selected={activeTab === 'layers'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors lg:min-h-8 ${activeTab === 'layers' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} onClick={() => onTabChange('layers')} role="tab" type="button"><Icon name="layers" size={13} />Páginas</button>
-        <button aria-selected={activeTab === 'widgets'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors lg:min-h-8 ${activeTab === 'widgets' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} onClick={() => onTabChange('widgets')} role="tab" type="button"><Icon name="plus" size={13} />Componentes</button>
+    <aside aria-label="Biblioteca y capas" className={`flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
+      <div className="grid shrink-0 grid-cols-2 border-b border-border bg-muted/60 p-1.5 lg:p-1" role="tablist" aria-label="Panel izquierdo">
+        <button aria-controls="library-panel-layers" aria-selected={activeTab === 'layers'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === 'layers' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-layers" onClick={() => onTabChange('layers')} role="tab" type="button"><Icon name="layers" size={13} />Páginas</button>
+        <button aria-controls="library-panel-widgets" aria-selected={activeTab === 'widgets'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-8 ${activeTab === 'widgets' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-widgets" onClick={() => onTabChange('widgets')} role="tab" type="button"><Icon name="plus" size={13} />Componentes</button>
       </div>
 
       {activeTab === 'widgets' ? (
-        <div className="h-full overflow-y-auto p-2 lg:p-1.5" role="tabpanel">
+        <div aria-labelledby="library-tab-widgets" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-widgets" role="tabpanel">
           <div className="mb-2 flex items-center justify-between lg:mb-1"><div><p className="text-xs font-bold leading-4 text-primary">Componentes</p><p className="text-xs leading-4 text-muted-foreground">Selecciona para insertar</p></div><button aria-label="Crear componente" className="grid size-11 cursor-pointer place-items-center rounded-md text-primary hover:bg-primary-soft lg:size-8" type="button"><Icon name="plus" size={14} /></button></div>
           <label className="relative block">
             <span className="sr-only">Buscar elementos</span>
@@ -51,18 +51,18 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
           {filteredWidgets.length === 0 ? <p className="mt-3 text-center text-xs text-muted-foreground">No hay elementos con ese nombre.</p> : null}
         </div>
       ) : (
-        <div className="h-full overflow-y-auto" role="tabpanel">
+        <div aria-labelledby="library-tab-layers" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" id="library-panel-layers" role="tabpanel">
           <section className="border-b border-border p-1.5 lg:p-1" aria-labelledby="pages-title">
             <div className="flex min-h-11 items-center justify-between px-1 lg:min-h-8"><h2 className="text-xs font-bold text-primary" id="pages-title">Páginas <span className="font-normal text-muted-foreground">· 4</span></h2><button aria-label="Añadir página" className="grid size-11 cursor-pointer place-items-center rounded text-primary hover:bg-primary-soft lg:size-8" type="button"><Icon name="plus" size={14} /></button></div>
             <ul className="grid gap-px">
-              {pages.map((page) => <li key={page.label}><button className={`semantic-option flex min-h-11 w-full cursor-pointer items-center gap-1 rounded px-1 text-left text-xs transition-colors lg:min-h-8 ${page.label === 'Inicio' ? 'font-bold' : ''}`} type="button"><Icon className="text-primary" name={page.icon} size={13} /><span className="flex-1 text-foreground">{page.label}</span><Icon className="text-primary" name="more" size={12} /></button></li>)}
+              {pages.map((page) => <li key={page.label}><button aria-current={page.label === 'Inicio' ? 'page' : undefined} className={`semantic-option flex min-h-11 w-full cursor-pointer items-center gap-1 rounded px-1 text-left text-xs transition-colors active:bg-primary/15 lg:min-h-8 ${page.label === 'Inicio' ? 'font-bold' : ''}`} type="button"><Icon className="text-primary" name={page.icon} size={13} /><span className="flex-1 text-foreground">{page.label}</span><Icon className="text-primary" name="more" size={12} /></button></li>)}
             </ul>
           </section>
           <section className="p-1.5 lg:p-1" aria-labelledby="layers-title">
             <div className="flex min-h-11 items-center justify-between px-1 lg:min-h-8"><h2 className="flex items-center gap-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={12} />Árbol de widgets</h2><button aria-label="Opciones de capas" className="grid size-11 cursor-pointer place-items-center rounded text-primary hover:bg-primary-soft lg:size-8" type="button"><Icon name="more" size={14} /></button></div>
             <ul aria-label="Árbol de capas" role="tree">
               {layerItems.map((layer) => (
-                <li aria-level={layer.depth + 1} key={layer.id} role="treeitem">
+                <li aria-level={layer.depth + 1} aria-selected={layer.id === 'hero-content'} key={layer.id} role="treeitem">
                   <button className={`flex min-h-11 w-full cursor-pointer items-center gap-1 rounded pr-1 text-left text-xs transition-colors hover:bg-primary-soft lg:min-h-8 ${layer.id === 'hero-content' ? 'bg-primary-soft font-semibold text-primary-strong' : 'text-muted-foreground'}`} style={{ paddingLeft: `${4 + layer.depth * 9}px` }} type="button">
                     <span className="h-3 border-l border-border" aria-hidden="true" /><Icon name={layer.icon} size={14} /><span className="truncate">{layer.label}</span>{layer.id === 'hero-content' ? <Icon className="ml-auto" name="eye" size={14} /> : null}
                   </button>

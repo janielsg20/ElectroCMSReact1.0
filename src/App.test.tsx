@@ -158,11 +158,27 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
     const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
     firePointer(moveHandle, 'pointerdown', 500, 100)
+    expect(screen.queryByText('Barra lateral')).not.toBeInTheDocument()
+    firePointer(window, 'pointermove', 508, 108)
     expect(screen.getByText('Barra lateral')).toBeInTheDocument()
     expect(screen.getByText('Acoplar a la izquierda')).toBeInTheDocument()
     expect(screen.getByText('Acoplar a la derecha')).toBeInTheDocument()
     firePointer(window, 'pointercancel', 20, 100)
     expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
     expect(screen.queryByText('Barra lateral')).not.toBeInTheDocument()
+  })
+
+  it('conecta pestañas y paneles con semántica accesible y selección explícita', () => {
+    render(<App />)
+
+    const pagesTab = screen.getByRole('tab', { name: /páginas/i })
+    expect(pagesTab).toHaveAttribute('aria-controls', 'library-panel-layers')
+    expect(screen.getByRole('tabpanel', { name: /páginas/i })).toHaveAttribute('id', 'library-panel-layers')
+    expect(screen.getAllByRole('button', { name: /^inicio/i }).find((button) => button.getAttribute('aria-current') === 'page')).toBeInTheDocument()
+    expect(screen.getByRole('treeitem', { name: /contenido hero/i })).toHaveAttribute('aria-selected', 'true')
+
+    const propertiesTab = screen.getByRole('tab', { name: /propiedades/i })
+    expect(propertiesTab).toHaveAttribute('aria-controls', 'inspector-active-panel')
+    expect(screen.getByRole('tabpanel', { name: /propiedades/i })).toHaveAttribute('id', 'inspector-active-panel')
   })
 })
