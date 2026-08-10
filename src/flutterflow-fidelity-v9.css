@@ -1,0 +1,644 @@
+/*
+ * ElectroCMS — FlutterFlow fidelity pass v9
+ * Structural reference: Navigation Menu + Toolbar + Canvas + Properties Panel.
+ * ElectroCMS keeps its own branding, local-first behavior and high-density rules.
+ */
+
+:root {
+  --ff-rail: 2.75rem;
+  --ff-topbar: 2.5rem;
+  --ff-panel-header: 2rem;
+  --ff-mobile-topbar: 2.75rem;
+  --ff-mobile-dock: 3.5rem;
+  --ff-panel-bg: var(--color-surface);
+  --ff-canvas-bg: color-mix(in srgb, var(--color-canvas) 78%, var(--color-muted));
+  --ff-divider: color-mix(in srgb, var(--color-border) 92%, transparent);
+  --ff-hover: color-mix(in srgb, var(--color-foreground) 4%, var(--color-surface));
+  --ff-selected: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+}
+
+/* ---------- Global builder shell ---------- */
+.editor-shell {
+  background: var(--ff-canvas-bg);
+}
+
+.app-topbar,
+.app-navigation,
+.panel-window,
+.library-panel,
+.inspector-panel,
+.canvas-toolbar,
+.app-statusbar,
+.mobile-dock,
+.mobile-sheet {
+  box-shadow: none;
+}
+
+/* The desktop workspace reads as one continuous builder, not a collection of cards. */
+@media (min-width: 64rem) {
+  .app-topbar {
+    min-height: var(--ff-topbar);
+    height: var(--ff-topbar);
+    border-bottom: 1px solid var(--ff-divider);
+  }
+
+  .app-navigation,
+  .panel-window.relative,
+  .canvas-workspace {
+    border-radius: 0 !important;
+  }
+
+  .panel-window.relative {
+    border-block: 0;
+    box-shadow: none !important;
+  }
+
+  .panel-window--library.relative {
+    border-left: 0;
+  }
+
+  .panel-window--inspector.relative {
+    border-right: 0;
+  }
+}
+
+/* ---------- Toolbar ---------- */
+.app-topbar {
+  background: var(--color-surface);
+}
+
+.app-topbar > div:first-of-type {
+  border-right-color: var(--ff-divider);
+}
+
+.app-topbar .project-switcher {
+  border-color: transparent;
+  background: transparent;
+}
+
+.app-topbar .project-switcher:hover,
+.app-topbar .project-switcher:focus-visible {
+  border-color: var(--color-border);
+  background: var(--ff-hover);
+  color: var(--color-foreground);
+}
+
+.app-topbar [role="toolbar"] {
+  gap: 0.125rem;
+}
+
+.app-topbar [role="toolbar"] > span,
+.app-topbar [role="toolbar"] > div {
+  min-width: 0;
+}
+
+.app-topbar [role="toolbar"] button {
+  box-shadow: none !important;
+}
+
+.app-topbar [role="toolbar"] button:not(:disabled):hover {
+  background: var(--ff-hover);
+}
+
+.app-topbar [role="toolbar"] button:disabled {
+  opacity: 0.42;
+}
+
+.theme-settings-popover {
+  border-radius: 0.5rem;
+  border-color: var(--ff-divider);
+}
+
+/* ---------- Navigation menu / rail ---------- */
+.app-navigation {
+  border-right-color: var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.app-navigation > div {
+  padding-block: 0.25rem;
+}
+
+.app-navigation .nav-option {
+  margin-inline: 0.1875rem;
+  width: calc(100% - 0.375rem);
+  min-height: 2rem;
+  border: 0;
+  border-radius: 0.375rem;
+  color: var(--color-muted-foreground);
+}
+
+.app-navigation .nav-option:hover:not(:disabled) {
+  background: var(--ff-hover);
+  color: var(--color-foreground);
+}
+
+.app-navigation .nav-option[aria-current="page"] {
+  background: var(--ff-selected);
+  color: var(--color-primary-strong);
+}
+
+.app-navigation .nav-option[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.35rem;
+  inset-inline-start: -0.1875rem;
+  width: 2px;
+  border-radius: 0 999px 999px 0;
+  background: var(--color-primary);
+}
+
+.app-navigation .nav-accent-icon {
+  width: 1.625rem;
+  height: 1.625rem;
+  background: transparent;
+}
+
+.app-navigation .nav-option[aria-current="page"] .nav-accent-icon {
+  background: transparent;
+  color: var(--color-primary-strong);
+}
+
+/* ---------- Tool panels ---------- */
+.panel-window {
+  background: var(--ff-panel-bg);
+}
+
+.panel-window__bar {
+  height: var(--ff-panel-header);
+  min-height: var(--ff-panel-header);
+  border-bottom: 1px solid var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.panel-window__bar .text-muted-foreground {
+  font-weight: 500;
+}
+
+.panel-window__action {
+  width: 1.625rem;
+  height: 1.625rem;
+  color: var(--color-muted-foreground) !important;
+}
+
+.panel-window__action:hover,
+.panel-window__action[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--ff-hover);
+  color: var(--color-foreground) !important;
+}
+
+.panel-window.fixed {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-border) 94%, var(--color-foreground));
+  border-radius: 0.5rem !important;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.16) !important;
+}
+
+.panel-window.fixed.panel-window--active {
+  border-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent), 0 14px 36px rgb(15 23 42 / 0.17) !important;
+}
+
+/* Desktop dock resize: broad hit area, tiny visible grip like a builder/IDE. */
+.editor-shell [role="separator"][aria-orientation="vertical"] {
+  isolation: isolate;
+}
+
+.editor-shell [role="separator"][aria-orientation="vertical"] > span {
+  position: relative;
+  width: 1px;
+  background: transparent;
+}
+
+.editor-shell [role="separator"][aria-orientation="vertical"] > span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 2.5rem;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 120ms var(--ease-standard);
+}
+
+.editor-shell [role="separator"][aria-orientation="vertical"]:hover > span::after,
+.editor-shell [role="separator"][aria-orientation="vertical"]:focus-visible > span::after {
+  background: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+}
+
+/* ---------- Left page/widget tree ---------- */
+.library-panel > [role="tablist"] {
+  min-height: 2.25rem;
+  padding: 0.1875rem;
+  border-bottom: 1px solid var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.library-panel [role="tab"] {
+  min-height: 1.875rem !important;
+  border: 0 !important;
+  border-radius: 0.3125rem;
+  color: var(--color-muted-foreground);
+}
+
+.library-panel [role="tab"]:hover {
+  background: var(--ff-hover);
+  color: var(--color-foreground);
+}
+
+.library-panel [role="tab"][aria-selected="true"] {
+  background: var(--ff-selected);
+  color: var(--color-primary-strong);
+  box-shadow: none !important;
+}
+
+.library-panel [role="tab"][aria-selected="true"]::after {
+  display: none;
+}
+
+#library-panel-layers > section,
+#library-panel-widgets {
+  background: var(--color-surface);
+}
+
+#library-panel-layers > section > div:first-child,
+#library-panel-widgets > div:first-child {
+  min-height: 2rem;
+}
+
+#library-panel-layers [role="tree"] {
+  padding-bottom: 0.375rem;
+}
+
+#library-panel-layers [role="treeitem"] button {
+  min-height: 1.875rem;
+  margin-inline: 0.1875rem;
+  width: calc(100% - 0.375rem);
+  border: 0;
+  border-radius: 0.3125rem;
+}
+
+#library-panel-layers [role="treeitem"] button:hover {
+  background: var(--ff-hover);
+}
+
+#library-panel-layers [role="treeitem"][aria-selected="true"] button {
+  background: var(--ff-selected);
+  color: var(--color-primary-strong);
+}
+
+#library-panel-widgets .semantic-option {
+  min-height: 3.25rem;
+  border-color: transparent;
+  background: var(--color-surface);
+}
+
+#library-panel-widgets .semantic-option:hover,
+#library-panel-widgets .semantic-option:focus-visible {
+  border-color: var(--color-border);
+  background: var(--ff-hover);
+}
+
+/* ---------- Right properties panel ---------- */
+.inspector-selection-context {
+  border-bottom-color: var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.inspector-panel > [role="tablist"] {
+  min-height: 2.25rem;
+  padding: 0.1875rem;
+  border-bottom: 1px solid var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.inspector-panel [role="tab"] {
+  min-height: 1.875rem !important;
+  border: 0 !important;
+  border-radius: 0.3125rem;
+  color: var(--color-muted-foreground);
+}
+
+.inspector-panel [role="tab"]:hover {
+  background: var(--ff-hover);
+  color: var(--color-foreground);
+}
+
+.inspector-panel [role="tab"][aria-selected="true"] {
+  background: var(--ff-selected);
+  color: var(--color-primary-strong);
+  box-shadow: none !important;
+}
+
+.inspector-panel [role="tab"][aria-selected="true"]::after {
+  display: none;
+}
+
+.inspector-panel section {
+  border-bottom-color: var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.inspector-panel section h3 {
+  color: var(--color-foreground);
+}
+
+.inspector-panel :where(input, textarea, select),
+.inspector-panel button:not([role="tab"]):not(.panel-window__action) {
+  box-shadow: none !important;
+}
+
+.inspector-panel :where(input, textarea, select) {
+  background: var(--color-surface);
+}
+
+/* ---------- Canvas ---------- */
+.canvas-workspace {
+  background: var(--ff-canvas-bg);
+}
+
+.canvas-toolbar {
+  min-height: 2.5rem;
+  height: 2.5rem;
+  border-bottom: 1px solid var(--ff-divider);
+  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.canvas-toolbar > [role="group"] {
+  padding: 0.125rem;
+  border: 1px solid var(--ff-divider);
+  border-radius: 0.375rem;
+  background: var(--color-surface);
+}
+
+.canvas-toolbar > [role="group"] button {
+  width: 1.875rem;
+  height: 1.875rem;
+  border: 0;
+  border-radius: 0.3125rem;
+}
+
+.canvas-toolbar > [role="group"] button[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.canvas-scroll {
+  background: transparent;
+}
+
+.bg-editor-grid {
+  background-color: var(--ff-canvas-bg);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-muted-foreground) 15%, transparent) 0.75px, transparent 0.9px);
+  background-size: 16px 16px;
+}
+
+/* The document/device is the visual focus. */
+.canvas-scroll > div > div.relative.mx-auto,
+.canvas-scroll > div > div.overflow-hidden.rounded-xl {
+  box-shadow: 0 10px 28px rgb(15 23 42 / 0.13) !important;
+}
+
+/* ---------- Docking feedback ---------- */
+.dock-preview-zone {
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  color: var(--color-muted-foreground);
+}
+
+.dock-preview-zone--active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  color: var(--color-primary-strong);
+}
+
+.panel-minimized-shelf {
+  border-left-color: var(--ff-divider);
+  background: var(--color-surface);
+}
+
+.panel-edge-tab {
+  background: var(--color-surface) !important;
+  color: var(--color-muted-foreground) !important;
+}
+
+.panel-edge-tab:hover,
+.panel-edge-tab:focus-visible {
+  background: var(--ff-selected) !important;
+  color: var(--color-primary-strong) !important;
+}
+
+/* ---------- Mobile: builder-first adaptation ---------- */
+@media (max-width: 47.99rem) {
+  .editor-shell {
+    background: var(--ff-canvas-bg);
+  }
+
+  .app-topbar {
+    min-height: var(--ff-mobile-topbar);
+    height: var(--ff-mobile-topbar);
+    padding-inline: 0.375rem;
+    border-bottom: 1px solid var(--ff-divider);
+    background: var(--color-surface);
+  }
+
+  /* Keep branding tiny and reserve the width for actual builder controls. */
+  .app-topbar > div:first-of-type {
+    width: auto;
+    max-width: 7.5rem;
+    padding-right: 0.375rem;
+    border-right: 0;
+  }
+
+  .app-topbar > div:first-of-type > div:first-of-type {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .app-topbar > div:first-of-type p:first-child {
+    font-size: 0.6875rem;
+  }
+
+  .app-topbar .project-switcher,
+  .builder-context-chip {
+    display: none !important;
+  }
+
+  .app-topbar [role="toolbar"] {
+    margin-left: auto;
+    gap: 0.0625rem;
+  }
+
+  .app-topbar [role="toolbar"] button {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    min-height: 2.25rem;
+    padding-inline: 0;
+  }
+
+  /* Canvas fills all remaining room between top toolbar and bottom nav. */
+  .canvas-workspace {
+    inset: auto;
+    background: var(--ff-canvas-bg);
+  }
+
+  .canvas-toolbar {
+    min-height: 2.5rem;
+    height: 2.5rem;
+    padding-inline: 0.25rem;
+    border-bottom: 1px solid var(--ff-divider);
+    background: var(--color-surface);
+    backdrop-filter: none;
+  }
+
+  .canvas-toolbar > div:first-child > :not(:nth-child(2)) {
+    display: none !important;
+  }
+
+  .canvas-toolbar > div:last-child > :not(:last-child) {
+    display: none !important;
+  }
+
+  .canvas-toolbar > [role="group"] {
+    left: 50%;
+    padding: 0.125rem;
+  }
+
+  .canvas-toolbar > [role="group"] button {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .canvas-scroll {
+    padding-inline: 0.5rem;
+    padding-top: 3rem;
+    padding-bottom: calc(var(--ff-mobile-dock) + env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  .canvas-scroll > div {
+    max-width: 100%;
+  }
+
+  /* Mobile bottom navigation mirrors the builder's desktop navigation responsibilities. */
+  .mobile-dock {
+    min-height: var(--ff-mobile-dock);
+    border-top: 1px solid var(--ff-divider);
+    background: var(--color-surface);
+    box-shadow: 0 -1px 0 rgb(15 23 42 / 0.025);
+    backdrop-filter: none;
+  }
+
+  .mobile-dock-option {
+    min-height: var(--ff-mobile-dock);
+    border-radius: 0 !important;
+  }
+
+  .mobile-dock-option::before {
+    inset-inline: 32%;
+    height: 2px;
+  }
+
+  .mobile-dock-option__icon {
+    background: transparent;
+    color: currentColor;
+  }
+
+  .mobile-dock-option--active {
+    color: var(--color-primary-strong);
+  }
+
+  .mobile-dock-option--active::before {
+    background: var(--color-primary);
+  }
+
+  .mobile-dock-option--active .mobile-dock-option__icon {
+    background: var(--ff-selected);
+  }
+
+  .mobile-dock-option:disabled {
+    opacity: 0.36;
+  }
+
+  /* Panels on mobile become tool sheets, not modal cards. */
+  .mobile-sheet {
+    inset-inline: 0.25rem;
+    bottom: calc(var(--ff-mobile-dock) + env(safe-area-inset-bottom) + 0.25rem);
+    max-height: min(78dvh, 42rem);
+    min-height: 18rem;
+    border: 1px solid var(--ff-divider);
+    border-radius: 0.625rem;
+    background: var(--color-surface);
+    box-shadow: 0 12px 40px rgb(15 23 42 / 0.22);
+  }
+
+  .mobile-sheet > div:first-child {
+    min-height: 2.75rem;
+    height: 2.75rem;
+    padding-inline: 0.5rem;
+    border-bottom: 1px solid var(--ff-divider);
+    background: var(--color-surface) !important;
+  }
+
+  .mobile-sheet > div:first-child h2 {
+    margin-top: 0;
+    color: var(--color-foreground) !important;
+  }
+
+  .mobile-sheet > div:first-child span[aria-hidden="true"] {
+    position: absolute;
+    top: 0.25rem;
+    left: 50%;
+    width: 2rem;
+    height: 3px;
+    transform: translateX(-50%);
+    background: color-mix(in srgb, var(--color-muted-foreground) 32%, transparent) !important;
+  }
+
+  .mobile-sheet .library-panel,
+  .mobile-sheet .inspector-panel {
+    border: 0;
+  }
+
+  .mobile-sheet .library-panel > [role="tablist"],
+  .mobile-sheet .inspector-panel > [role="tablist"] {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--color-surface);
+  }
+}
+
+@media (max-width: 23.5rem) {
+  .app-topbar > div:first-of-type > div:nth-child(2) {
+    display: none;
+  }
+
+  .app-topbar > div:first-of-type {
+    max-width: 2rem;
+  }
+
+  .mobile-dock-option {
+    font-size: 0.625rem;
+  }
+
+  .mobile-dock-option__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .canvas-toolbar > [role="group"] button {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell [role="separator"][aria-orientation="vertical"] > span::after {
+    transition: none;
+  }
+}
