@@ -10,6 +10,7 @@ import './component-system.css'
 import './workspace-refinement-v4.css'
 import './micro-ux-v5.css'
 import './flutterflow-builder-v6.css'
+import './flutterflow-builder-v7.css'
 
 const rootElement = document.getElementById('root')
 
