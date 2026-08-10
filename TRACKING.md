@@ -10,7 +10,7 @@ Actualizado: 2026-08-10.
 - Entrega anticipada solicitada: rediseño responsive del editor `COMPLETADO`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia publicada: M03.3 en commit `f394d63`; pipeline `31404629844` completo en verde; Cloudflare Pages responde HTTPS 200.
+- Última evidencia publicada: rediseño UI en commit `30d846d`; pipeline `31407539886` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-2JEzV0jm.js`.
 
 ## Tablero compacto
 
@@ -109,6 +109,7 @@ Actualizado: 2026-08-10.
 - Completada: adaptación con dock y bottom sheets en móvil, paneles contextuales en 768–1279 px y cuatro regiones persistentes desde 1280 px.
 - Completada: verificación browser en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow, errores de consola ni targets activos menores de 44 px; `Escape` y restauración de foco probados.
 - No completada por este rediseño: publicación, historial, mutaciones del documento y módulos posteriores; permanecen deshabilitados o claramente presentados como prototipo.
+- Publicada: entrega UI en `30d846d`; GitHub Actions `31407539886` completó calidad y despliegue, y producción sirve `index-2JEzV0jm.js` con HTTPS 200.
 
 
 ## Plantilla de relevo

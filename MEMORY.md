@@ -92,7 +92,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - UI anticipada: estudio compacto en React/Tailwind con header, rail, páginas/capas, canvas punteado, marcos responsive, inspector Diseño/Acciones/Datos, dock móvil y sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
-- Publicación UI: commit `14a00e9`, ejecución `31339361393` y producción HTTPS 200.
+- Publicación UI vigente: rediseño en commit `30d846d`, ejecución `31407539886` verde y producción HTTPS 200 con `index-2JEzV0jm.js`.
 
 ## Punteros
 
