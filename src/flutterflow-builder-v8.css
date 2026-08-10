@@ -1,0 +1,280 @@
+/*
+ * ElectroCMS — FlutterFlow-inspired builder refinement v8
+ * Focus: builder chrome, topbar hierarchy, navigation rail and tool grouping.
+ * Keeps ElectroCMS high-density and minimal-clean rather than cloning FlutterFlow branding.
+ */
+
+:root {
+  --builder-chrome: color-mix(in srgb, var(--color-surface) 98%, var(--color-canvas));
+  --builder-chrome-muted: color-mix(in srgb, var(--color-muted) 78%, var(--color-surface));
+  --builder-divider: color-mix(in srgb, var(--color-border) 92%, transparent);
+  --builder-control-hover: color-mix(in srgb, var(--color-foreground) 4%, var(--color-surface));
+}
+
+/* ---------- Topbar ---------- */
+.app-topbar {
+  background: var(--builder-chrome);
+  border-bottom-color: var(--builder-divider);
+}
+
+.builder-brand {
+  border-right-color: var(--builder-divider);
+}
+
+.builder-brand > div:first-of-type {
+  box-shadow: none;
+}
+
+.builder-project-context {
+  flex: 1 1 auto;
+  max-width: min(34rem, 42vw);
+}
+
+.builder-project-context .project-switcher {
+  max-width: 13rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-foreground);
+}
+
+.builder-project-context .project-switcher:hover,
+.builder-project-context .project-switcher:focus-visible {
+  border-color: var(--builder-divider);
+  background: var(--builder-control-hover);
+  color: var(--color-foreground);
+}
+
+.builder-project-context .project-switcher > span > span:first-child {
+  font-size: 0.625rem;
+  line-height: 0.75rem;
+}
+
+.builder-page-context {
+  min-width: 0;
+  max-width: 14rem;
+}
+
+.builder-page-context > * {
+  min-width: 0;
+}
+
+.builder-topbar-actions {
+  flex: 0 1 auto;
+}
+
+.builder-toolgroup {
+  min-height: 2rem;
+  padding-inline: 0.125rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.builder-toolgroup + .builder-toolgroup {
+  margin-left: 0.125rem;
+}
+
+.builder-toolgroup:has(button:not(:disabled):hover),
+.builder-toolgroup:has(button:focus-visible) {
+  border-color: var(--builder-divider);
+  background: color-mix(in srgb, var(--color-muted) 45%, transparent);
+}
+
+.builder-status-control {
+  background: transparent;
+  border: 0;
+}
+
+.builder-status-control:disabled {
+  opacity: 0.62;
+  filter: none;
+}
+
+.builder-run-action:disabled {
+  border-color: var(--builder-divider);
+  background: var(--color-muted);
+  color: var(--color-muted-foreground);
+  opacity: 0.8;
+}
+
+.theme-settings-trigger {
+  color: var(--color-muted-foreground);
+}
+
+.theme-settings-trigger:hover,
+.theme-settings-trigger[aria-expanded="true"] {
+  color: var(--color-primary-strong);
+}
+
+/* ---------- Builder navigation rail ---------- */
+.app-navigation {
+  background: var(--builder-chrome);
+  border-right-color: var(--builder-divider);
+}
+
+.builder-rail-head {
+  border-bottom: 1px solid transparent;
+}
+
+.app-navigation:has(.nav-option:hover) .builder-rail-head {
+  border-bottom-color: var(--builder-divider);
+}
+
+.app-navigation .nav-option {
+  border-left-color: transparent;
+  color: var(--color-muted-foreground);
+}
+
+.app-navigation .nav-option:not(:disabled):hover {
+  background: var(--builder-control-hover);
+  color: var(--color-foreground);
+}
+
+.app-navigation .nav-option[aria-current="page"] {
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+  border-left-color: var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+.app-navigation .nav-option[aria-current="page"] .nav-accent-icon {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary-strong);
+}
+
+.builder-profile {
+  border-top-color: var(--builder-divider);
+  background: color-mix(in srgb, var(--color-surface) 98%, var(--color-muted));
+}
+
+/* ---------- Tool panels ---------- */
+.panel-window__bar {
+  min-height: 1.75rem;
+  background: var(--builder-chrome);
+}
+
+.panel-window.fixed .panel-window__bar {
+  background: color-mix(in srgb, var(--color-surface) 97%, var(--color-muted));
+}
+
+.panel-window__action {
+  color: var(--color-muted-foreground) !important;
+}
+
+.panel-window__action:hover,
+.panel-window__action[aria-pressed="true"] {
+  color: var(--color-primary-strong) !important;
+}
+
+.panel-window.fixed {
+  border-radius: 0.5rem;
+  box-shadow: 0 14px 34px rgb(15 23 42 / 0.14);
+}
+
+:root[data-theme="dark"] .panel-window.fixed {
+  box-shadow: 0 16px 38px rgb(0 0 0 / 0.3);
+}
+
+/* ---------- Canvas tool strip ---------- */
+.canvas-toolbar {
+  background: var(--builder-chrome);
+  border-bottom-color: var(--builder-divider);
+}
+
+.canvas-toolbar > [role="group"] {
+  min-height: 2rem;
+  border-color: var(--builder-divider);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.canvas-toolbar button:not(:disabled):hover {
+  background: var(--builder-control-hover);
+}
+
+.canvas-toolbar button[aria-pressed="true"] {
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+}
+
+/* ---------- Resizers ---------- */
+.app-navigation [role="separator"] > span,
+.editor-shell > div > [role="separator"] > span {
+  position: relative;
+}
+
+.app-navigation [role="separator"] > span::after,
+.editor-shell > div > [role="separator"] > span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: var(--color-border);
+  opacity: 0;
+  transition: opacity 120ms var(--ease-standard), background-color 120ms var(--ease-standard);
+}
+
+.app-navigation [role="separator"]:hover > span::after,
+.app-navigation [role="separator"]:focus-visible > span::after,
+.editor-shell > div > [role="separator"]:hover > span::after,
+.editor-shell > div > [role="separator"]:focus-visible > span::after {
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-primary) 65%, var(--color-border));
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 79.99rem) {
+  .builder-page-context {
+    display: none;
+  }
+
+  .builder-project-context {
+    max-width: 15rem;
+  }
+}
+
+@media (max-width: 63.99rem) {
+  .builder-brand {
+    width: auto;
+    max-width: 10.5rem;
+  }
+
+  .builder-project-context {
+    max-width: 11rem;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .builder-brand {
+    max-width: 8.5rem;
+  }
+
+  .builder-project-context {
+    max-width: min(9rem, 32vw);
+  }
+}
+
+@container (max-width: 72px) {
+  .app-navigation .nav-option {
+    border-left-width: 0;
+  }
+
+  .app-navigation .nav-option[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.35rem;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 0 999px 999px 0;
+    background: var(--color-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-navigation [role="separator"] > span::after,
+  .editor-shell > div > [role="separator"] > span::after {
+    transition: none;
+  }
+}
