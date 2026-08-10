@@ -3,7 +3,7 @@ import { Icon } from '../primitives'
 import type { IconName } from '../primitives/Icon'
 
 export type WorkspacePanel = 'library' | 'inspector'
-export type PanelMode = 'docked' | 'floating' | 'minimized' | 'closed'
+export type PanelMode = 'docked' | 'floating' | 'minimized'
 export type DockSide = 'left' | 'right' | 'rail'
 
 export interface PanelBounds {
@@ -31,7 +31,6 @@ interface PanelWindowProps {
   readonly onDock: (side: DockSide) => void
   readonly onMinimize: () => void
   readonly onTogglePin: () => void
-  readonly onClose: () => void
 }
 
 interface WindowActionProps {
@@ -56,7 +55,7 @@ function WindowAction({ label, icon, onClick, active = false }: WindowActionProp
   )
 }
 
-export function PanelWindow({ panel, title, mode, dockSide, bounds, pinned, active, children, onActivate, onMovePointerDown, onMoveKeyDown, onResizePointerDown, onResizeKeyDown, onFloat, onDock, onMinimize, onTogglePin, onClose }: PanelWindowProps) {
+export function PanelWindow({ panel, title, mode, dockSide, bounds, pinned, active, children, onActivate, onMovePointerDown, onMoveKeyDown, onResizePointerDown, onResizeKeyDown, onFloat, onDock, onMinimize, onTogglePin }: PanelWindowProps) {
   const floatingStyle = mode === 'floating'
     ? { left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height } satisfies CSSProperties
     : undefined
@@ -84,14 +83,14 @@ export function PanelWindow({ panel, title, mode, dockSide, bounds, pinned, acti
           >
             <Icon className="shrink-0 text-[var(--panel-accent)]" name="move" size={12} />
             <Icon className="shrink-0 text-[var(--panel-accent)]" name={panelIcon} size={12} />
-            <span className="truncate text-[0.625rem] font-semibold">{title}</span>
-            <span className="truncate text-[0.5rem] text-[var(--panel-accent)]">{status}</span>
+            <span className="truncate text-xs font-semibold">{title}</span>
+            <span className="truncate text-xs text-muted-foreground">{status}</span>
           </button>
         ) : (
           <div className="flex min-w-0 flex-1 items-center gap-1 px-1">
             <Icon className="shrink-0 text-[var(--panel-accent)]" name={panelIcon} size={12} />
-            <span className="truncate text-[0.625rem] font-semibold">{title}</span>
-            <span className="truncate text-[0.5rem] text-[var(--panel-accent)]">{status}</span>
+            <span className="truncate text-xs font-semibold">{title}</span>
+            <span className="truncate text-xs text-muted-foreground">{status}</span>
           </div>
         )}
         <div className="flex shrink-0 items-center gap-px" role="toolbar" aria-label={`Controles de ${title}`}>
@@ -101,7 +100,6 @@ export function PanelWindow({ panel, title, mode, dockSide, bounds, pinned, acti
           {mode === 'floating' ? <WindowAction icon="panel-left" label={`Acoplar ${title} a la barra lateral`} onClick={() => onDock('rail')} /> : null}
           {mode === 'floating' ? <WindowAction active={pinned} icon="pin" label={pinned ? `Desfijar ${title}` : `Fijar ${title} sobre otras ventanas`} onClick={onTogglePin} /> : null}
           <WindowAction icon="minus" label={`Minimizar ${title}`} onClick={onMinimize} />
-          <WindowAction icon="close" label={`Cerrar ${title}`} onClick={onClose} />
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-hidden">{children}</div>

@@ -108,6 +108,7 @@ export function EditorShell() {
   const [inspectorWidth, setInspectorWidth] = useState(224)
   const [railWidth, setRailWidth] = useState(44)
   const [dockPreview, setDockPreview] = useState<DockTarget>(null)
+  const [draggingPanel, setDraggingPanel] = useState<WorkspacePanel | null>(null)
   const [activePanel, setActivePanel] = useState<WorkspacePanel>('inspector')
   const sheetRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -118,8 +119,8 @@ export function EditorShell() {
   const rightDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'right')
   const leftDockWidth = leftDockPanel === 'library' ? libraryWidth : leftDockPanel === 'inspector' ? inspectorWidth : 0
   const rightDockWidth = rightDockPanel === 'library' ? libraryWidth : rightDockPanel === 'inspector' ? inspectorWidth : 0
-  const libraryVisible = workspace.library.mode !== 'closed' && workspace.library.mode !== 'minimized'
-  const inspectorVisible = workspace.inspector.mode !== 'closed' && workspace.inspector.mode !== 'minimized'
+  const libraryVisible = workspace.library.mode !== 'minimized'
+  const inspectorVisible = workspace.inspector.mode !== 'minimized'
 
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'
@@ -173,7 +174,7 @@ export function EditorShell() {
           const maxY = window.innerHeight - interaction.startBounds.height - 28
           bounds = {
             ...interaction.startBounds,
-            x: clamp(interaction.startBounds.x + deltaX, 48, maxX),
+            x: clamp(interaction.startBounds.x + deltaX, railWidth + 8, maxX),
             y: clamp(interaction.startBounds.y + deltaY, 44, maxY),
           }
         } else {
@@ -197,15 +198,23 @@ export function EditorShell() {
       interactionRef.current = null
       dockTargetRef.current = null
       setDockPreview(null)
+      setDraggingPanel(null)
+    }
+
+    function handlePointerCancel(): void {
+      interactionRef.current = null
+      dockTargetRef.current = null
+      setDockPreview(null)
+      setDraggingPanel(null)
     }
 
     window.addEventListener('pointermove', handlePointerMove)
     window.addEventListener('pointerup', handlePointerUp)
-    window.addEventListener('pointercancel', handlePointerUp)
+    window.addEventListener('pointercancel', handlePointerCancel)
     return () => {
       window.removeEventListener('pointermove', handlePointerMove)
       window.removeEventListener('pointerup', handlePointerUp)
-      window.removeEventListener('pointercancel', handlePointerUp)
+      window.removeEventListener('pointercancel', handlePointerCancel)
     }
   }, [railWidth])
 
@@ -233,9 +242,9 @@ export function EditorShell() {
       changeMobilePanel(panel === 'library' ? 'layers' : 'inspector')
       return
     }
-    setWorkspace((current) => current[panel].mode === 'closed' || current[panel].mode === 'minimized'
+    setWorkspace((current) => current[panel].mode === 'minimized'
       ? dockWorkspace(current, panel, current[panel].dockSide)
-      : { ...current, [panel]: { ...current[panel], mode: 'closed' } })
+      : { ...current, [panel]: { ...current[panel], mode: 'minimized', restoreMode: current[panel].mode === 'floating' ? 'floating' : 'docked', pinned: false } })
   }
 
   function setPanelWidth(panel: WorkspacePanel, width: number): void {
@@ -285,7 +294,7 @@ export function EditorShell() {
     return {
       width,
       height,
-      x: clamp(bounds.x, 48, window.innerWidth - width - 8),
+      x: clamp(bounds.x, railWidth + 8, window.innerWidth - width - 8),
       y: clamp(bounds.y, 44, window.innerHeight - height - 28),
     }
   }
@@ -314,10 +323,6 @@ export function EditorShell() {
       : { ...current, [panel]: { ...current[panel], mode: 'floating' } })
   }
 
-  function closePanel(panel: WorkspacePanel): void {
-    updatePanel(panel, (current) => ({ ...current, mode: 'closed', pinned: false }))
-  }
-
   function togglePin(panel: WorkspacePanel): void {
     updatePanel(panel, (current) => ({ ...current, pinned: !current.pinned }))
   }
@@ -329,6 +334,7 @@ export function EditorShell() {
     if (kind === 'move') {
       dockTargetRef.current = null
       setDockPreview(null)
+      setDraggingPanel(panel)
     }
     interactionRef.current = { kind, panel, startX: event.clientX, startY: event.clientY, startBounds: workspace[panel].bounds }
   }
@@ -344,7 +350,7 @@ export function EditorShell() {
     updatePanel(panel, (current) => {
       const step = event.shiftKey ? 32 : 16
       let { x, y } = current.bounds
-      if (event.key === 'Home') ({ x, y } = { x: 48, y: 44 })
+      if (event.key === 'Home') ({ x, y } = { x: railWidth + 8, y: 44 })
       else if (event.key === 'End') ({ x, y } = { x: window.innerWidth - current.bounds.width - 8, y: window.innerHeight - current.bounds.height - 28 })
       else if (event.key === 'ArrowLeft') x -= step
       else if (event.key === 'ArrowRight') x += step
@@ -401,7 +407,6 @@ export function EditorShell() {
         dockSide={panelState.dockSide}
         mode={mode}
         onActivate={() => setActivePanel(panel)}
-        onClose={() => closePanel(panel)}
         onDock={(side) => dockPanel(panel, side)}
         onFloat={() => floatPanel(panel)}
         onMinimize={() => minimizePanel(panel)}
@@ -439,7 +444,7 @@ export function EditorShell() {
       {rightDockPanel ? (
         <div className="relative col-start-4 row-start-2 hidden min-h-0 lg:block">
           {renderPanelWindow(rightDockPanel, 'docked')}
-          <button aria-label={`Redimensionar ${rightDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[rightDockPanel].max} aria-valuemin={panelLimits[rightDockPanel].min} aria-valuenow={rightDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -left-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(rightDockPanel, 'right', event)} onPointerDown={(event) => startDockResize(rightDockPanel, 'right', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-[var(--color-accent-ai)] group-focus-visible:bg-[var(--color-accent-ai)]" /></button>
+          <button aria-label={`Redimensionar ${rightDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[rightDockPanel].max} aria-valuemin={panelLimits[rightDockPanel].min} aria-valuenow={rightDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -left-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(rightDockPanel, 'right', event)} onPointerDown={(event) => startDockResize(rightDockPanel, 'right', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary" /></button>
         </div>
       ) : null}
 
@@ -451,11 +456,11 @@ export function EditorShell() {
       </div>
 
       {workspace.library.mode === 'minimized' || workspace.inspector.mode === 'minimized' ? <div aria-label="Paneles minimizados" className="panel-minimized-shelf fixed bottom-6 right-0 top-10 z-40 hidden w-8 flex-col border-l border-border bg-surface shadow-lg lg:flex" role="toolbar">
-        {workspace.library.mode === 'minimized' ? <button aria-label="Restaurar Páginas y capas" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-[var(--color-accent-data)]/30 bg-[color-mix(in_srgb,var(--color-accent-data)_10%,var(--color-surface))] py-1 text-[0.5625rem] font-semibold text-[var(--color-accent-data)] transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-data)_18%,var(--color-surface))]" onClick={() => restorePanel('library')} title="Restaurar Páginas y capas" type="button"><Icon name="layers" size={13} /><span>Páginas y capas</span></button> : null}
-        {workspace.inspector.mode === 'minimized' ? <button aria-label="Restaurar Inspector" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 bg-[color-mix(in_srgb,var(--color-accent-ai)_10%,var(--color-surface))] py-1 text-[0.5625rem] font-semibold text-[var(--color-accent-ai)] transition-colors hover:bg-[color-mix(in_srgb,var(--color-accent-ai)_18%,var(--color-surface))]" onClick={() => restorePanel('inspector')} title="Restaurar Inspector" type="button"><Icon name="settings" size={13} /><span>Inspector</span></button> : null}
+        {workspace.library.mode === 'minimized' ? <button aria-label="Restaurar Páginas y capas" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-primary/30 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('library')} title="Restaurar Páginas y capas" type="button"><Icon name="layers" size={13} /><span>Páginas y capas</span></button> : null}
+        {workspace.inspector.mode === 'minimized' ? <button aria-label="Restaurar Inspector" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('inspector')} title="Restaurar Inspector" type="button"><Icon name="settings" size={13} /><span>Inspector</span></button> : null}
       </div> : null}
 
-      {dockPreview ? <div aria-live="polite" className="pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--${dockPreview}`}><Icon name={dockPreview === 'right' ? 'dock-right' : dockPreview === 'left' ? 'dock-left' : 'panel-left'} size={18} /><span>{dockPreview === 'rail' ? 'Minimizar en barra lateral' : `Acoplar a la ${dockPreview === 'left' ? 'izquierda' : 'derecha'}`}</span></div></div> : null}
+      {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
 
       <footer className="col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
@@ -467,9 +472,9 @@ export function EditorShell() {
       <MobileDock activePanel={mobilePanel} onPanelChange={changeMobilePanel} />
       {mobilePanel ? (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
-          <button aria-label="Cerrar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
+          <button aria-label="Ocultar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
-            <div className={`flex min-h-12 items-center justify-between border-b px-2 ${mobilePanel === 'inspector' ? 'border-[var(--color-accent-ai)]/30 bg-[color-mix(in_srgb,var(--color-accent-ai)_9%,var(--color-surface))]' : 'border-[var(--color-accent-data)]/30 bg-[color-mix(in_srgb,var(--color-accent-data)_9%,var(--color-surface))]'}`}><div><span className={`mx-auto block h-1 w-8 rounded-full ${mobilePanel === 'inspector' ? 'bg-[var(--color-accent-ai)]' : 'bg-[var(--color-accent-data)]'}`} /><h2 className={`mt-0.5 flex items-center gap-1 font-heading text-[0.625rem] font-bold ${mobilePanel === 'inspector' ? 'text-[var(--color-accent-ai)]' : 'text-[var(--color-accent-data)]'}`}><Icon name={mobilePanel === 'inspector' ? 'settings' : libraryTab === 'widgets' ? 'plus' : 'layers'} size={13} />{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Cerrar panel" className={mobilePanel === 'inspector' ? 'text-[var(--color-accent-ai)]' : 'text-[var(--color-accent-data)]'} onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
+            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-8 rounded-full bg-primary" /><h2 className="mt-0.5 flex items-center gap-1 font-heading text-xs font-bold text-primary-strong"><Icon name={mobilePanel === 'inspector' ? 'settings' : libraryTab === 'widgets' ? 'plus' : 'layers'} size={13} />{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Ocultar panel" className="text-primary" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="chevron-down" size={16} /></Button></div>
             {mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={libraryTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setLibraryTab} />}
           </div>
         </div>

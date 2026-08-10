@@ -19,9 +19,9 @@
   --color-focus: #2563eb;
   --color-success: #15803d;
   --color-warning: #b45309;
-  --color-accent-ai: #7c3aed;
-  --color-accent-data: #0e7490;
-  --color-accent-form: #15803d;
+  --color-accent-ai: #2563eb;
+  --color-accent-data: #2563eb;
+  --color-accent-form: #2563eb;
   --color-elevated: #ffffff;
 
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.07);
@@ -61,9 +61,9 @@
   --color-focus: #93c5fd;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
-  --color-accent-ai: #c4b5fd;
-  --color-accent-data: #22d3ee;
-  --color-accent-form: #4ade80;
+  --color-accent-ai: #60a5fa;
+  --color-accent-data: #60a5fa;
+  --color-accent-form: #60a5fa;
   --color-elevated: #281a38;
 }
 
@@ -85,9 +85,9 @@
     --color-focus: #93c5fd;
     --color-success: #4ade80;
     --color-warning: #fbbf24;
-    --color-accent-ai: #c4b5fd;
-    --color-accent-data: #22d3ee;
-    --color-accent-form: #4ade80;
+    --color-accent-ai: #60a5fa;
+    --color-accent-data: #60a5fa;
+    --color-accent-form: #60a5fa;
     --color-elevated: #281a38;
   }
 }
@@ -145,17 +145,26 @@ button,
   grid-template-rows: 3rem minmax(0, 1fr);
 }
 
+.editor-shell button,
+.editor-shell input,
+.editor-shell select,
+.editor-shell textarea,
+.editor-shell button :where(span):not(.sr-only) {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
 .panel-window {
   border-top-color: var(--panel-accent);
   animation: panel-window-enter 180ms var(--ease-standard);
 }
 
 .panel-window--library {
-  --panel-accent: var(--color-accent-data);
+  --panel-accent: var(--color-primary);
 }
 
 .panel-window--inspector {
-  --panel-accent: var(--color-accent-ai);
+  --panel-accent: var(--color-primary);
 }
 
 .panel-window--active {
@@ -189,32 +198,34 @@ button,
 }
 
 .nav-accent-icon {
-  color: var(--nav-accent);
-  background: color-mix(in srgb, var(--nav-accent) 16%, transparent);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .nav-option {
-  color: var(--nav-accent);
-  background: color-mix(in srgb, var(--nav-accent) 6%, var(--color-surface));
+  color: var(--color-foreground);
+  background: var(--color-surface);
 }
 
 .nav-option:hover,
 .nav-option[aria-current="page"] {
-  background: color-mix(in srgb, var(--nav-accent) 15%, var(--color-surface));
+  color: var(--color-primary-strong);
+  background: var(--color-primary-soft);
 }
 
 .mobile-dock-option {
-  background: color-mix(in srgb, var(--mobile-accent) 5%, var(--color-surface));
+  background: var(--color-surface);
 }
 
 .mobile-dock-option:hover,
 .mobile-dock-option--active {
-  background: color-mix(in srgb, var(--mobile-accent) 15%, var(--color-surface));
+  background: var(--color-primary-soft);
 }
 
 .semantic-option {
-  border-color: color-mix(in srgb, var(--option-accent) 24%, var(--color-border));
-  background: color-mix(in srgb, var(--option-accent) 6%, var(--color-surface));
+  --option-accent: var(--color-primary);
+  border-color: var(--color-border);
+  background: var(--color-surface);
 }
 
 .semantic-option:hover,
@@ -229,12 +240,18 @@ button,
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  border: 2px dashed var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
   color: var(--color-primary-strong);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   backdrop-filter: blur(2px);
+}
+
+.dock-preview-zone--active {
+  border: 2px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .dock-preview-zone--rail {

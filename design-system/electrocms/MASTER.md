@@ -20,6 +20,8 @@
 - El acento rosa propuesto no se usa como CTA primario hasta validar contraste en el contexto real del editor.
 - Toda transición queda entre 150 y 300 ms y se desactiva con `prefers-reduced-motion`.
 - La escala de z-index es explícita y los controles interactivos conservan targets mínimos de 44 px.
+- El editor usa azul `#2563EB` como único acento visual de paneles, menús, iconos y selección; rojo, ámbar y verde se reservan para estados semánticos.
+- La tipografía Inter de botones, pestañas, opciones, páginas, árbol de widgets e inspector se normaliza a 12 px; la densidad se consigue con alturas y espaciado, no reduciendo la legibilidad por debajo de esa escala.
 
 ---
 

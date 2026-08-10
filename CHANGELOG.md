@@ -2,6 +2,11 @@
 
 ## 2026-08-10
 
+- Ajustada la UI a la referencia adjunta con superficies claras/grises y azul `#2563EB` como acento dominante; eliminados los colores decorativos distintos entre paneles, menús, páginas, widgets, inspector y dock móvil.
+- Normalizados a 12 px los textos de botones, pestañas Páginas/Componentes y Propiedades/Acción/Backend, nombres de páginas, árbol de widgets y controles del inspector.
+- Eliminada la acción de cerrar ventanas; ocultar usa el mismo flujo recuperable de minimizar/restaurar y las sheets móviles conservan un control explícito «Ocultar panel» más `Escape`.
+- Mejorado el drag-and-drop con tres guías simultáneas, destino activo resaltado, acoplamiento izquierda/derecha/rail, reemplazo seguro del panel ocupado y cancelación sin dock.
+- Ampliada la suite a 79/79 pruebas; lint, typecheck, build y navegador en 375/768/1440 px correctos, sin overflow ni errores de consola.
 - Rehecho el sistema de ventanas con dock por arrastre y preview explícita para izquierda, derecha y rail lateral; cada destino dispone también de botón y alternativa de teclado.
 - Eliminada completamente la acción de maximizar paneles; se conservan desacoplar, acoplar, mover, resize, minimizar, fijar, restaurar y cerrar.
 - Convertidos los paneles minimizados en pestañas verticales de borde que ocupan toda la altura útil y comparten la barra cuando se minimizan ambos.

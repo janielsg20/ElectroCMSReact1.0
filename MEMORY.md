@@ -27,7 +27,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - `M03.3 — Guardado incremental y recuperación` completada con debounce, snapshots, journal y reapertura recuperable.
 - Fase activa: `F03 / M03.4 — Command bus e historial`; todavía no implementada.
 - Por prioridad expresa del usuario se rediseñó anticipadamente el editor usando únicamente la imagen adjunta autorizada; no equivale a cerrar F04–F07.
-- El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar a izquierda/derecha/rail, desacoplar, mover, redimensionar, minimizar en pestañas verticales, fijar, restaurar y cerrar, con equivalentes de teclado. Maximizar fue eliminado por decisión expresa del usuario.
+- El shell high-density dispone de ventanas reales para biblioteca e inspector: acoplar a izquierda/derecha/rail, desacoplar, mover, redimensionar, minimizar en pestañas verticales, fijar y restaurar, con equivalentes de teclado. Cerrar y maximizar fueron eliminados por decisión expresa del usuario.
 
 ## Decisiones vigentes
 
@@ -55,14 +55,14 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 78/78 pruebas.
+- `npm run test`: 79/79 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
-- UI high-density: Inter Variable local; fuentes de menú de 9 px y títulos de panel de 10 px; movimiento, resize y dock por puntero/teclado; acentos azul/violeta/cian/verde/ámbar/rojo y movimiento reducido.
+- UI high-density: Inter Variable local; controles, tabs, páginas, árbol e inspector a 12 px; movimiento, resize y dock por puntero/teclado; azul `#2563EB` dominante y colores de estado reservados para significado semántico.
 - Browser local: composición desktop y navegación móvil revisadas visualmente; bottom sheet y modo oscuro conservan jerarquía, legibilidad y foco accesible.
 - Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal ni errores de consola. Paneles desktop colapsables y redimensionables por puntero/teclado; 36 px solo en desktop y 44 px en superficies touch.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
 - Publicación UI high-density: commit `4a11d67`, GitHub Actions `31423720024` verde y bundle productivo `index-vIDVryQI.js` verificado por HTTPS 200.
-- Publicación UI dockable vigente: commit `d22e67c`, GitHub Actions `31426810726` verde y bundles productivos `index-DcJefDTZ.js`/`index-B6qq0Yp1.css` verificados por HTTPS 200.
+- Publicación UI dockable previa: commit `d22e67c`, GitHub Actions `31426810726` verde y bundles productivos `index-DcJefDTZ.js`/`index-B6qq0Yp1.css` verificados por HTTPS 200.
 - GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.

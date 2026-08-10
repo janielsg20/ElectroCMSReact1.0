@@ -9,9 +9,10 @@ Actualizado: 2026-08-10.
 - Estado: `EN_CURSO`.
 - Entrega anticipada solicitada: sistema de ventanas high-density con paneles acoplables, flotantes, minimizables y accesibles `COMPLETADA`, basado exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Iteración anticipada solicitada: dock por arrastre, pestañas verticales minimizadas, rail redimensionable con etiquetas y compactación tipográfica global `COMPLETADA`; no modifica el estado de `M03.4`.
+- Iteración visual solicitada: fidelidad a la referencia adjunta, normalización azul, tipografía de controles a 12 px y sistema de dock sin acción de cerrar `COMPLETADA`; no modifica el estado de `M03.4`.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia: dock por arrastre, rail 44–168 px, pestañas verticales y color semántico global validados con lint, typecheck, 78/78 pruebas, build y navegador; commit `d22e67c`, GitHub Actions `31426810726` verde y producción HTTPS 200 con `index-DcJefDTZ.js` e `index-B6qq0Yp1.css`.
+- Última evidencia local: paleta azul normalizada, controles a 12 px y dock sin cerrar/maximizar validados con lint, typecheck, 79/79 pruebas, build y navegador en 375/768/1440 px; publicación pendiente de esta entrega.
 
 ## Tablero compacto
 
@@ -106,15 +107,15 @@ Actualizado: 2026-08-10.
 - Completada: puerta local de M03.3 con lint, typecheck, 72/72 pruebas y build Vite reproducible.
 - Completada: publicación M03.3 en commit `f394d63`, ejecución GitHub Actions `31404629844` verde y producción HTTPS 200.
 - En curso: `M03.4`; comandos reversibles, transacciones compuestas, undo/redo, ramas nuevas e historial persistente aún no implementados.
-- Completada: evolución high-density del shell con paneles acoplables, flotantes, minimizables, maximizables, fijables, cerrables y restaurables, conservando la estructura y paleta existentes.
+- Completada: evolución high-density del shell con paneles acoplables, flotantes, minimizables, fijables y restaurables, sin acciones de maximizar o cerrar.
 - Completada: movimiento y resize por puntero con alternativas de teclado; controles SVG con nombres accesibles, tooltips, foco visible y animaciones de 180–200 ms compatibles con `prefers-reduced-motion`.
-- Completada: Inter Variable empaquetada localmente, acentos semánticos por área y targets adaptativos de 32 px en escritorio y 44 px en superficies touch.
+- Completada: Inter Variable empaquetada localmente, azul de marca como acento común y colores semánticos reservados para estados; targets adaptativos de 32 px en escritorio y 44 px en superficies touch.
 - Completada: puerta local de la entrega UI con lint, typecheck, 76/76 pruebas, build y revisión browser en escritorio y móvil, incluidos modo oscuro y bottom sheet.
 - Completada: eliminación total de maximizar y sustitución por dock directo a izquierda, derecha o barra lateral mediante botones, teclado y arrastre con preview visible.
 - Completada: minimizados convertidos en pestañas verticales de borde que ocupan la altura disponible y se reparten la barra cuando existen varios.
-- Completada: rail de navegación redimensionable 44–168 px, expandible a etiquetas de 9 px y operable por puntero, teclado, `Home` y `End`.
-- Completada: color semántico e iconografía extendidos a navegación, tabs, páginas, widgets, inspector, toolbar y dock móvil sin eliminar información textual.
-- Completada: puerta local de esta iteración con lint, typecheck, 78/78 pruebas, build Vite y verificación browser sin overflow; fuentes de menú de 9 px y títulos de panel de 10 px comprobados.
+- Completada: rail de navegación redimensionable 44–168 px, expandible a etiquetas de 12 px y operable por puntero, teclado, `Home` y `End`.
+- Completada: navegación, tabs, páginas, widgets, inspector, toolbar y dock móvil normalizados al azul `#2563EB`; rojo, ámbar y verde quedan reservados para error, advertencia y éxito.
+- Completada: puerta local de esta iteración con lint, typecheck, 79/79 pruebas, build Vite y navegador sin overflow; fuentes de controles, páginas, árbol e inspector comprobadas a 12 px.
 - Completada: entrega anticipada de rediseño UI con shell compacto, panel unificado de páginas/capas, canvas punteado con marcos de dispositivo e inspector Diseño/Acciones/Datos.
 - Completada: adaptación con dock y bottom sheets en móvil, paneles contextuales en 768–1279 px y cuatro regiones persistentes desde 1280 px.
 - Completada: verificación browser en 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow, errores de consola ni targets activos menores de 44 px; `Escape` y restauración de foco probados.

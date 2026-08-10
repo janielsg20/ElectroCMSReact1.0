@@ -18,7 +18,7 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Status bar de 24 px para sincronización, selección y diagnóstico.
 - Los paneles se redimensionan, desacoplan y acoplan de forma independiente a izquierda, derecha o rail. Soltar en el rail los minimiza como pestañas verticales de borde; la persistencia del workspace se implementará en su microfase funcional y no se simula.
 - Los separadores admiten arrastre por puntero y teclado: flechas en pasos de 16 px, `Home` al mínimo y `End` al máximo, con valores ARIA expuestos.
-- El rail usa el mismo patrón de resize accesible. Los paneles flotantes muestran destinos de dock durante el arrastre y ofrecen botones equivalentes; maximizar no forma parte del sistema.
+- El rail usa el mismo patrón de resize accesible. Al arrastrar, los paneles flotantes muestran simultáneamente guías para izquierda, derecha y rail, resaltan el destino activo y ofrecen botones equivalentes; maximizar y cerrar no forman parte del sistema.
 
 ### Tablet — 768 a 1023 px
 
@@ -78,7 +78,8 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
 - Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
-- Paneles desktop habilitados: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, cierre y restauración por puntero o teclado dentro de límites explícitos.
+- Paneles desktop habilitados: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin y restauración por puntero o teclado dentro de límites explícitos; cancelar el puntero no ejecuta el dock.
+- Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito. Texto de controles, tabs, páginas, árbol e inspector a 12 px.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
 - Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 32 px en desktop y 44 px en tablet/móvil.
 

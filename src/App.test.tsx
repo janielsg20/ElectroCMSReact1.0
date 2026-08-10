@@ -105,12 +105,13 @@ describe('App', () => {
     expect(edgeTab).toHaveClass('panel-edge-tab', 'flex-1')
     fireEvent.click(edgeTab)
     expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
-  })
+  }, 15_000)
 
-  it('acopla paneles a ambos lados o a la barra sin ofrecer maximización', () => {
+  it('acopla paneles a ambos lados o a la barra sin ofrecer maximizar ni cerrar', () => {
     render(<App />)
 
     expect(screen.queryByRole('button', { name: /maximizar/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cerrar (inspector|páginas y capas)/i })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /desacoplar inspector/i }))
     fireEvent.click(screen.getByRole('button', { name: /acoplar inspector a la izquierda/i }))
     expect(screen.getByRole('region', { name: /inspector · acoplado/i })).toBeInTheDocument()
@@ -121,9 +122,6 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /restaurar inspector/i })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /restaurar inspector/i }))
     expect(screen.getByRole('region', { name: /inspector · flotante/i })).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: /cerrar inspector/i }))
-    expect(screen.queryByRole('complementary', { name: /inspector de propiedades/i })).not.toBeInTheDocument()
   })
 
   it('redimensiona y expande la barra lateral mostrando etiquetas compactas', () => {
@@ -152,5 +150,19 @@ describe('App', () => {
     expect(screen.getByText(/acoplar a la derecha/i)).toBeInTheDocument()
     firePointer(window, 'pointerup', window.innerWidth - 20, 140)
     expect(screen.getByRole('region', { name: /páginas y capas · acoplado/i })).toBeInTheDocument()
+  })
+
+  it('muestra las tres guías de acoplamiento y cancela el arrastre sin cambiar el panel', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
+    const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
+    firePointer(moveHandle, 'pointerdown', 500, 100)
+    expect(screen.getByText('Barra lateral')).toBeInTheDocument()
+    expect(screen.getByText('Acoplar a la izquierda')).toBeInTheDocument()
+    expect(screen.getByText('Acoplar a la derecha')).toBeInTheDocument()
+    firePointer(window, 'pointercancel', 20, 100)
+    expect(screen.getByRole('region', { name: /páginas y capas · flotante/i })).toBeInTheDocument()
+    expect(screen.queryByText('Barra lateral')).not.toBeInTheDocument()
   })
 })
