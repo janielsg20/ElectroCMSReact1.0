@@ -8,6 +8,7 @@
 - Convertido el rail principal en una barra redimensionable de 44–168 px, con conmutador iconos/etiquetas y resize por puntero o teclado.
 - Reducidas las fuentes de menús y opciones hasta 9–10 px en escritorio, manteniendo Inter y targets táctiles de 44 px en móvil.
 - Extendidos iconos SVG y colores semánticos a navegación, páginas, widgets, inspector, toolbar, sheets y dock móvil; 78/78 pruebas y build correctos.
+- Publicada la iteración en `d22e67c`; GitHub Actions `31426810726` finalizó en verde y Cloudflare Pages sirve `index-DcJefDTZ.js` e `index-B6qq0Yp1.css` por HTTPS 200.
 - Evolucionado el shell existente a un sistema profesional de ventanas high-density sin sustituir su estructura ni identidad visual.
 - Añadidas acciones funcionales para desacoplar, acoplar, mover, redimensionar, minimizar, maximizar, fijar, restaurar y cerrar biblioteca e inspector.
 - Incorporadas alternativas de teclado para movimiento y resize, controles SVG accesibles con tooltip y estados de interacción, y animaciones de 180–200 ms respetando `prefers-reduced-motion`.

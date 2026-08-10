@@ -62,6 +62,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Browser aislado: rediseño verificado en 320, 375, 768, 1024, 1440 y 812 × 375; sin overflow horizontal ni errores de consola. Paneles desktop colapsables y redimensionables por puntero/teclado; 36 px solo en desktop y 44 px en superficies touch.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
 - Publicación UI high-density: commit `4a11d67`, GitHub Actions `31423720024` verde y bundle productivo `index-vIDVryQI.js` verificado por HTTPS 200.
+- Publicación UI dockable vigente: commit `d22e67c`, GitHub Actions `31426810726` verde y bundles productivos `index-DcJefDTZ.js`/`index-B6qq0Yp1.css` verificados por HTTPS 200.
 - GitHub Actions: prototipo UI publicado en `14a00e9`; ejecución `31339361393` completa en verde.
 - Cloudflare Pages: `https://electrocms-react.pages.dev/`, HTTPS 200 y PWA de M01.4 publicada con manifest y Service Worker actualizados.
 - Arquitectura: seis capas, contrato `Repository`, adaptador en memoria, `Result`, `Renderer` y `Exporter`; 7/7 pruebas.

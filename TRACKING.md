@@ -11,7 +11,7 @@ Actualizado: 2026-08-10.
 - Iteración anticipada solicitada: dock por arrastre, pestañas verticales minimizadas, rail redimensionable con etiquetas y compactación tipográfica global `COMPLETADA`; no modifica el estado de `M03.4`.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia local: dock por arrastre, rail 44–168 px, pestañas verticales y color semántico global validados con lint, typecheck, 78/78 pruebas, build y navegador; publicación pendiente de esta entrega.
+- Última evidencia: dock por arrastre, rail 44–168 px, pestañas verticales y color semántico global validados con lint, typecheck, 78/78 pruebas, build y navegador; commit `d22e67c`, GitHub Actions `31426810726` verde y producción HTTPS 200 con `index-DcJefDTZ.js` e `index-B6qq0Yp1.css`.
 
 ## Tablero compacto
 
