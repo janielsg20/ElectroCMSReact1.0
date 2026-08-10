@@ -2,11 +2,11 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from './App'
 
 describe('App', () => {
-  it('presenta el editor como prototipo visual sin habilitar publicación', () => {
+  it('presenta el editor visual sin habilitar la ejecución de la app', () => {
     render(<App />)
 
-    expect(screen.getByText(/prototipo UI/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /publicar/i })).toBeDisabled()
+    expect(screen.getByText(/ElectroCMS/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ejecutar app/i })).toBeDisabled()
   })
 
   it('expone navegación, canvas y paneles con regiones semánticas', () => {

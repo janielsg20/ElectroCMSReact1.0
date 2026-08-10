@@ -11,7 +11,7 @@
 **Project:** ElectroCMS
 **Generated:** 2026-08-09 11:39:14
 **Category:** No-code / Low-code Builder
-**Design Dials:** Variance 5/10 (Balanced / Modern) | Motion 3/10 (Subtle) | Density 8/10 (Dense / Dashboard)
+**Design Dials:** Variance 4/10 (Balanced / Modern) | Motion 2/10 (Subtle) | Density 10/10 (High-density Dashboard)
 
 ## Decisiones de implementación M01.3
 
@@ -29,18 +29,18 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#7C3AED` | `--color-primary` |
+| Primary | `#2563EB` | `--color-primary` |
 | On Primary | `#FFFFFF` | `--color-on-primary` |
-| Secondary | `#A78BFA` | `--color-secondary` |
-| Accent/CTA | `#EC4899` | `--color-accent` |
-| Background | `#FAF5FF` | `--color-background` |
-| Foreground | `#4C1D95` | `--color-foreground` |
-| Muted | `#ECEEF9` | `--color-muted` |
-| Border | `#DDD6FE` | `--color-border` |
+| Secondary | `#60A5FA` | `--color-secondary` |
+| Accent/CTA | `#2563EB` | `--color-accent` |
+| Background | `#F7F8FA` | `--color-background` |
+| Foreground | `#151922` | `--color-foreground` |
+| Muted | `#F0F2F5` | `--color-muted` |
+| Border | `#DFE3E8` | `--color-border` |
 | Destructive | `#DC2626` | `--color-destructive` |
-| Ring | `#7C3AED` | `--color-ring` |
+| Ring | `#2563EB` | `--color-ring` |
 
-**Color Notes:** Builder purple + component pink + canvas neutral
+**Color Notes:** Azul eléctrico para selección y acciones + grises fríos y superficies blancas de alta densidad, según la referencia autorizada.
 
 ### Typography
 
@@ -56,7 +56,7 @@
 
 ### Spacing Variables
 
-*Density: 8/10 — Dense / Dashboard*
+*Density: 10/10 — High-density / Dashboard*
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -86,7 +86,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #EC4899;
+  background: #2563EB;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -103,8 +103,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #7C3AED;
-  border: 2px solid #7C3AED;
+  color: #2563EB;
+  border: 2px solid #2563EB;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -117,7 +117,7 @@
 
 ```css
 .card {
-  background: #FAF5FF;
+  background: #F7F8FA;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -143,9 +143,9 @@
 }
 
 .input:focus {
-  border-color: #7C3AED;
+  border-color: #2563EB;
   outline: none;
-  box-shadow: 0 0 0 3px #7C3AED20;
+  box-shadow: 0 0 0 3px #2563EB20;
 }
 ```
 

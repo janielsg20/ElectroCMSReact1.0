@@ -27,7 +27,7 @@ export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: Canva
     <main className="relative min-h-0 min-w-0 overflow-hidden bg-editor-grid" id="editor-canvas" tabIndex={-1}>
       <div className="absolute inset-x-0 top-0 z-10 flex min-h-12 items-center justify-between gap-2 border-b border-border bg-surface/95 px-2 backdrop-blur sm:px-3">
         <div className="flex items-center gap-1" role="toolbar" aria-label="Herramientas del canvas">
-          <span className="hidden md:block xl:hidden"><Button aria-label="Abrir páginas y capas" onClick={() => onOpenPanel('layers')} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
+          <span className="hidden md:block lg:hidden"><Button aria-label="Abrir páginas y capas" onClick={() => onOpenPanel('layers')} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
           <Button aria-label="Herramienta de selección" className="bg-primary-soft text-primary-strong" size="icon" variant="ghost"><Icon name="cursor" /></Button>
           <span className="hidden sm:block"><Button aria-label="Herramienta de estructura, no disponible" disabled size="icon" variant="ghost"><Icon name="columns" /></Button></span>
           <span className="ml-1 hidden text-xs text-muted-foreground xl:inline">Inicio / Hero / Encabezado</span>
@@ -40,6 +40,7 @@ export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: Canva
         </div>
 
         <div className="flex items-center gap-1">
+          <span className="hidden xl:block"><Button aria-label="Generador IA, planificado" disabled size="small"><Icon name="sparkles" size={16} />Generador IA</Button></span>
           <span className="hidden rounded-md bg-muted px-2 py-1 font-heading text-xs text-muted-foreground sm:inline">− &nbsp;90%&nbsp; +</span>
           <span className="hidden md:block lg:hidden"><Button aria-label="Abrir inspector" onClick={() => onOpenPanel('inspector')} size="icon" variant="ghost"><Icon name="settings" /></Button></span>
           <span className="hidden sm:block"><Button aria-label="Opciones del canvas" size="icon" variant="ghost"><Icon name="more" /></Button></span>
@@ -53,21 +54,21 @@ export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: Canva
             <div className={`overflow-hidden bg-white text-slate-950 ${isDevice ? viewport === 'mobile' ? 'rounded-[2rem]' : 'rounded-[1.35rem]' : ''}`}>
               {isDevice ? <div className="flex h-8 items-end justify-between px-5 pb-1 text-[0.625rem] font-bold"><span>9:41</span><span className="flex items-end gap-1" aria-label="Señal, wifi y batería"><span className="h-2 w-2 rounded-full bg-slate-900" /><span className="h-2 w-3 rounded-t-full border-2 border-b-0 border-slate-900" /><span className="h-2 w-4 rounded-sm border-2 border-slate-900" /></span></div> : null}
               <div className="flex min-h-12 items-center gap-3 border-b border-slate-200 px-4 sm:px-5">
-                <div className="grid size-8 place-items-center rounded-lg bg-violet-700 text-white"><Icon name="sparkles" size={16} /></div>
+                <div className="grid size-8 place-items-center rounded-md bg-blue-600 text-white"><Icon name="sparkles" size={16} /></div>
                 <span className="font-heading text-xs font-bold">Horizonte</span>
                 {viewport === 'desktop' ? <div className="ml-auto hidden items-center gap-4 text-xs font-semibold sm:flex"><span>Explorar</span><span>Historias</span><span>Nosotros</span></div> : null}
                 <button aria-label={viewport === 'desktop' ? undefined : 'Abrir menú del sitio'} className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-lg bg-slate-950 px-3 text-xs font-bold text-white sm:ml-2" type="button">{viewport === 'desktop' ? 'Suscríbete' : <Icon name="menu" size={16} />}</button>
               </div>
 
-              <section className="relative overflow-hidden bg-slate-950 px-5 py-9 text-white sm:px-9 sm:py-12">
-                <div className="absolute -right-16 -top-20 size-64 rounded-full bg-violet-600/45 blur-3xl" aria-hidden="true" />
-                <div className="absolute bottom-0 right-6 size-28 rounded-full bg-fuchsia-500/25 blur-2xl" aria-hidden="true" />
-                <div className="relative max-w-xl rounded-md outline outline-2 outline-offset-4 outline-violet-400">
-                  <div className="absolute -top-7 left-0 rounded-t bg-violet-600 px-2 py-1 text-[0.5625rem] font-bold text-white">Encabezado</div>
-                  <p className="font-heading text-[0.5625rem] font-bold uppercase tracking-[0.18em] text-violet-300">Ideas para un mundo en movimiento</p>
+              <section className="relative overflow-hidden bg-slate-50 px-5 py-9 text-slate-950 sm:px-9 sm:py-12">
+                <div className="absolute -right-16 -top-20 size-64 rounded-full bg-blue-200/70 blur-3xl" aria-hidden="true" />
+                <div className="absolute bottom-0 right-6 size-28 rounded-full bg-cyan-200/50 blur-2xl" aria-hidden="true" />
+                <div className="relative max-w-xl rounded-md outline outline-2 outline-offset-4 outline-blue-500">
+                  <div className="absolute -top-7 left-0 rounded-t bg-blue-600 px-2 py-1 text-[0.5625rem] font-bold text-white">Encabezado</div>
+                  <p className="font-heading text-[0.5625rem] font-bold uppercase tracking-[0.18em] text-blue-700">Ideas para un mundo en movimiento</p>
                   <h1 className="mt-2 text-balance font-heading text-2xl font-bold leading-tight sm:text-4xl">Historias que amplían tu horizonte.</h1>
-                  <p className="mt-3 max-w-md text-xs leading-5 text-slate-300 sm:text-sm">Diseño, tecnología y cultura contemporánea en una publicación independiente.</p>
-                  <div className="mt-5 flex flex-wrap gap-2"><button className="min-h-11 rounded-lg bg-violet-500 px-4 text-xs font-bold text-white" type="button">Leer la edición</button><button className="min-h-11 rounded-lg border border-slate-600 px-4 text-xs font-bold text-white" type="button">Explorar</button></div>
+                  <p className="mt-3 max-w-md text-xs leading-5 text-slate-600 sm:text-sm">Diseño, tecnología y cultura contemporánea en una publicación independiente.</p>
+                  <div className="mt-5 flex flex-wrap gap-2"><button className="min-h-11 rounded-md bg-blue-600 px-4 text-xs font-bold text-white" type="button">Leer la edición</button><button className="min-h-11 rounded-md border border-slate-300 bg-white px-4 text-xs font-bold text-slate-800" type="button">Explorar</button></div>
                 </div>
               </section>
 
@@ -76,8 +77,8 @@ export function CanvasPreview({ viewport, onViewportChange, onOpenPanel }: Canva
               </section>
 
               <section className="px-5 py-7 sm:px-9">
-                <div className="flex items-end justify-between gap-3"><div><p className="text-[0.5625rem] font-bold uppercase tracking-[0.16em] text-violet-700">Selección editorial</p><h2 className="mt-1 font-heading text-lg font-bold sm:text-xl">Últimas historias</h2></div><span className="text-[0.625rem] font-semibold text-violet-700">Ver todas</span></div>
-                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">{['Diseño humano', 'Ciudades futuras', 'Trabajo creativo'].map((title, index) => <article key={title}><div className={`aspect-[4/3] rounded-lg ${index === 0 ? 'bg-violet-200' : index === 1 ? 'bg-cyan-100' : 'bg-amber-100'}`} /><h3 className="mt-2 text-[0.625rem] font-bold sm:text-xs">{title}</h3></article>)}</div>
+                <div className="flex items-end justify-between gap-3"><div><p className="text-[0.5625rem] font-bold uppercase tracking-[0.16em] text-blue-700">Selección editorial</p><h2 className="mt-1 font-heading text-lg font-bold sm:text-xl">Últimas historias</h2></div><span className="text-[0.625rem] font-semibold text-blue-700">Ver todas</span></div>
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">{['Diseño humano', 'Ciudades futuras', 'Trabajo creativo'].map((title, index) => <article key={title}><div className={`aspect-[4/3] rounded-md ${index === 0 ? 'bg-blue-100' : index === 1 ? 'bg-cyan-100' : 'bg-slate-100'}`} /><h3 className="mt-2 text-[0.625rem] font-bold sm:text-xs">{title}</h3></article>)}</div>
               </section>
             </div>
             {viewport === 'mobile' ? <div className="mx-auto mt-2 h-1 w-24 rounded-full bg-white/90" aria-hidden="true" /> : null}

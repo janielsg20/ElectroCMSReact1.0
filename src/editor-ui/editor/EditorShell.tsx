@@ -61,7 +61,7 @@ export function EditorShell() {
     <div className="editor-shell h-dvh overflow-hidden bg-canvas text-foreground">
       <TopBar darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} />
       <AppNavigation />
-      <LibraryPanel activeTab={libraryTab} className="hidden xl:block" onTabChange={setLibraryTab} />
+      <LibraryPanel activeTab={libraryTab} className="hidden lg:block" onTabChange={setLibraryTab} />
       <CanvasPreview onOpenPanel={changeMobilePanel} onViewportChange={setViewport} viewport={viewport} />
       <InspectorPanel activeTab={inspectorTab} className="hidden lg:block" onTabChange={setInspectorTab} />
 
@@ -74,7 +74,7 @@ export function EditorShell() {
 
       <MobileDock activePanel={mobilePanel} onPanelChange={changeMobilePanel} />
       {mobilePanel ? (
-        <div className="fixed inset-0 z-50 xl:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Cerrar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-2xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
             <div className="flex min-h-14 items-center justify-between border-b border-border px-4"><div><span className="mx-auto block h-1 w-10 rounded-full bg-border" /><h2 className="mt-1 font-heading text-sm font-bold">{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" /></Button></div>

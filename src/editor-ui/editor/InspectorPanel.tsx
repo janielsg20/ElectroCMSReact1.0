@@ -10,9 +10,9 @@ interface InspectorPanelProps {
 }
 
 const tabs: readonly { id: InspectorTab; label: string }[] = [
-  { id: 'style', label: 'Diseño' },
-  { id: 'content', label: 'Acciones' },
-  { id: 'advanced', label: 'Datos' },
+  { id: 'style', label: 'Propiedades' },
+  { id: 'content', label: 'Acción' },
+  { id: 'advanced', label: 'Backend' },
 ]
 
 function PropertyRow({ label, children }: { readonly label: string; readonly children: ReactNode }) {
@@ -30,34 +30,30 @@ function SectionTitle({ children }: { readonly children: ReactNode }) {
 export function InspectorPanel({ activeTab, onTabChange, className = '' }: InspectorPanelProps) {
   return (
     <aside aria-label="Inspector de propiedades" className={`min-h-0 border-l border-border bg-surface ${className}`}>
-      <div className="flex min-h-14 items-center justify-between gap-3 border-b border-border px-3">
-        <div className="min-w-0"><p className="text-[0.625rem] font-medium uppercase tracking-wider text-muted-foreground">Seleccionado</p><h2 className="truncate text-sm font-bold">Encabezado principal</h2></div>
-        <span className="rounded-md bg-primary-soft px-2 py-1 font-heading text-[0.625rem] font-bold text-primary-strong">Texto</span>
-      </div>
-      <div className="grid grid-cols-3 border-b border-border bg-canvas/60 px-2 pt-1" role="tablist" aria-label="Propiedades">
-        {tabs.map((tab) => <button aria-selected={activeTab === tab.id} className={`min-h-11 cursor-pointer border-b-2 px-1 text-xs font-semibold transition-colors ${activeTab === tab.id ? 'border-primary bg-surface text-primary-strong' : 'border-transparent text-muted-foreground hover:text-foreground'}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button">{tab.label}</button>)}
+      <div className="grid grid-cols-3 border-b border-border bg-muted/60 p-2" role="tablist" aria-label="Propiedades">
+        {tabs.map((tab) => <button aria-selected={activeTab === tab.id} className={`min-h-11 cursor-pointer rounded-md px-1 text-[0.6875rem] font-semibold transition-colors ${activeTab === tab.id ? 'bg-surface text-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`} key={tab.id} onClick={() => onTabChange(tab.id)} role="tab" type="button">{tab.label}</button>)}
       </div>
 
       <div className="h-full overflow-y-auto pb-24" role="tabpanel">
         {activeTab === 'style' ? (
           <div className="divide-y divide-border">
-            <section className="grid gap-3 p-3">
-              <SectionTitle>Contenido</SectionTitle>
-              <label className="grid gap-1.5 text-[0.6875rem] font-semibold text-muted-foreground" htmlFor="hero-heading">Editar texto<textarea className="min-h-20 resize-y rounded-lg border border-primary bg-canvas p-3 text-sm font-semibold text-foreground outline-none ring-2 ring-primary/10 focus-visible:ring-focus" defaultValue="Historias que amplían tu horizonte." id="hero-heading" /></label>
+            <section className="grid gap-2 p-3">
+              <SectionTitle>Editar texto</SectionTitle>
+              <label className="grid gap-1 text-[0.6875rem] font-semibold text-muted-foreground" htmlFor="hero-heading"><span className="sr-only">Contenido del texto seleccionado</span><textarea className="min-h-20 resize-y rounded-md border border-primary bg-surface p-2.5 text-xs font-semibold text-foreground outline-none ring-2 ring-primary/10 focus-visible:ring-focus" defaultValue="Historias que amplían tu horizonte." id="hero-heading" /></label>
             </section>
-            <section className="grid gap-3 p-3">
-              <SectionTitle>Alineación y distribución</SectionTitle>
+            <section className="grid gap-2 p-3">
+              <SectionTitle>Alineación y padding</SectionTitle>
               <div className="grid grid-cols-[minmax(0,1fr)_9.25rem] gap-3">
                 <div className="grid gap-2"><PropertyRow label="Eje X"><SelectControl value="Inicio" /></PropertyRow><PropertyRow label="Eje Y"><SelectControl value="Centro" /></PropertyRow></div>
                 <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1" role="group" aria-label="Alineación visual">{Array.from({ length: 9 }, (_, index) => <button aria-label={`Posición ${index + 1}`} className={`grid size-11 cursor-pointer place-items-center rounded-md hover:bg-surface ${index === 3 ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground'}`} key={index} type="button"><span className="size-2 rounded-sm bg-current" /></button>)}</div>
               </div>
             </section>
-            <section className="grid gap-3 p-3">
+            <section className="grid gap-2 p-3">
               <SectionTitle>Espaciado</SectionTitle>
-              <div className="grid grid-cols-4 gap-1.5">{['Arriba', 'Derecha', 'Abajo', 'Izquierda'].map((side, index) => <label className="grid gap-1 text-center text-[0.625rem] text-muted-foreground" key={side}><span>{side[0]}</span><span className="flex min-h-11 items-center rounded-lg border border-border bg-canvas px-1"><input aria-label={`Padding ${side.toLowerCase()}`} className="h-11 min-w-0 flex-1 bg-transparent text-center text-xs text-foreground outline-none" defaultValue={index % 2 === 0 ? '40' : '24'} inputMode="numeric" /><span>px</span></span></label>)}</div>
+              <div className="grid grid-cols-2 gap-1.5">{['Arriba', 'Derecha', 'Abajo', 'Izquierda'].map((side, index) => <label className="grid min-w-0 gap-1 text-[0.625rem] text-muted-foreground" key={side}><span>{side}</span><span className="flex min-h-11 min-w-0 items-center rounded-md border border-border bg-canvas px-2"><input aria-label={`Padding ${side.toLowerCase()}`} className="h-11 w-0 min-w-0 flex-1 bg-transparent text-right text-xs text-foreground outline-none" defaultValue={index % 2 === 0 ? '40' : '24'} inputMode="numeric" /><span className="ml-1">px</span></span></label>)}</div>
               <button className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-canvas text-xs font-semibold hover:bg-muted" type="button"><Icon name="lock" size={14} />Vincular valores</button>
             </section>
-            <section className="grid gap-3 p-3">
+            <section className="grid gap-2 p-3">
               <SectionTitle>Tipografía</SectionTitle>
               <div className="grid grid-cols-2 gap-2"><PropertyRow label="Peso"><SelectControl value="700 · Bold" /></PropertyRow><PropertyRow label="Tamaño"><SelectControl value="48 px" /></PropertyRow></div>
               <div className="flex items-center gap-2"><span className="size-9 rounded-lg border border-border bg-slate-950" aria-label="Color #0F172A" /><code className="text-xs text-muted-foreground">#0F172A</code><button className="ml-auto min-h-11 rounded-lg border border-border px-3 text-xs font-semibold" type="button">Cambiar</button></div>

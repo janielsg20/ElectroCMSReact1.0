@@ -89,7 +89,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Persistencia M03.3: namespace `project-recovery` y recuperación real tras cerrar/reabrir IndexedDB.
 - Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
-- UI anticipada: estudio compacto en React/Tailwind con header, rail, páginas/capas, canvas punteado, marcos responsive, inspector Diseño/Acciones/Datos, dock móvil y sheets.
+- UI anticipada: estudio de densidad 10/10 en React/Tailwind con paleta azul/gris, rail de iconos, páginas/capas, canvas punteado, inspector Propiedades/Acción/Backend, dock móvil y sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
 - Publicación UI vigente: rediseño en commit `30d846d`, ejecución `31407539886` verde y producción HTTPS 200 con `index-2JEzV0jm.js`.

@@ -8,17 +8,17 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 ## Layout por capacidad disponible
 
-### Desktop amplio — desde 1280 px
+### Desktop/laptop horizontal — desde 1024 px
 
 - Header/toolbar superior persistente.
-- Rail o sidebar de navegación configurable: 64 px colapsada, 240–288 px expandida.
-- Panel izquierdo contextual de 280–360 px para elementos, capas o recursos.
+- Rail de navegación de alta densidad: 52 px colapsado con etiquetas accesibles.
+- Panel izquierdo contextual de 240–272 px para páginas, capas o componentes.
 - Canvas central flexible con mínimo útil y zoom independiente.
-- Inspector derecho de 320–400 px.
+- Inspector derecho de 280–320 px.
 - Status bar opcional para sincronización, selección y diagnóstico.
 - Los paneles se redimensionan, colapsan y recuerdan el workspace.
 
-### Laptop/tablet horizontal — 768 a 1279 px
+### Tablet — 768 a 1023 px
 
 - Navegación en rail contraído.
 - Canvas como región principal.
@@ -70,7 +70,7 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 ## Prototipo anticipado implementado
 
-- Desktop: header compacto, rail de 64 px, panel unificado de páginas/capas, canvas punteado, inspector y barra de estado.
+- Desktop desde 1024 px: header compacto, rail de 52 px, páginas/capas, canvas punteado, inspector y barra de estado simultáneos.
 - Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
 - Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
