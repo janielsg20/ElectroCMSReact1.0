@@ -5,6 +5,7 @@
 - Aplicada una segunda compactación integral explícita: header y toolbar de 40 px, rail de 44 px, controles y filas de 32 px, y status bar de 24 px.
 - Reducidos paneles a 192/224 px por defecto con rangos 168–280/216–320 px; minimizados padding, gaps, radios y separación de secciones al ritmo funcional de 4–8 px.
 - Conservados targets de 44 px en tablet/móvil, foco visible, colapso y resize accesible; verificados 320, 375, 768, 1024, 1440 y landscape sin overflow ni errores de consola.
+- Publicado `a6c13c7`; GitHub Actions `31419886499` y Cloudflare Pages finalizaron correctamente con `index-B09363my.js` validado en producción.
 - Convertidos los paneles laterales en menús compactos, colapsables de forma independiente y redimensionables entre 184–320 px (biblioteca) y 224–360 px (inspector).
 - Añadidos separadores accesibles con arrastre por puntero y alternativa de teclado: flechas en pasos de 16 px, `Home` al mínimo y `End` al máximo.
 - Reducidos controles, pestañas, filas y opciones a 36 px en escritorio, conservando targets táctiles de 44 px en tablet y móvil.

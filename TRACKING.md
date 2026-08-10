@@ -10,7 +10,7 @@ Actualizado: 2026-08-10.
 - Entrega anticipada solicitada: compactación integral minimalista de alta densidad `COMPLETADO`, basada exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
-- Última evidencia publicada: paneles compactos y redimensionables en commit `b57b85a`; pipeline `31417203626` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-CRq1OgZM.js`.
+- Última evidencia publicada: compactación integral de alta densidad en commit `a6c13c7`; pipeline `31419886499` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-B09363my.js`.
 
 ## Tablero compacto
 
@@ -118,6 +118,7 @@ Actualizado: 2026-08-10.
 - Completada: cuatro regiones simultáneas desde 1024 px; overlays accesibles en 768–1023 px y dock/sheets en móvil.
 - Publicada: refinamiento de alta densidad en `7bad321`; GitHub Actions `31412507711` y el despliegue Cloudflare finalizaron correctamente.
 - Publicada: compactación y paneles redimensionables en `b57b85a`; GitHub Actions `31417203626` y Cloudflare Pages finalizaron correctamente con `index-CRq1OgZM.js` verificado en producción.
+- Publicada: densidad minimalista integral en `a6c13c7`; GitHub Actions `31419886499` y Cloudflare Pages finalizaron correctamente con `index-B09363my.js` verificado en producción.
 
 
 ## Plantilla de relevo
