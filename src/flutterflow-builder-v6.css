@@ -1,0 +1,378 @@
+/*
+ * ElectroCMS — builder layout refinement v6
+ * Inspired by the information architecture of modern visual builders such as FlutterFlow,
+ * while preserving ElectroCMS identity, high-density ergonomics and minimal-clean styling.
+ */
+
+:root {
+  --builder-rail: 44px;
+  --builder-panel-bg: color-mix(in srgb, var(--color-surface) 98%, var(--color-canvas));
+  --builder-panel-header: color-mix(in srgb, var(--color-muted) 68%, var(--color-surface));
+  --builder-divider: color-mix(in srgb, var(--color-border) 92%, transparent);
+  --builder-resizer: color-mix(in srgb, var(--color-border) 72%, transparent);
+  --builder-resizer-active: color-mix(in srgb, var(--color-primary) 70%, var(--color-border));
+  --builder-canvas-bg: color-mix(in srgb, var(--color-canvas) 78%, var(--color-muted));
+}
+
+/* ---------- Builder shell ---------- */
+.editor-shell {
+  background: var(--builder-canvas-bg);
+}
+
+.app-topbar {
+  border-bottom: 1px solid var(--builder-divider);
+  background: var(--builder-panel-bg);
+}
+
+.app-topbar > div:first-of-type {
+  min-width: 11.5rem;
+}
+
+.app-topbar [role="toolbar"] {
+  gap: 0.125rem;
+}
+
+.app-topbar [role="toolbar"] :where(button, .theme-settings-trigger) {
+  border-radius: 0.375rem;
+}
+
+.project-switcher {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.project-switcher:hover {
+  border-color: var(--builder-divider) !important;
+  background: var(--color-muted) !important;
+}
+
+/* ---------- Left navigation rail ---------- */
+.app-navigation {
+  background: var(--builder-panel-bg);
+  border-right: 1px solid var(--builder-divider);
+}
+
+.app-navigation > div {
+  padding-block: 0.25rem;
+}
+
+.app-navigation .nav-option {
+  margin-inline: 0.25rem;
+  width: calc(100% - 0.5rem);
+  border-left: 0;
+  border-radius: 0.4rem;
+}
+
+.app-navigation .nav-option::after {
+  content: "";
+  position: absolute;
+  inset-block: 0.45rem;
+  inset-inline-start: -0.25rem;
+  width: 2px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.app-navigation .nav-option[aria-current="page"]::after {
+  background: var(--color-primary);
+}
+
+.app-navigation .nav-accent-icon {
+  border-radius: 0.375rem;
+}
+
+/* ---------- Docked builder panels ---------- */
+.panel-window.relative {
+  background: var(--builder-panel-bg);
+  border-inline-color: var(--builder-divider);
+}
+
+.panel-window.relative .panel-window__bar {
+  height: 1.875rem;
+  min-height: 1.875rem;
+  background: var(--builder-panel-header);
+  border-bottom: 1px solid var(--builder-divider);
+}
+
+.panel-window.relative .panel-window__bar > div:first-child,
+.panel-window.relative .panel-window__bar > button:first-child {
+  font-weight: 600;
+}
+
+.panel-window.relative .panel-window__action {
+  color: var(--color-muted-foreground);
+}
+
+.panel-window.relative .panel-window__action:hover,
+.panel-window.relative .panel-window__action[aria-pressed="true"] {
+  color: var(--color-primary-strong);
+  background: var(--color-primary-soft);
+}
+
+/* FlutterFlow-like right-side property panel feel: denser section rhythm, calmer chrome. */
+.inspector-panel {
+  background: var(--builder-panel-bg);
+}
+
+.inspector-panel > [role="tablist"] {
+  padding: 0.25rem 0.35rem;
+  background: var(--builder-panel-header);
+}
+
+.inspector-panel > [role="tablist"] [role="tab"] {
+  min-height: 1.875rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: transparent;
+  box-shadow: none !important;
+}
+
+.inspector-panel > [role="tablist"] [role="tab"][aria-selected="true"] {
+  border-bottom-color: var(--color-primary);
+  background: transparent;
+  color: var(--color-primary-strong);
+}
+
+.inspector-panel [role="tabpanel"] section {
+  border-bottom-color: var(--builder-divider);
+  background: var(--builder-panel-bg);
+}
+
+.inspector-panel [role="tabpanel"] section > h3 {
+  color: var(--color-foreground);
+}
+
+.inspector-panel [role="tabpanel"] section > h3 svg {
+  color: var(--color-muted-foreground);
+}
+
+/* ---------- Widget/Page panel ---------- */
+.library-panel {
+  background: var(--builder-panel-bg);
+}
+
+.library-panel > [role="tablist"] {
+  padding: 0.25rem 0.35rem;
+  background: var(--builder-panel-header);
+}
+
+.library-panel > [role="tablist"] [role="tab"] {
+  min-height: 1.875rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: transparent;
+  box-shadow: none !important;
+  color: var(--color-muted-foreground);
+}
+
+.library-panel > [role="tablist"] [role="tab"][aria-selected="true"] {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+#library-panel-widgets input[type="search"] {
+  background: var(--color-surface);
+  border-color: var(--builder-divider);
+}
+
+#library-panel-widgets .semantic-option {
+  border-color: transparent;
+  background: transparent;
+}
+
+#library-panel-widgets .semantic-option:hover,
+#library-panel-widgets .semantic-option:focus-visible {
+  border-color: var(--builder-divider);
+  background: var(--color-muted);
+}
+
+#library-panel-layers section {
+  background: transparent;
+}
+
+#library-panel-layers [role="treeitem"] button {
+  border-radius: 0.3rem;
+}
+
+/* ---------- Resizers: visual-builder style ---------- */
+.editor-shell [role="separator"] {
+  isolation: isolate;
+}
+
+.editor-shell [role="separator"] > span {
+  position: relative;
+  width: 1px;
+  background: var(--builder-resizer) !important;
+}
+
+.editor-shell [role="separator"] > span::after {
+  content: "";
+  position: absolute;
+  inset-block: 42%;
+  inset-inline-start: 50%;
+  width: 3px;
+  min-height: 2.75rem;
+  border-radius: 999px;
+  background: transparent;
+  translate: -50% 0;
+  transition: background-color 140ms var(--ease-standard), box-shadow 140ms var(--ease-standard);
+}
+
+.editor-shell [role="separator"]:hover > span::after,
+.editor-shell [role="separator"]:focus-visible > span::after {
+  background: var(--builder-resizer-active);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* ---------- Canvas / central work area ---------- */
+.canvas-workspace {
+  background-color: var(--builder-canvas-bg);
+}
+
+.canvas-toolbar {
+  min-height: 2.5rem;
+  border-bottom: 1px solid var(--builder-divider);
+  background: var(--builder-panel-bg);
+}
+
+.canvas-toolbar > [role="group"] {
+  border-color: var(--builder-divider);
+  background: var(--color-surface);
+}
+
+.canvas-toolbar .editor-breadcrumbs,
+.canvas-toolbar nav[aria-label*="Ruta"],
+.canvas-toolbar nav[aria-label*="ruta"] {
+  color: var(--color-muted-foreground);
+}
+
+.canvas-scroll {
+  background: transparent;
+}
+
+.bg-editor-grid {
+  background-color: var(--builder-canvas-bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border) 28%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 28%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ---------- Floating windows ---------- */
+.panel-window.fixed {
+  border: 1px solid color-mix(in srgb, var(--color-border) 92%, var(--color-foreground));
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.14), 0 2px 8px rgb(15 23 42 / 0.08);
+}
+
+.panel-window.fixed .panel-window__bar {
+  height: 2rem;
+  min-height: 2rem;
+  border-bottom-color: var(--builder-divider);
+  background: var(--builder-panel-header);
+}
+
+.panel-window.fixed.panel-window--active {
+  border-color: color-mix(in srgb, var(--color-primary) 48%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 14%, transparent), 0 14px 34px rgb(15 23 42 / 0.16);
+}
+
+/* Resize corner reads like a utility, not a decorative affordance. */
+.panel-window.fixed > button.absolute.bottom-0.right-0 {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-muted-foreground);
+}
+
+.panel-window.fixed > button.absolute.bottom-0.right-0:hover {
+  color: var(--color-primary-strong);
+  background: var(--color-primary-soft);
+}
+
+/* ---------- Docking feedback ---------- */
+.dock-preview-zone {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  color: var(--color-muted-foreground);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 55%, transparent);
+}
+
+.dock-preview-zone--active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  color: var(--color-primary-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.panel-minimized-shelf {
+  width: 2rem;
+  border-left-color: var(--builder-divider);
+  background: var(--builder-panel-bg);
+  box-shadow: none;
+}
+
+.panel-edge-tab {
+  background: transparent !important;
+  color: var(--color-muted-foreground) !important;
+  border-color: var(--builder-divider) !important;
+}
+
+.panel-edge-tab:hover,
+.panel-edge-tab:focus-visible {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+}
+
+/* ---------- Status bar ---------- */
+.app-statusbar {
+  min-height: 1.375rem;
+  border-top: 1px solid var(--builder-divider);
+  background: var(--builder-panel-bg);
+}
+
+/* ---------- Responsive builder behaviour ---------- */
+@media (min-width: 64rem) and (max-width: 79.99rem) {
+  .app-topbar > div:first-of-type {
+    min-width: 9.5rem;
+  }
+
+  .project-switcher {
+    max-width: 10rem;
+  }
+
+  .canvas-toolbar .editor-breadcrumbs,
+  .canvas-toolbar nav[aria-label*="Ruta"],
+  .canvas-toolbar nav[aria-label*="ruta"] {
+    display: none;
+  }
+}
+
+@media (max-width: 63.99rem) {
+  .panel-window.relative .panel-window__bar {
+    min-height: 2rem;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .app-topbar > div:first-of-type {
+    min-width: 0;
+  }
+
+  .mobile-sheet {
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+
+  .mobile-sheet > div:first-child {
+    background: var(--builder-panel-header) !important;
+    border-bottom-color: var(--builder-divider) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell [role="separator"] > span::after {
+    transition: none;
+  }
+}
