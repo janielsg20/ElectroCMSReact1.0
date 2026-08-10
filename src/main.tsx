@@ -12,6 +12,7 @@ import './micro-ux-v5.css'
 import './flutterflow-builder-v6.css'
 import './flutterflow-builder-v7.css'
 import './flutterflow-builder-v8.css'
+import './flutterflow-fidelity-v9.css'
 
 const rootElement = document.getElementById('root')
 
