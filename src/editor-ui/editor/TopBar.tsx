@@ -162,7 +162,7 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
           <Button aria-label="Previsualizar, no disponible" className="hidden md:inline-flex" data-tooltip="Preview · planificado" disabled size="icon" variant="ghost"><Icon name="eye" size={15} /></Button>
         </div>
 
-        <Button aria-label="Ejecutar app, no disponible" className="builder-run-action ml-0.5" data-tooltip="Ejecución · planificada" disabled size="small"><Icon name="play" size={14} /><span className="hidden sm:inline">Run</span></Button>
+        <Button className="builder-run-action ml-0.5" data-tooltip="Ejecución · planificada" disabled size="small"><Icon name="play" size={14} /><span className="hidden sm:inline">Run</span></Button>
       </div>
     </header>
   )
