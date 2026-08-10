@@ -9,20 +9,37 @@ interface MobileDockProps {
 }
 
 const dockItems = [
-  { id: 'widgets' as const, label: 'Elementos', icon: 'plus' as const },
-  { id: 'layers' as const, label: 'Capas', icon: 'layers' as const },
+  { id: 'widgets' as const, label: 'Widgets', icon: 'plus' as const },
+  { id: 'layers' as const, label: 'Páginas', icon: 'layers' as const },
   { id: null, label: 'Canvas', icon: 'cursor' as const },
-  { id: 'inspector' as const, label: 'Inspector', icon: 'settings' as const },
+  { id: 'inspector' as const, label: 'Propiedades', icon: 'settings' as const },
   { id: 'more' as const, label: 'Más', icon: 'more' as const },
 ]
 
 export function MobileDock({ activePanel, onPanelChange }: MobileDockProps) {
   return (
-    <nav aria-label="Herramientas móviles" className="mobile-dock fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-lg backdrop-blur md:hidden">
+    <nav aria-label="Navegación del builder" className="mobile-dock fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/98 pb-[env(safe-area-inset-bottom)] md:hidden">
       <ul className="grid grid-cols-5">
         {dockItems.map((item) => {
           const selected = item.id !== 'more' && activePanel === item.id
-          return <li key={item.label}><button aria-current={selected ? 'page' : undefined} aria-label={item.label} className={`mobile-dock-option flex min-h-14 w-full cursor-pointer flex-col items-center justify-center gap-0.5 text-xs font-semibold text-foreground transition-colors ${selected ? 'mobile-dock-option--active text-primary-strong' : ''}`} disabled={item.id === 'more'} onClick={() => item.id !== 'more' && onPanelChange(selected ? null : item.id)} title={item.id === 'more' ? 'Más · planificado' : item.label} type="button"><span className="grid size-7 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={item.icon} size={16} /></span><span>{item.label}</span></button></li>
+          const isCanvas = item.id === null && activePanel === null
+          const active = selected || isCanvas
+          return (
+            <li className="min-w-0" key={item.label}>
+              <button
+                aria-current={active ? 'page' : undefined}
+                aria-label={item.label}
+                className={`mobile-dock-option relative flex min-h-14 w-full cursor-pointer flex-col items-center justify-center gap-0.5 px-0.5 text-[0.6875rem] font-medium transition-colors ${active ? 'mobile-dock-option--active text-primary-strong' : 'text-muted-foreground'}`}
+                disabled={item.id === 'more'}
+                onClick={() => item.id !== 'more' && onPanelChange(selected ? null : item.id)}
+                title={item.id === 'more' ? 'Más herramientas · planificado' : item.label}
+                type="button"
+              >
+                <span className="mobile-dock-option__icon grid size-7 place-items-center rounded-md"><Icon name={item.icon} size={15} /></span>
+                <span className="max-w-full truncate">{item.label}</span>
+              </button>
+            </li>
+          )
         })}
       </ul>
     </nav>
