@@ -92,7 +92,7 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - UI anticipada: estudio de densidad 10/10 en React/Tailwind con paleta azul/gris, rail de iconos, páginas/capas, canvas punteado, inspector Propiedades/Acción/Backend, dock móvil y sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
-- Publicación UI vigente: rediseño en commit `30d846d`, ejecución `31407539886` verde y producción HTTPS 200 con `index-2JEzV0jm.js`.
+- Publicación UI vigente: alta densidad azul en commit `7bad321`, ejecución `31412507711` verde y producción HTTPS 200 con `index-FlnSUMKE.js`.
 
 ## Punteros
 
