@@ -23,6 +23,8 @@ export {
   TaxonomyIdSchema,
   TaxonomyTermIdSchema,
   UserIdSchema,
+  ProjectJournalEntryIdSchema,
+  ProjectSnapshotIdSchema,
   parseBackendScreenId,
   parseBreakpointId,
   parseContentRecordId,
@@ -41,6 +43,8 @@ export {
   parseTaxonomyId,
   parseTaxonomyTermId,
   parseUserId,
+  parseProjectJournalEntryId,
+  parseProjectSnapshotId,
   parseProjectId,
   parseTimestamp,
   ProjectIdSchema,
@@ -63,6 +67,8 @@ export {
   type TaxonomyId,
   type TaxonomyTermId,
   type UserId,
+  type ProjectJournalEntryId,
+  type ProjectSnapshotId,
   type ProjectId,
   type Timestamp,
 } from './identity'
@@ -179,3 +185,12 @@ export {
   type ProjectLifecycleState,
   type ProjectRecord,
 } from './project-record'
+export {
+  createProjectRecoveryStateSchema,
+  PROJECT_RECOVERY_SCHEMA_VERSION,
+  ProjectJournalStatusSchema,
+  type ProjectJournalEntry,
+  type ProjectJournalStatus,
+  type ProjectRecoveryState,
+  type ProjectSnapshot,
+} from './project-recovery'

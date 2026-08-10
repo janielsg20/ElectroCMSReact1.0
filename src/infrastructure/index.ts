@@ -13,6 +13,10 @@ export {
   createProjectRecordRepository,
   PROJECT_RECORDS_NAMESPACE,
 } from './indexed-db/project-record-repository'
+export {
+  createProjectRecoveryRepository,
+  PROJECT_RECOVERY_NAMESPACE,
+} from './indexed-db/project-recovery-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,

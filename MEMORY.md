@@ -1,6 +1,6 @@
 # MEMORY — contexto corto de ElectroCMS
 
-Actualizado: 2026-08-09.
+Actualizado: 2026-08-10.
 
 ## Objetivo
 
@@ -24,7 +24,8 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - Fase F02 completada.
 - `M03.1 — Repositorios locales` completada con IndexedDB/Dexie, transacciones, errores tipados e integridad verificada.
 - `M03.2 — Ciclo de proyecto` completada con catálogo local, papelera recuperable e import/export validado.
-- Fase activa: `F03 / M03.3 — Guardado incremental y recuperación`; todavía no implementada.
+- `M03.3 — Guardado incremental y recuperación` completada con debounce, snapshots, journal y reapertura recuperable.
+- Fase activa: `F03 / M03.4 — Command bus e historial`; todavía no implementada.
 - Por prioridad expresa del usuario se implementó anticipadamente un prototipo visual integral del editor; no equivale a cerrar F04–F07.
 
 ## Decisiones vigentes
@@ -37,7 +38,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 
 ## Próximo paso exacto
 
-Implementar `M03.3`: autosave con debounce, snapshots, journal y recuperación tras cierre o escritura interrumpida sin perder el último estado válido.
+Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites configurables y persistencia de undo/redo con prueba de ramas nuevas.
 
 ## Riesgos abiertos
 
@@ -52,7 +53,7 @@ Implementar `M03.3`: autosave con debounce, snapshots, journal y recuperación t
 
 - `npm run lint`: correcto.
 - `npm run typecheck`: correcto.
-- `npm run test`: 60/60 pruebas.
+- `npm run test`: 72/72 pruebas.
 - `npm run build`: correcto; Vite 7.3.6.
 - Browser aislado: contenido semántico presente en desktop y 375 × 812, tema oscuro del sistema aplicado y sin overflow horizontal.
 - GitHub público: `https://github.com/janielsg20/ElectroCMSReact1.0` (`main`).
@@ -83,6 +84,9 @@ Implementar `M03.3`: autosave con debounce, snapshots, journal y recuperación t
 - Integridad M03.2: IDs repetidos y conflictos de importación no sobrescriben; duplicado explícito obtiene identidad y fechas nuevas.
 - Persistencia M03.2: factoría `projects` conectada a IndexedDB y reapertura de `ProjectRecord` verificada.
 - Publicación M03.2: commit `8e9b333`, ejecución `31341648227` y producción HTTPS 200.
+- Autosave M03.3: debounce con último cambio, snapshots limitados y journal preparar→guardar→confirmar.
+- Recuperación M03.3: pendientes reaplicados, commits reconciliados, corrupción restaurada y conflictos sin sobrescritura.
+- Persistencia M03.3: namespace `project-recovery` y recuperación real tras cerrar/reabrir IndexedDB.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: shell final en React/Tailwind con navegación desktop, canvas, biblioteca, capas, inspector, dock móvil y bottom sheets.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.

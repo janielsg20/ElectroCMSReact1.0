@@ -19,6 +19,8 @@ export const UserIdSchema = z.uuid().brand<'UserId'>()
 export const MenuIdSchema = z.uuid().brand<'MenuId'>()
 export const MenuItemIdSchema = z.uuid().brand<'MenuItemId'>()
 export const BackendScreenIdSchema = z.uuid().brand<'BackendScreenId'>()
+export const ProjectSnapshotIdSchema = z.uuid().brand<'ProjectSnapshotId'>()
+export const ProjectJournalEntryIdSchema = z.uuid().brand<'ProjectJournalEntryId'>()
 
 export const TimestampSchema = z.iso
   .datetime({ offset: false, precision: 3 })
@@ -43,6 +45,8 @@ export type UserId = z.infer<typeof UserIdSchema>
 export type MenuId = z.infer<typeof MenuIdSchema>
 export type MenuItemId = z.infer<typeof MenuItemIdSchema>
 export type BackendScreenId = z.infer<typeof BackendScreenIdSchema>
+export type ProjectSnapshotId = z.infer<typeof ProjectSnapshotIdSchema>
+export type ProjectJournalEntryId = z.infer<typeof ProjectJournalEntryIdSchema>
 export type Timestamp = z.infer<typeof TimestampSchema>
 
 export function parseProjectId(value: unknown): ProjectId {
@@ -119,6 +123,14 @@ export function parseMenuItemId(value: unknown): MenuItemId {
 
 export function parseBackendScreenId(value: unknown): BackendScreenId {
   return BackendScreenIdSchema.parse(value)
+}
+
+export function parseProjectSnapshotId(value: unknown): ProjectSnapshotId {
+  return ProjectSnapshotIdSchema.parse(value)
+}
+
+export function parseProjectJournalEntryId(value: unknown): ProjectJournalEntryId {
+  return ProjectJournalEntryIdSchema.parse(value)
 }
 
 export function parseTimestamp(value: unknown): Timestamp {

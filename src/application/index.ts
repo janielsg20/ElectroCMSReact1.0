@@ -8,6 +8,15 @@ export {
   type ProjectLifecycleError,
 } from './projects/project-lifecycle-service'
 export {
+  DebouncedProjectAutosave,
+  ProjectAutosaveService,
+  type AutosaveScheduler,
+  type ProjectAutosaveDependencies,
+  type ProjectAutosaveError,
+  type ProjectAutosaveReceipt,
+  type ProjectRecoveryReport,
+} from './projects/project-autosave-service'
+export {
   PLATFORM_ADAPTER_CONTRACT_VERSION,
   type PlatformAdapter,
   type PlatformAdapterDescriptor,

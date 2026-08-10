@@ -1,6 +1,6 @@
 # Persistencia local-first
 
-Estado: `M03.1 — Repositorios locales` y `M03.2 — Ciclo de proyecto` aceptadas; autosave e historial pendientes de M03.3–M03.4.
+Estado: `M03.1 — Repositorios locales`, `M03.2 — Ciclo de proyecto` y `M03.3 — Guardado incremental y recuperación` aceptadas; command bus e historial pendientes de M03.4.
 
 ## Contrato M03.1
 
@@ -49,8 +49,28 @@ Las pruebas Node usan `fake-indexeddb` como implementación aislada de la API. P
 
 La factoría `createProjectRecordRepository()` conecta el schema de `ProjectRecord` con el namespace IndexedDB `projects`. Una prueba de integración crea un proyecto y lo recupera desde una conexión nueva.
 
+## Contrato M03.3
+
+`ProjectRecoveryState` persiste por proyecto en el namespace `project-recovery`:
+
+- Snapshots completos del último estado válido, con ID, revisión y timestamp.
+- Journal versionado con revisión base, revisión objetivo, target validado y estado `pending`, `committed`, `recovered` o `superseded`.
+- Límites configurables para snapshots y entradas finalizadas; una entrada pendiente nunca se elimina por poda.
+
+El protocolo de `ProjectAutosaveService.save()` es:
+
+1. Validar proyecto activo y revisión consecutiva.
+2. Persistir snapshot y journal pendiente.
+3. Guardar el nuevo `ProjectRecord` mediante la transacción del repositorio.
+4. Marcar el journal como confirmado.
+
+Si el paso 3 falla, el proyecto anterior permanece intacto y el journal permite reintentar. Si falla el paso 4, el guardado se reporta como completado con reconciliación pendiente. `recover()` distingue estos casos, reaplica secuencias pendientes, reconcilia commits ya escritos, descarta entradas superadas y nunca sobrescribe una revisión incompatible.
+
+Si la lectura del proyecto detecta corrupción, se restaura el snapshot válido más reciente y se reaplican journals confirmados posteriores. La prueba de integración cierra IndexedDB con una entrada pendiente, abre una conexión nueva y recupera la revisión objetivo.
+
+`DebouncedProjectAutosave` sustituye cambios pendientes durante la ventana configurable, guarda solo el último y permite `flush()` o `cancel()` explícitos. Todavía no conecta eventos de la UI anticipada; esa integración pertenece a las fases funcionales del editor.
+
 ## Límites pendientes
 
-- M03.3 añadirá autosave, snapshots y journal contra fallos durante escritura.
 - M03.4 añadirá command bus e historial persistente con undo/redo.
 - OPFS permanece detrás de un puerto futuro para blobs grandes; M03.1 no simula assets persistentes.

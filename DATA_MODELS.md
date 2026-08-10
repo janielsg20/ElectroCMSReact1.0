@@ -75,6 +75,12 @@ El envelope portable permanece estable. El catálogo local persiste un `ProjectR
 
 Crear, duplicar, renombrar, archivar, eliminar de forma recuperable, restaurar, importar y exportar preservan IDs estables, revisiones y timestamps. Los conflictos de importación nunca sobrescriben datos existentes de forma implícita.
 
+## Contrato implementado en M03.3
+
+`ProjectRecoveryState` normaliza snapshots y journal por `projectId`. IDs de snapshot/journal son nominales y únicos; cada snapshot debe coincidir con la revisión de su record y cada journal debe avanzar desde una revisión base menor hacia la revisión real de su target.
+
+Los estados del journal son `pending`, `committed`, `recovered` y `superseded`. Conflictos de revisión permanecen pendientes y producen diagnóstico; nunca fuerzan una sobrescritura.
+
 ## Agregados mínimos
 
 Project, Document, Node, WidgetDefinition, Theme, Template, ContentType, Taxonomy, FieldDefinition, Record, Relation, Query, Form, Filter, Role, User, BackendScreen, MediaAsset, ExportManifest y HistoryEntry.

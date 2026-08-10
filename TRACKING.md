@@ -1,11 +1,11 @@
 # TRACKING — ElectroCMS
 
-Actualizado: 2026-08-09.
+Actualizado: 2026-08-10.
 
 ## Estado global
 
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
-- Microfase actual: `M03.3 — Guardado incremental y recuperación`.
+- Microfase actual: `M03.4 — Command bus e historial`.
 - Estado: `EN_CURSO`.
 - Entrega anticipada solicitada: prototipo visual integral del editor completado sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: por instrucción expresa del usuario no se utilizará ninguna aplicación externa como referencia; ElectroCMS se construye desde cero con los documentos canónicos.
@@ -19,7 +19,7 @@ Actualizado: 2026-08-09.
 | F00 | COMPLETADA | G0 cerrada: alcance, trazabilidad, riesgos y arquitectura documentados |
 | F01 | COMPLETADA | G1 cerrada: PWA instalable, núcleo offline, contratos v1 y pruebas base verdes |
 | F02 | COMPLETADA | M02.1–M02.4: schemas, invariantes, cardinalidades, migraciones y recuperación probadas |
-| F03 | EN_CURSO | M03.1 y M03.2 completadas; M03.3 en curso |
+| F03 | EN_CURSO | M03.1–M03.3 completadas; M03.4 en curso |
 | F04–F18 | NO_INICIADA | Ver `DETAILED_EXECUTION_PHASES.md` |
 
 ## Bloqueos
@@ -97,7 +97,13 @@ Actualizado: 2026-08-09.
 - Completada: factoría del repositorio de proyectos y reapertura sobre IndexedDB real probada.
 - Completada: puerta local de M03.2 con lint, typecheck, 60/60 pruebas y build Vite reproducible.
 - Completada: publicación M03.2 en commit `8e9b333`, ejecución GitHub Actions `31341648227` verde y producción HTTPS 200.
-- En curso: `M03.3`; autosave debounce, snapshots, journal y recuperación tras escritura interrumpida aún no implementados.
+- Completada: `M03.3`; schemas de snapshots y journal con IDs nominales, revisiones y referencias coherentes.
+- Completada: protocolo preparar→guardar→confirmar que conserva el último proyecto válido si falla la escritura.
+- Completada: recuperación de journal pendiente, reconciliación de confirmación fallida, restauración por corrupción, superseded y conflictos sin sobrescritura.
+- Completada: debounce sustituible con `flush`/`cancel`, poda configurable que conserva pendientes y factoría IndexedDB para recuperación.
+- Completada: cierre/reapertura IndexedDB con journal pendiente y aplicación de la revisión objetivo.
+- Completada: puerta local de M03.3 con lint, typecheck, 72/72 pruebas y build Vite reproducible.
+- En curso: `M03.4`; comandos reversibles, transacciones compuestas, undo/redo, ramas nuevas e historial persistente aún no implementados.
 
 
 ## Plantilla de relevo

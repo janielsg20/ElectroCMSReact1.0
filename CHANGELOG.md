@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-10
+
+- Cerrada `M03.3`: añadidos schemas estrictos para snapshots, journal y estado de recuperación por proyecto.
+- Implementado protocolo de autosave preparar→guardar→confirmar con debounce, límites configurables y conservación de entradas pendientes.
+- Añadida recuperación de escrituras interrumpidas, confirmaciones fallidas, proyectos corruptos, entradas superadas y conflictos de revisión sin sobrescritura.
+- Conectado el estado de recuperación al namespace IndexedDB `project-recovery` y probada reapertura con journal pendiente; la suite alcanza 72/72 pruebas.
+
 ## 2026-08-09
 
 - Convertido el prompt maestro de Flutter a React + TypeScript + Tailwind CSS, preservando sus 33 secciones.
