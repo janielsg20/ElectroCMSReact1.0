@@ -33,7 +33,7 @@ Construir ElectroCMS como CMS visual local-first en React + TypeScript + Tailwin
 - Núcleo web local-first/PWA; envolturas desktop y móvil desacopladas.
 - Dominio y modelo canónico independientes de React/Tailwind.
 - Layout adaptativo: rail + biblioteca + canvas + inspector desde 1024 px; biblioteca e inspector son colapsables y redimensionables; tablet usa overlays y móvil usa sheets.
-- Densidad adaptativa: controles de 36 px en escritorio y targets táctiles de 44 px en tablet/móvil.
+- Densidad adaptativa: header/toolbar de 40 px, rail de 44 px, controles y filas de 32 px en escritorio; targets táctiles de 44 px en tablet/móvil.
 - WCAG 2.2 AA como objetivo verificable.
 - Todo drag-and-drop tendrá alternativa por clic y teclado.
 
@@ -91,7 +91,8 @@ Implementar `M03.4`: comandos reversibles, transacciones compuestas, límites co
 - Publicación M03.3: commit `f394d63`, ejecución `31404629844` y producción HTTPS 200.
 - Publicación M02.2: commit `f987869`; ejecución `31337310722`; producción HTTPS 200.
 - UI anticipada: estudio de densidad 10/10 en React/Tailwind con paleta azul/gris, rail de iconos, páginas/capas, canvas punteado, inspector Propiedades/Acción/Backend, dock móvil y sheets.
-- Menús del editor: biblioteca 208 px e inspector 248 px por defecto, límites 184–320/224–360 px, colapso independiente y separadores accesibles con puntero, flechas, `Home` y `End`.
+- Menús del editor: biblioteca 192 px e inspector 224 px por defecto, límites 168–280/216–320 px, colapso independiente y separadores accesibles con puntero, flechas, `Home` y `End`.
+- Escala compacta: padding/gap de 4–8 px, radios pequeños y ausencia de márgenes decorativos amplios en el chrome del editor; el espacio del canvas se conserva como área de trabajo.
 - Interacciones del prototipo: filtro de widgets, tabs, viewports, tema y sheets con foco inicial, `Escape`, retención y restauración de foco.
 - Browser local: 320, 375, 768, 1024, 1440 y 812 × 375 landscape sin overflow horizontal, overlay ni errores de consola.
 - Publicación UI vigente: paneles compactos y redimensionables en commit `b57b85a`, ejecución `31417203626` verde y producción HTTPS 200 con `index-CRq1OgZM.js`.

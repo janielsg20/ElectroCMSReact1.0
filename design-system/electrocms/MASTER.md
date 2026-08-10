@@ -171,6 +171,10 @@
 
 ## Style Guidelines
 
+### Override obligatorio para el editor
+
+El shell del editor usa minimalismo de escala y densidad 10/10: controles/filas de 32 px en desktop, targets de 44 px en touch, padding/gaps de 4–8 px y radios de 4–6 px. Los ejemplos espaciosos de cards, inputs y modales de este documento no se aplican al chrome del editor; prevalece `pages/editor.md`.
+
 **Style:** Soft UI Evolution
 
 **Keywords:** Evolved soft UI, better contrast, modern aesthetics, subtle depth, accessibility-focused, improved shadows, hybrid

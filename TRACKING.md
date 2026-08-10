@@ -7,7 +7,7 @@ Actualizado: 2026-08-10.
 - Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
 - Microfase actual: `M03.4 — Command bus e historial`.
 - Estado: `EN_CURSO`.
-- Entrega anticipada solicitada: paneles compactos, colapsables y redimensionables `COMPLETADO`, basados exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
+- Entrega anticipada solicitada: compactación integral minimalista de alta densidad `COMPLETADO`, basada exclusivamente en la imagen adjunta autorizada y los documentos canónicos, sin cerrar las fases funcionales F04–F07.
 - Decisión de alcance: la imagen adjunta por el usuario es la única referencia visual externa autorizada para esta entrega; no se consultarán otras aplicaciones.
 - Excepción completada: `M01.1 — Scaffold y calidad` se ejecutó anticipadamente por petición del usuario para habilitar GitHub Actions y Cloudflare Pages.
 - Última evidencia publicada: paneles compactos y redimensionables en commit `b57b85a`; pipeline `31417203626` completo en verde; Cloudflare Pages responde HTTPS 200 con el bundle `index-CRq1OgZM.js`.
@@ -113,6 +113,8 @@ Actualizado: 2026-08-10.
 - Completada: fidelidad visual de alta densidad con azul `#2563EB`, grises fríos, rail de iconos, menús Páginas/Componentes, inspector Propiedades/Acción/Backend y Generador IA planificado.
 - Completada: biblioteca e inspector compactos con anchos iniciales 208/248 px, colapso independiente, arrastre por puntero y redimensionado de teclado con límites ARIA.
 - Completada: densidad adaptativa de 36 px en escritorio y 44 px en tablet/móvil; 74/74 pruebas y seis viewports sin overflow ni errores de consola.
+- Completada: segunda compactación integral con header/canvas toolbar de 40 px, rail de 44 px, controles/filas de 32 px, paneles 192/224 px y espaciado funcional de 4–8 px.
+- Completada: targets touch de 44 px preservados fuera de desktop; validación responsive sin overflow ni errores de consola.
 - Completada: cuatro regiones simultáneas desde 1024 px; overlays accesibles en 768–1023 px y dock/sheets en móvil.
 - Publicada: refinamiento de alta densidad en `7bad321`; GitHub Actions `31412507711` y el despliegue Cloudflare finalizaron correctamente.
 - Publicada: compactación y paneles redimensionables en `b57b85a`; GitHub Actions `31417203626` y Cloudflare Pages finalizaron correctamente con `index-CRq1OgZM.js` verificado en producción.

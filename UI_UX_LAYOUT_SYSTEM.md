@@ -10,12 +10,12 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 ### Desktop/laptop horizontal — desde 1024 px
 
-- Header/toolbar superior persistente.
-- Rail de navegación de alta densidad: 52 px colapsado con etiquetas accesibles.
-- Panel izquierdo contextual de 208 px por defecto para páginas, capas o componentes; rango 184–320 px.
+- Header y toolbar superior persistentes de 40 px.
+- Rail de navegación de alta densidad: 44 px colapsado con etiquetas accesibles.
+- Panel izquierdo contextual de 192 px por defecto para páginas, capas o componentes; rango 168–280 px.
 - Canvas central flexible con mínimo útil y zoom independiente.
-- Inspector derecho de 248 px por defecto; rango 224–360 px.
-- Status bar opcional para sincronización, selección y diagnóstico.
+- Inspector derecho de 224 px por defecto; rango 216–320 px.
+- Status bar de 24 px para sincronización, selección y diagnóstico.
 - Los paneles se redimensionan y colapsan de forma independiente. La persistencia del workspace se implementará en su microfase funcional; no se simula.
 - Los separadores admiten arrastre por puntero y teclado: flechas en pasos de 16 px, `Home` al mínimo y `End` al máximo, con valores ARIA expuestos.
 
@@ -56,6 +56,8 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 - Colores semánticos: canvas, surface, elevated, text, muted, border, primary, success, warning, danger, focus.
 - Espaciado en ritmo de 4/8 px.
+- En el chrome del editor, padding y gaps se limitan normalmente a 4–8 px; no se usan márgenes amplios con finalidad decorativa.
+- Radios de 4–6 px, controles y filas de 32 px en desktop; el canvas conserva solo el espacio necesario para manipular el documento.
 - Escala de z-index documentada: base, sticky, dropdown, overlay, modal, toast, drag-preview.
 - Tipografía con cuerpo mínimo de 16 px en móvil y longitud de línea de 35–60 caracteres móvil / 60–75 desktop.
 - Iconos SVG coherentes; sin emoji estructural.
@@ -65,19 +67,19 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 - Ninguna función desaparece en pantallas pequeñas.
 - No hay scroll horizontal a nivel página a 320 CSS px.
 - El foco nunca queda oculto por header, sheet o toolbar sticky.
-- Todos los targets críticos alcanzan 44 × 44 CSS px en superficies touch; escritorio de alta densidad admite 36 px con foco visible y operación por puntero/teclado.
+- Todos los targets críticos alcanzan 44 × 44 CSS px en superficies touch; escritorio de alta densidad admite 32 px con foco visible y operación por puntero/teclado.
 - Drag, resize y reordenar tienen alternativa de una sola activación y teclado.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
 
 ## Prototipo anticipado implementado
 
-- Desktop desde 1024 px: header compacto, rail de 52 px, páginas/capas, canvas punteado, inspector y barra de estado simultáneos.
+- Desktop desde 1024 px: header/toolbar de 40 px, rail de 44 px, páginas/capas, canvas punteado, inspector y barra de estado de 24 px simultáneos.
 - Tablet/laptop: rail y canvas prioritario; páginas/capas e inspector se abren como paneles contextuales según el espacio disponible.
 - Móvil: header compacto, canvas con marco de dispositivo, dock de cinco destinos y paneles como bottom sheets.
 - Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
 - Paneles desktop habilitados: colapso independiente y resize por puntero o teclado dentro de límites explícitos.
 - Acciones no implementadas: publicar, preview, undo/redo, navegación a módulos y mutaciones del documento se muestran deshabilitadas o como planificadas.
-- Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 36 px en desktop y 44 px en tablet/móvil.
+- Evidencia responsive: 320, 375, 768, 1024, 1440 y 812 × 375 sin overflow horizontal ni errores de consola; 32 px en desktop y 44 px en tablet/móvil.
 
 ## Fuentes
 

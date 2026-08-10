@@ -10,8 +10,8 @@ import { Button, Icon } from '../primitives'
 type ResizablePanel = 'library' | 'inspector'
 
 const panelLimits = {
-  library: { min: 184, max: 320 },
-  inspector: { min: 224, max: 360 },
+  library: { min: 168, max: 280 },
+  inspector: { min: 216, max: 320 },
 } as const
 
 function clampPanelWidth(panel: ResizablePanel, width: number): number {
@@ -26,8 +26,8 @@ export function EditorShell() {
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
   const [libraryOpen, setLibraryOpen] = useState(true)
   const [inspectorOpen, setInspectorOpen] = useState(true)
-  const [libraryWidth, setLibraryWidth] = useState(208)
-  const [inspectorWidth, setInspectorWidth] = useState(248)
+  const [libraryWidth, setLibraryWidth] = useState(192)
+  const [inspectorWidth, setInspectorWidth] = useState(224)
   const sheetRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const resizeRef = useRef<{ panel: ResizablePanel; startX: number; startWidth: number } | null>(null)
@@ -161,7 +161,7 @@ export function EditorShell() {
         </div>
       ) : null}
 
-      <footer className="col-span-full hidden min-h-7 items-center gap-4 border-t border-border bg-surface px-3 text-[0.6875rem] text-muted-foreground md:flex">
+      <footer className="col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
         <span>Inicio / Hero / Encabezado</span>
         <span className="ml-auto">Sin errores · 2 sugerencias</span>
@@ -173,7 +173,7 @@ export function EditorShell() {
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Cerrar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-2xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
-            <div className="flex min-h-14 items-center justify-between border-b border-border px-4"><div><span className="mx-auto block h-1 w-10 rounded-full bg-border" /><h2 className="mt-1 font-heading text-sm font-bold">{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" /></Button></div>
+            <div className="flex min-h-12 items-center justify-between border-b border-border px-2"><div><span className="mx-auto block h-1 w-8 rounded-full bg-border" /><h2 className="mt-0.5 font-heading text-xs font-bold">{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" /></Button></div>
             {mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-[calc(82dvh-3.5rem)] border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={libraryTab} className="h-[calc(82dvh-3.5rem)] border-0" onTabChange={setLibraryTab} />}
           </div>
         </div>

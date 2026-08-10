@@ -22,7 +22,7 @@ export function MobileDock({ activePanel, onPanelChange }: MobileDockProps) {
       <ul className="grid grid-cols-5">
         {dockItems.map((item) => {
           const selected = item.id !== 'more' && activePanel === item.id
-          return <li key={item.label}><button aria-current={selected ? 'page' : undefined} className={`flex min-h-16 w-full cursor-pointer flex-col items-center justify-center gap-1 text-[0.6875rem] font-semibold transition-colors ${selected ? 'text-primary' : 'text-muted-foreground hover:bg-muted'}`} disabled={item.id === 'more'} onClick={() => item.id !== 'more' && onPanelChange(selected ? null : item.id)} type="button"><Icon name={item.icon} size={20} /><span>{item.label}</span></button></li>
+          return <li key={item.label}><button aria-current={selected ? 'page' : undefined} className={`flex min-h-14 w-full cursor-pointer flex-col items-center justify-center gap-0.5 text-[0.625rem] font-semibold transition-colors ${selected ? 'text-primary' : 'text-muted-foreground hover:bg-muted'}`} disabled={item.id === 'more'} onClick={() => item.id !== 'more' && onPanelChange(selected ? null : item.id)} type="button"><Icon name={item.icon} size={18} /><span>{item.label}</span></button></li>
         })}
       </ul>
     </nav>

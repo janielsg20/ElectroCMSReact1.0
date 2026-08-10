@@ -27,7 +27,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
   const isDevice = viewport !== 'desktop'
   return (
     <main className="relative row-start-2 min-h-0 min-w-0 overflow-hidden bg-editor-grid md:col-start-2 lg:col-start-3" id="editor-canvas" tabIndex={-1}>
-      <div className="absolute inset-x-0 top-0 z-10 flex min-h-12 items-center justify-between gap-2 border-b border-border bg-surface/95 px-2 backdrop-blur sm:px-3">
+      <div className="absolute inset-x-0 top-0 z-10 flex min-h-12 items-center justify-between gap-1 border-b border-border bg-surface/95 px-1.5 backdrop-blur lg:min-h-10 lg:px-1">
         <div className="flex items-center gap-1" role="toolbar" aria-label="Herramientas del canvas">
           <span className="hidden md:block"><Button aria-label="Alternar páginas y capas" className={libraryOpen ? 'bg-primary-soft text-primary-strong' : ''} onClick={onToggleLibrary} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
           <Button aria-label="Herramienta de selección" className="bg-primary-soft text-primary-strong" size="icon" variant="ghost"><Icon name="cursor" /></Button>
@@ -37,7 +37,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
 
         <div className="absolute left-1/2 flex -translate-x-1/2 items-center rounded-lg border border-border bg-canvas p-0.5 shadow-sm" role="group" aria-label="Viewport del documento">
           {(['mobile', 'tablet', 'desktop'] as const).map((mode) => (
-            <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors lg:size-9 ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} key={mode} onClick={() => onViewportChange(mode)} type="button"><Icon name={mode} size={16} /></button>
+            <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors lg:size-8 ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} key={mode} onClick={() => onViewportChange(mode)} type="button"><Icon name={mode} size={14} /></button>
           ))}
         </div>
 
@@ -49,7 +49,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
         </div>
       </div>
 
-      <div className="h-full overflow-auto px-3 pb-24 pt-16 sm:px-6 sm:pb-12 sm:pt-20">
+      <div className="h-full overflow-auto px-2 pb-20 pt-14 sm:px-4 sm:pb-10 sm:pt-16 lg:px-2 lg:pb-7 lg:pt-11">
         <div className="mx-auto transition-[width] duration-200" style={{ width: viewportWidths[viewport] }}>
           <div className={isDevice ? `relative mx-auto border-slate-950 bg-slate-950 p-2 shadow-[0_24px_55px_rgba(30,20,50,.28)] ${viewport === 'mobile' ? 'max-w-[24.5rem] rounded-[2.75rem] border-[5px]' : 'rounded-[2rem] border-[4px]'}` : 'overflow-hidden rounded-xl border border-border bg-white shadow-lg'}>
             {isDevice ? <div className={`absolute left-1/2 top-3 z-20 -translate-x-1/2 bg-slate-950 ${viewport === 'mobile' ? 'h-6 w-24 rounded-full' : 'h-2 w-16 rounded-full'}`} aria-hidden="true" /> : null}
@@ -85,7 +85,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
             </div>
             {viewport === 'mobile' ? <div className="mx-auto mt-2 h-1 w-24 rounded-full bg-white/90" aria-hidden="true" /> : null}
           </div>
-          <div className="mt-3 flex items-center justify-center gap-2 text-center font-heading text-[0.6875rem] text-muted-foreground"><span className="size-2 rounded-full bg-success" />{viewportLabels[viewport]} · Inicio</div>
+          <div className="mt-1.5 flex items-center justify-center gap-1.5 text-center font-heading text-[0.625rem] text-muted-foreground"><span className="size-1.5 rounded-full bg-success" />{viewportLabels[viewport]} · Inicio</div>
         </div>
       </div>
     </main>

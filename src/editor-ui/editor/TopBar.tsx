@@ -7,20 +7,20 @@ interface TopBarProps {
 
 export function TopBar({ darkMode, onToggleTheme }: TopBarProps) {
   return (
-    <header className="relative z-20 col-span-full flex min-h-14 items-center border-b border-border bg-surface px-2 shadow-sm">
+    <header className="relative z-20 col-span-full flex min-h-12 items-center border-b border-border bg-surface px-1.5 shadow-sm lg:min-h-10 lg:px-1">
       <a className="skip-link" href="#editor-canvas">Saltar al canvas</a>
-      <div className="flex min-w-0 items-center gap-2 border-r border-border pr-3 lg:w-[18.25rem]">
-        <div className="grid size-9 shrink-0 place-items-center rounded-md bg-primary text-on-primary shadow-sm" aria-hidden="true"><Icon name="sparkles" size={18} /></div>
-        <div className="min-w-0"><p className="truncate text-sm font-bold leading-5">ElectroCMS <span className="font-normal text-muted-foreground">v0.1</span></p><p className="hidden truncate text-[0.625rem] text-muted-foreground sm:block">React · local-first</p></div>
+      <div className="flex min-w-0 items-center gap-1.5 border-r border-border pr-2 lg:w-[14.75rem] lg:gap-1 lg:pr-1.5">
+        <div className="grid size-9 shrink-0 place-items-center rounded-md bg-primary text-on-primary shadow-sm lg:size-8" aria-hidden="true"><Icon name="sparkles" size={16} /></div>
+        <div className="min-w-0"><p className="truncate text-sm font-bold leading-4 lg:text-xs">ElectroCMS <span className="font-normal text-muted-foreground">v0.1</span></p><p className="hidden truncate text-[0.5625rem] leading-3 text-muted-foreground sm:block">React · local-first</p></div>
       </div>
 
-      <button className="ml-2 hidden min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus sm:flex" type="button">
+      <button className="ml-1.5 hidden min-h-11 min-w-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 text-left transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus sm:flex lg:min-h-8" type="button">
         <span className="min-w-0"><span className="block truncate text-[0.5625rem] text-muted-foreground">Proyecto</span><span className="block truncate text-xs font-semibold">Revista Horizonte</span></span><Icon className="shrink-0" name="chevron-down" size={14} />
       </button>
 
       <div className="ml-auto flex items-center gap-1" role="toolbar" aria-label="Acciones del proyecto">
-        <button className="hidden min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-muted-foreground hover:bg-muted lg:flex" type="button">Versión 1 <Icon name="chevron-down" size={14} /></button>
-        <button aria-label="Comentarios, 2 pendientes" className="relative hidden min-h-11 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-muted-foreground hover:bg-muted lg:flex" type="button"><Icon name="content" size={16} />Comentarios<span className="rounded bg-destructive px-1.5 py-0.5 text-[0.625rem] font-bold text-on-destructive">2</span></button>
+        <button className="hidden min-h-8 cursor-pointer items-center gap-1 rounded-md px-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted lg:flex" type="button">Versión 1 <Icon name="chevron-down" size={14} /></button>
+        <button aria-label="Comentarios, 2 pendientes" className="relative hidden min-h-8 cursor-pointer items-center gap-1 rounded-md px-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted lg:flex" type="button"><Icon name="content" size={14} />Comentarios<span className="rounded bg-destructive px-1 py-0.5 text-[0.5625rem] font-bold text-on-destructive">2</span></button>
         <span className="hidden xl:block"><Button aria-label="Deshacer, no disponible" disabled size="icon" variant="ghost"><Icon name="undo" size={16} /></Button></span>
         <span className="hidden xl:block"><Button aria-label="Rehacer, no disponible" disabled size="icon" variant="ghost"><Icon name="redo" size={16} /></Button></span>
         <Button aria-label={darkMode ? 'Usar tema claro' : 'Usar tema oscuro'} onClick={onToggleTheme} size="icon" variant="ghost"><Icon name={darkMode ? 'sun' : 'moon'} size={18} /></Button>
