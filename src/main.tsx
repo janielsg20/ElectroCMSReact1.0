@@ -9,6 +9,7 @@ import './professional-ui-v2.css'
 import './component-system.css'
 import './workspace-refinement-v4.css'
 import './micro-ux-v5.css'
+import './flutterflow-builder-v6.css'
 
 const rootElement = document.getElementById('root')
 
