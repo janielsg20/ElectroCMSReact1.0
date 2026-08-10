@@ -1111,434 +1111,73 @@ ElectroCMS debe exportar proyectos en cuatro modalidades principales.
 
 ## 22.1 Exportación local
 
-Debe generar:
-
-- Paquete portable del proyecto.
-- Recursos multimedia.
-- Configuración.
-- Base de datos local.
-- Plantillas.
-- Contenido.
-- Themes.
-- Componentes.
-- Archivo de manifiesto.
-- Información de versión.
-- Copia de recuperación.
-
-También debe permitir generar una versión local ejecutable o previsualizable sin conexión.
-
-Cuando el proyecto sea completamente estático, debe poder generar HTML, CSS y JavaScript optimizados.
-
-Cuando requiera contenido dinámico local, debe utilizar el motor local de datos de ElectroCMS.
+Debe generar paquete portable, recursos, configuración, base de datos local, plantillas, contenido, themes, componentes, manifest, versión y recuperación; cuando sea estático podrá generar HTML/CSS/JS optimizados y, si es dinámico local, usará el motor local de datos.
 
 ## 22.2 Exportación a React
 
-Debe generar un proyecto React completo, editable y listo para instalar, ejecutar, compilar y desplegar.
-
-El paquete React debe incluir como mínimo:
-
-- Código fuente organizado por módulos y componentes.
-- `package.json` con versiones de dependencias compatibles y scripts documentados.
-- Configuración de build reproducible.
-- Punto de entrada de la aplicación.
-- Router y rutas correspondientes a páginas, templates y contenido generado.
-- Componentes React derivados del modelo canónico y del árbol de nodos.
-- Estilos, tokens, themes y breakpoints equivalentes al preview.
-- Assets locales y referencias portables, sin depender de URLs temporales.
-- Formularios, filtros, consultas y contenido dinámico compatibles con el destino.
-- Configuración de variables de entorno mediante archivos de ejemplo, sin incluir secretos.
-- Manejo de estados normal, vacío, carga, error, disabled y permisos cuando aplique.
-- Instrucciones para instalación, desarrollo, build, preview y despliegue.
-
-La exportación React debe permitir:
-
-- Ejecutar el proyecto localmente mediante un servidor de desarrollo.
-- Generar una build optimizada para producción.
-- Servir la build en hosting estático, CDN o servidores web como Apache y Nginx.
-- Configurar correctamente rutas directas y fallback de una SPA cuando corresponda.
-- Elegir salida estática, SPA o aplicación con adaptadores de datos según las capacidades utilizadas.
-- Volver a generar el proyecto de forma determinista sin modificar el proyecto fuente de ElectroCMS.
-
-El código generado debe ser legible, mantenible y ampliable. No debe depender de servicios externos obligatorios ni incluir datos falsos permanentes, claves, tokens o secretos. Cuando una capacidad no pueda representarse con fidelidad en React, ElectroCMS debe diagnosticarla antes de exportar y bloquear cualquier pérdida silenciosa.
+Debe generar un proyecto React completo, editable, instalable, compilable y desplegable con código modular, package.json, build reproducible, router, componentes derivados del modelo, estilos/tokens/themes/breakpoints, assets portables, formularios/filtros/queries compatibles, `.env.example`, estados y documentación. Debe diagnosticar incompatibilidades y bloquear pérdida silenciosa.
 
 ## 22.3 Exportación para servidor LAMP
 
-Debe generar un archivo ZIP completamente funcional para:
-
-- Linux.
-- Apache.
-- MySQL o MariaDB.
-- PHP.
-
-El paquete debe incluir:
-
-- Frontend.
-- Backend administrativo.
-- Sistema de autenticación.
-- Base de datos.
-- Migraciones.
-- Archivo de configuración.
-- Instalador.
-- Router.
-- CRUD.
-- Gestión de contenido.
-- Custom Fields.
-- Formularios.
-- Filtros.
-- Consultas.
-- Roles.
-- Assets.
-- CSS.
-- JavaScript necesario.
-- Instrucciones de instalación.
-
-La exportación debe utilizar:
-
-- Consultas preparadas.
-- PDO.
-- Validación de datos.
-- Escape de salida.
-- Protección CSRF.
-- Hash seguro de contraseñas.
-- Validación de archivos.
-- Control de sesiones.
-- Control de permisos.
-
-No debe generar únicamente una demostración visual. El backend exportado debe ser funcional.
+Debe generar ZIP funcional para Linux/Apache/MySQL o MariaDB/PHP con frontend, backend, auth, DB/migrations, installer, router, CRUD, contenido, custom fields, forms, filters, queries, roles y assets, usando PDO, prepared statements, validación, escaping, CSRF, hashing, uploads seguros, sesiones y permisos.
 
 ## 22.4 Exportación para WordPress
 
-La exportación para WordPress no debe depender de:
-
-- Elementor.
-- ACF.
-- JetEngine.
-- JetElements.
-- JetFormBuilder.
-- JetSmartFilters.
-- Plugins externos obligatorios.
-
-Debe generar dos archivos separados:
-
-### A. Theme de WordPress
-
-Debe incluir:
-
-- style.css.
-- functions.php.
-- index.php.
-- header.php.
-- footer.php.
-- page.php.
-- single.php.
-- archive.php.
-- 404.php.
-- Plantillas personalizadas.
-- Assets.
-- Estilos responsive.
-- Componentes del frontend.
-- Configuración visual.
-- Templates creados en ElectroCMS.
-
-### B. Plugin companion de ElectroCMS
-
-Debe registrar y administrar mediante APIs nativas de WordPress:
-
-- Custom Post Types.
-- Taxonomías.
-- Campos personalizados.
-- Metadata.
-- Roles.
-- Capacidades.
-- Formularios.
-- Consultas.
-- Filtros.
-- Relaciones.
-- Opciones.
-- Datos de demostración.
-- Funciones requeridas por el backend.
-- Endpoints necesarios.
-- Pantallas administrativas.
-
-El plugin generado debe incluir:
-
-- Prefijos únicos.
-- Sanitización.
-- Escape.
-- Nonces.
-- Comprobación de capacidades.
-- Activación.
-- Desactivación.
-- Migraciones.
-- Desinstalación segura.
-- Compatibilidad con la base de datos nativa de WordPress.
-
-El theme y el plugin deben poder instalarse directamente desde el panel de WordPress.
+No dependerá de Elementor/ACF/Jet* ni plugins externos obligatorios. Generará Theme instalable y Plugin companion para CPT, taxonomías, fields, metadata, roles, forms, queries, filters, relations, options, demo data, endpoints y admin screens con prefijos, sanitización, escaping, nonces, capabilities, migrations y uninstall seguro.
 
 ---
 
 # 23. Correspondencia entre editor y exportación
 
-Cada widget soportado por el editor debe tener implementaciones equivalentes para:
-
-- Preview React.
-- Exportación estática.
-- Exportación React.
-- Exportación LAMP.
-- Exportación WordPress.
-
-No se considera terminado un widget si solo funciona dentro del editor.
-
-Cuando una función no sea compatible con un destino específico, el sistema debe:
-
-- Informarlo claramente.
-- Explicar la limitación.
-- Ofrecer una alternativa.
-- Impedir exportaciones silenciosamente incompletas.
+Cada widget soportado por el editor debe tener implementaciones equivalentes para Preview React, estático, React, LAMP y WordPress. Las limitaciones por destino deben diagnosticarse y nunca producir pérdida silenciosa.
 
 ---
 
 # 24. Accesibilidad
 
-Cumple buenas prácticas de accesibilidad:
-
-- Navegación por teclado.
-- Focus visible.
-- Contraste suficiente.
-- Lectores de pantalla.
-- Semántica.
-- Etiquetas descriptivas.
-- Texto alternativo.
-- Escalado de texto.
-- Controles táctiles adecuados.
-- Estados hover y focus equivalentes.
-- Reducción de movimiento.
-- Mensajes de error comprensibles.
-
-La accesibilidad debe aplicarse tanto al editor como a los proyectos generados.
+Cumple navegación por teclado, focus visible, contraste, lectores de pantalla, semántica, etiquetas, alt, text scaling, targets táctiles, estados equivalentes, reduced motion y mensajes comprensibles tanto en editor como en proyectos generados.
 
 ---
 
 # 25. Rendimiento
 
-La aplicación debe poder manejar proyectos grandes sin bloquear la interfaz.
-
-Implementa:
-
-- Renderizado eficiente.
-- Carga diferida.
-- Virtualización de listas extensas.
-- Caché.
-- Operaciones asíncronas controladas.
-- Guardado incremental.
-- Debounce en propiedades.
-- Optimización de imágenes.
-- Gestión correcta de memoria.
-- Historial con límites configurables.
-- Separación entre estado transitorio y persistente.
-
-No reconstruyas todo el canvas por cada modificación pequeña.
+Debe manejar proyectos grandes mediante render eficiente, lazy loading, virtualización, caché, async controlado, autosave incremental, debounce, optimización de imágenes, memoria correcta, historial limitado y separación de estado transitorio/persistente. No rerenderizar todo el canvas por cambios pequeños.
 
 ---
 
 # 26. Seguridad e integridad
 
-Implementa:
-
-- Validación de proyectos importados.
-- Control de versiones del esquema.
-- Migraciones.
-- Copias de seguridad.
-- Recuperación automática.
-- Sanitización de código personalizado.
-- Advertencias para HTML o scripts peligrosos.
-- Validación de rutas.
-- Protección contra archivos maliciosos.
-- Prevención de path traversal.
-- Nombres seguros para archivos exportados.
-- Comprobación de integridad de paquetes.
-
-Nunca almacenes contraseñas en texto plano.
+Validar imports, schema versions, migrations, backups, recovery, custom code, HTML/scripts peligrosos, routes, files, path traversal, nombres exportados e integridad de paquetes. Nunca almacenar contraseñas en texto plano.
 
 ---
 
 # 27. Pruebas obligatorias
 
-Crea pruebas para:
-
-- Modelos de datos.
-- Persistencia.
-- Migraciones.
-- Undo y redo.
-- Árbol de nodos.
-- Drag and drop.
-- Inspector.
-- Breakpoints.
-- Themes.
-- Custom Post Types.
-- Custom Fields.
-- Formularios.
-- Filtros.
-- Consultas.
-- Roles.
-- Importación.
-- Exportación local.
-- Exportación React.
-- Exportación LAMP.
-- Exportación WordPress.
-- Responsive.
-- Accesibilidad.
-- Integridad de archivos generados.
-
-Ejecuta obligatoriamente:
-
-- `npm run lint`
-- `npm run typecheck`
-- `npm run test`
-- `npm run build`
-
-Corrige todos los errores antes de considerar completada una fase.
-
-No ignores warnings importantes.
+Probar modelos, persistencia, migraciones, undo/redo, node tree, drag/drop, inspector, breakpoints, themes, CPT, custom fields, forms, filters, queries, roles, imports/exports, responsive, accessibility e integridad de generados. Ejecutar `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` y corregir errores antes de cerrar fase.
 
 ---
 
 # 28. Criterios de aceptación
 
-ElectroCMS solo puede considerarse funcional cuando:
-
-1. Trabaja sin conexión.
-2. Los proyectos persisten después de cerrar la aplicación.
-3. El editor es responsive.
-4. El canvas permite crear y editar estructuras anidadas.
-5. Todos los widgets poseen inspector.
-6. El undo y redo funciona correctamente.
-7. Los breakpoints guardan propiedades independientes.
-8. Los themes del editor están separados de los themes generados.
-9. Los Custom Post Types y campos personalizados funcionan.
-10. Los backends predeterminados pueden editarse.
-11. Los formularios guardan o procesan datos.
-12. Los filtros se conectan a consultas.
-13. Los roles limitan correctamente el acceso.
-14. Los themes guardan diseño y contenido de demostración.
-15. La exportación local puede reimportarse.
-16. El proyecto React exportado puede instalarse, ejecutarse localmente, compilarse y desplegarse en un servidor web.
-17. El paquete LAMP puede instalarse y utilizarse.
-18. El theme de WordPress puede instalarse.
-19. El plugin de WordPress puede instalarse sin plugins externos.
-20. El resultado exportado coincide visualmente con el preview.
-21. No existen funciones simuladas presentadas como terminadas.
-22. No existen botones sin implementación.
-23. No existen pantallas principales con datos falsos permanentes.
-24. Todas las pruebas pasan.
-25. El lint, el typecheck y la compilación de producción no presentan errores.
+ElectroCMS solo se considera funcional cuando cumple offline, persistencia, responsive, canvas anidado, inspector por widget, undo/redo, breakpoints, separación de themes, CPT/fields, backends, forms, filters/queries, RBAC, theme packages, reimport local, React build/deploy, LAMP instalable, WordPress theme/plugin instalables, equivalencia visual, cero funciones simuladas/botones falsos/datos falsos permanentes y todas las pruebas/lint/typecheck/build verdes.
 
 ---
 
 # 29. Protocolo de desarrollo
 
-Antes de escribir código:
-
-1. Lee completamente la aplicación React adjunta.
-2. Crea un inventario de sus funciones.
-3. Identifica limitaciones y funcionalidades incompletas.
-4. Crea una tabla de correspondencia React de referencia → arquitectura React objetivo.
-5. Define la arquitectura.
-6. Define los modelos de datos.
-7. Define el sistema de persistencia.
-8. Define el motor de nodos.
-9. Define el registro de widgets.
-10. Define los contratos de los exportadores.
-11. Divide el desarrollo en fases y microfases.
-12. Establece criterios de validación para cada fase.
-
-Durante el desarrollo:
-
-- Implementa código real.
-- No sustituyas funciones complejas por simples placeholders.
-- No avances a una fase posterior con errores pendientes.
-- Mantén compatibilidad con proyectos guardados.
-- Documenta decisiones arquitectónicas.
-- Añade pruebas junto con cada módulo.
-- Actualiza la documentación después de cada fase.
-- Conserva una memoria técnica del proyecto.
-- Registra progreso, decisiones, errores conocidos y tareas pendientes.
+Antes de código: inventario, gaps, correspondencias, arquitectura, modelos, persistencia, node engine, widget registry, exporter contracts, fases/microfases y criterios. Durante desarrollo: código real, no placeholders permanentes, no avanzar con errores, compatibilidad de proyectos, ADR, pruebas, documentación, memoria y tracking.
 
 ---
 
 # 30. Documentación requerida
 
-Crea y mantén como mínimo:
-
-- `README.md`
-- `PROMPT_MAESTRO_ELECTROCMS.md`
-- `REQUIREMENTS.md`
-- `ARCHITECTURE.md`
-- `DATA_MODELS.md`
-- `EDITOR_ENGINE.md`
-- `WIDGET_SYSTEM.md`
-- `THEME_SYSTEM.md`
-- `CONTENT_ENGINE.md`
-- `BACKEND_BUILDER.md`
-- `EXPORT_LOCAL.md`
-- `EXPORT_REACT.md`
-- `EXPORT_LAMP.md`
-- `EXPORT_WORDPRESS.md`
-- `SECURITY.md`
-- `ACCESSIBILITY.md`
-- `TESTING.md`
-- `PHASES.md`
-- `DETAILED_EXECUTION_PHASES.md`
-- `MEMORY.md`
-- `TRACKING.md`
-- `CHANGELOG.md`
+Mantener como mínimo README, Prompt Maestro, Requirements, Architecture, Data Models, Editor Engine, Widget System, Theme System, Content Engine, Backend Builder, exports, Security, Accessibility, Testing, Phases, Detailed Execution Phases, Memory, Tracking y Changelog.
 
 ---
 
 # 31. Entregables finales
 
-Entrega:
-
-- Código fuente completo en React, TypeScript y Tailwind CSS.
-- Aplicación funcional.
-- Arquitectura modular.
-- Persistencia local.
-- Editor visual.
-- Inspector.
-- Biblioteca de widgets.
-- Gestor de themes.
-- Motor de contenido.
-- Constructor de formularios.
-- Constructor de filtros.
-- Constructor de consultas.
-- Constructor de backend.
-- Roles y permisos.
-- Presets de proyecto.
-- Exportador local.
-- Exportador React.
-- Exportador LAMP.
-- Exportador WordPress.
-- Proyectos de demostración.
-- Pruebas.
-- Documentación.
-- Instrucciones de instalación.
-- Instrucciones de compilación.
-- Instrucciones de exportación.
-
-El resultado debe ser una base profesional y extensible, no una demostración superficial.
-
-La prioridad debe ser:
-
-1. Arquitectura correcta.
-2. Persistencia confiable.
-3. Editor funcional.
-4. Correspondencia entre preview y exportación.
-5. Exportaciones realmente utilizables.
-6. Responsive y accesibilidad.
-7. Escalabilidad.
-8. Experiencia de usuario.
-9. Rendimiento.
-10. Calidad del código.
+Código fuente React/TS/Tailwind, app funcional, arquitectura modular, persistencia local, editor, inspector, widgets, themes, content engine, forms, filters, queries, backend, roles, presets, exports Local/React/LAMP/WordPress, demos, tests y documentación. Prioridad: arquitectura, persistencia, editor, preview/export equivalence, exports útiles, responsive/accessibility, scalability, UX, performance y code quality.
 
 ---
 
@@ -1546,39 +1185,63 @@ La prioridad debe ser:
 
 ElectroCMS debe conservar un catálogo canónico, buscable, filtrable y portable de capacidades profesionales inspirado en patrones documentados de WordPress, Elementor, ACF, JetEngine, JetElements, JetFormBuilder, JetSmartFilters, JetStyleManager, constructores visuales de backend, CMS dinámicos, sistemas de plantillas y generadores de sitios.
 
-El producto debe cubrir como mínimo:
-
-- núcleo CMS con tipos, taxonomías, workflow, revisiones, media, roles, API e importación/exportación;
-- editor Flex/Grid, responsive, capas, historial, componentes reutilizables, movimiento y accesibilidad;
-- widgets de contenido, media, negocio, datos, navegación, social, comercio y salida dinámica;
-- campos avanzados, repetidores, contenido flexible, reglas de ubicación, condiciones y opciones globales;
-- tablas propias, relaciones 1:1/1:N/N:N, listings, etiquetas dinámicas, perfiles, data stores, mapas y calendarios;
-- consultas multifuente, relaciones, merge, preview, diagnóstico, caché y bindings;
-- formularios multipaso, condiciones, cálculo, repetidores, acciones, registros y edición frontend;
-- filtros facetados, búsqueda, orden, AJAX/mixto/recarga, indexador, chips, URL y jerarquía;
-- theme builder, condiciones de visualización, estilos globales y responsive, variaciones, kits y bloqueo;
-- backend con CRUD, tablas, quick edit, bulk actions, saved views, kanban, calendario, dashboards, automatización y auditoría;
-- generador de sitios basado en blueprint con datos demo, kit visual y adaptación por destino.
-
-Regla no negociable: las referencias de terceros describen capacidades, nunca autorizan copiar código, identidad, textos, activos ni composición propietaria. Cada equivalente debe usar lenguaje, arquitectura, diseño e interacción originales de ElectroCMS.
-
-La demo debe distinguir `Demo interactiva`, `Modelado portable` y `Planificado`. El manifiesto `professionalStudio` debe acompañar Local, React, LAMP y WordPress para preservar modelos, relaciones, operaciones, plantillas y pantallas administrativas. La matriz detallada y sus fuentes oficiales están en `PROFESSIONAL_CAPABILITY_GAP_MATRIX.md`.
+Debe cubrir núcleo CMS, editor Flex/Grid responsive, widgets, campos avanzados, relaciones, listings, queries, forms, filters, theme builder, backend CRUD/views/automation/audit y generador por blueprint. Las referencias describen capacidades y nunca autorizan copiar código, identidad, textos, activos ni composición propietaria. La demo distingue `Demo interactiva`, `Modelado portable` y `Planificado`; `professionalStudio` acompaña Local/React/LAMP/WordPress. Matriz detallada: `PROFESSIONAL_CAPABILITY_GAP_MATRIX.md`.
 
 ## 33. Proyecto tienda demo editable como prueba de exportación
 
-La Preview, el Backend y el Centro de publicación deben operar sobre un único
-proyecto demo de tienda. La edición básica debe permitir cambiar identidad,
-claim, colores, producto destacado y configuración principal del dashboard.
-Cambiar de workspace no puede restaurar valores por defecto ni crear una copia
-independiente.
+Preview, Backend y Centro de publicación operan sobre un único proyecto demo de tienda. Identidad, claim, colores, producto destacado y dashboard comparten estado. Local, React, LAMP y WordPress reciben el mismo estado editado y producen storefront/backend funcional. Contrato: `EDITABLE_DEMO_EXPORT_PROJECT.md`.
 
-Cada exportación debe recibir el estado editado y producir storefront y backend:
+---
 
-- Local: tienda y administrador offline enlazados mediante almacenamiento local;
-- React: aplicación y ruta administrativa funcional;
-- LAMP: frontend, instalación, autenticación y CRUD persistente;
-- WordPress: tema, plugin companion, contenido inicial y menú administrativo.
+# 34. Ampliación funcional tipo FlutterFlow — alcance normativo aditivo
 
-El proyecto se diseña con las reglas de `ui-ux-pro-max`, accesibilidad AA,
-responsive y reducción de movimiento. Su contrato completo está documentado en
-`EDITABLE_DEMO_EXPORT_PROJECT.md`.
+ElectroCMS debe incluir progresivamente las categorías funcionales y flujos profesionales de un visual application builder comparable a FlutterFlow, implementados con arquitectura, código, identidad y UX propias de ElectroCMS.
+
+Esta sección es **aditiva y no destructiva**:
+
+- no reemplaza las secciones 1–33;
+- no renumera ni reabre F00–F18;
+- no cambia la microfase activa por su sola incorporación;
+- no obliga a servicios cloud ni rompe local-first;
+- no autoriza copiar código, branding, textos, assets o composición propietaria;
+- las integraciones externas son adapters/providers opcionales;
+- capacidades ya existentes se auditan y amplían en lugar de duplicarse.
+
+El alcance detallado y normativo completo de esta sección vive en `FLUTTERFLOW_PARITY_ADDENDUM.md`, que **forma parte integral de este Prompt Maestro** y debe tratarse con la misma prioridad normativa que las secciones anteriores.
+
+Como mínimo, la ampliación cubre:
+
+1. Builder organizado en Navigation System, Toolbar, Canvas y Properties Panel, conservando ventanas docked/floating/minimized/pinned y resize.
+2. Page Manager, Page Selector, Widget Palette y Widget Tree sincronizados.
+3. Selection Manager central: Canvas ↔ Tree ↔ Inspector ↔ Breadcrumbs.
+4. Canvas avanzado con zoom/pan/fit, rulers, guides, snapping, safe areas, viewports y direct manipulation.
+5. Responsive Builder con inherit/override/reset por breakpoint.
+6. Component System con parameters, callbacks, slots, variants, state, lifecycle y Component Studio.
+7. Design System Manager con tokens globales y component variants.
+8. Custom Data Types, Enums y Constants.
+9. Widget/Component/Page/App/Session/Persistent State.
+10. Set From Variable universal y Conditional Value Builder.
+11. Action Flow Editor con triggers, acciones, branches, loops, outputs, errors y Action Graph.
+12. App Events/Event Bus visual.
+13. DataProvider desacoplado, Database Builder, relaciones y Backend Queries.
+14. API Manager, API Groups, API Tester y Response Mapping.
+15. AuthProvider, sessions, protected routes, RBAC, permissions/capabilities y secrets.
+16. Media Manager ampliado.
+17. Route Manager, deep links y Storyboard.
+18. Animation Inspector, Localization, Accessibility Audit y SEO.
+19. Test Mode, Debug Console, State Inspector, tracing y Automated Tests.
+20. Custom Functions, Custom Actions, Custom Components y Code Files con editor/diagnostics/sandbox.
+21. Dependency Manager, Environments, backend functions e Integration Manager.
+22. AI Builder y Agents cuyos cambios se expresan como comandos validados y reversibles.
+23. Command Palette/búsqueda universal.
+24. Named Versions, checkpoints, restore, branching lógico, comments y colaboración opcional.
+25. Project Settings, export ampliado, Deployment Center y validación pre-deploy.
+26. Experiencia móvil específica: Topbar compacta + Canvas dominante + `Widgets / Pages / Canvas / Properties / More` + tool sheets.
+27. Tablet con rail compacto, canvas y panel contextual.
+28. High Density + Minimal Clean + Enterprise/IDE-like como lenguaje visual del builder.
+
+Toda capacidad ausente se registra como `PARITY_GAP` con estado, módulo, prioridad, dependencia, fase, arquitectura, criterios de aceptación y pruebas. No se implementa improvisadamente fuera de fase.
+
+Las fases propietarias de esta ampliación son F19–F31 en `PHASES.md`, con microfases M19.1–M31.8 en `DETAILED_EXECUTION_PHASES.md`. La fase activa continúa definida exclusivamente por `TRACKING.md`.
+
+Criterio final ampliado: un usuario debe poder crear proyecto, design system, páginas/rutas, widgets, componentes, estados, modelos/relaciones, queries, APIs, auth/RBAC, Action Flow, responsive, backend, tests/debug, custom code opcional, AI opcional, exportar y desplegar, manteniendo local-first, accesibilidad, responsive, seguridad, High Density y Minimal Clean.
