@@ -28,13 +28,13 @@ type PointerInteraction =
 type DockTarget = DockSide | null
 
 const panelLimits = {
-  library: { min: 168, max: 280 },
-  inspector: { min: 216, max: 320 },
+  library: { min: 184, max: 300 },
+  inspector: { min: 248, max: 360 },
 } as const
 
 const floatingLimits = {
-  library: { minWidth: 220, minHeight: 260 },
-  inspector: { minWidth: 240, minHeight: 280 },
+  library: { minWidth: 232, minHeight: 260 },
+  inspector: { minWidth: 268, minHeight: 280 },
 } as const
 
 const initialWorkspace: WorkspaceState = {
@@ -43,14 +43,14 @@ const initialWorkspace: WorkspaceState = {
     restoreMode: 'docked',
     dockSide: 'left',
     pinned: false,
-    bounds: { x: 60, y: 64, width: 252, height: 540 },
+    bounds: { x: 60, y: 64, width: 268, height: 540 },
   },
   inspector: {
     mode: 'docked',
     restoreMode: 'docked',
     dockSide: 'right',
     pinned: false,
-    bounds: { x: 748, y: 64, width: 288, height: 580 },
+    bounds: { x: 748, y: 64, width: 304, height: 580 },
   },
 }
 
@@ -105,8 +105,8 @@ export function EditorShell() {
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace)
-  const [libraryWidth, setLibraryWidth] = useState(192)
-  const [inspectorWidth, setInspectorWidth] = useState(224)
+  const [libraryWidth, setLibraryWidth] = useState(216)
+  const [inspectorWidth, setInspectorWidth] = useState(288)
   const [railWidth, setRailWidth] = useState(44)
   const [dockPreview, setDockPreview] = useState<DockTarget>(null)
   const [draggingPanel, setDraggingPanel] = useState<WorkspacePanel | null>(null)
@@ -483,8 +483,8 @@ export function EditorShell() {
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Ocultar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="mobile-sheet absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
-            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-8 rounded-full bg-primary" /><h2 className="mt-0.5 flex items-center gap-1 font-heading text-xs font-bold text-primary-strong"><Icon name={mobilePanel === 'inspector' ? 'settings' : libraryTab === 'widgets' ? 'plus' : 'layers'} size={13} />{mobilePanel === 'inspector' ? 'Inspector' : libraryTab === 'widgets' ? 'Elementos' : 'Capas'}</h2></div><Button aria-label="Ocultar panel" className="text-primary" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="chevron-down" size={16} /></Button></div>
-            {mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={libraryTab} className="h-[calc(82dvh-3rem)] border-0" onTabChange={setLibraryTab} />}
+            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-10 rounded-full bg-primary/35" aria-hidden="true" /><h2 className="mt-1 text-xs font-bold text-primary-strong">{mobilePanel === 'inspector' ? 'Inspector' : mobilePanel === 'widgets' ? 'Componentes' : 'Páginas y capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
+            <div className="min-h-0 max-h-[calc(82dvh-3rem)] overflow-hidden">{mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-full border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={mobilePanel} className="h-full border-0" onTabChange={setLibraryTab} />}</div>
           </div>
         </div>
       ) : null}
