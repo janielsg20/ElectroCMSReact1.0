@@ -1,0 +1,325 @@
+/* ElectroCMS — FlutterFlow-inspired builder refinement v7
+ * Focus: page/widget tree hierarchy, contextual properties panel,
+ * builder toolbar grammar and high-density resize affordances.
+ */
+
+:root {
+  --builder-panel-header: 2rem;
+  --builder-section-gap: 0.25rem;
+  --builder-tree-indent: 0.625rem;
+  --builder-handle: color-mix(in srgb, var(--color-primary) 38%, var(--color-border));
+}
+
+/* ----- Left builder panel: page + widget tree ----- */
+.library-panel {
+  background: var(--color-surface);
+}
+
+.library-panel > [role="tablist"] {
+  min-height: var(--builder-panel-header);
+  padding: 0.1875rem 0.25rem;
+  background: var(--color-surface);
+}
+
+.library-panel > [role="tablist"] [role="tab"] {
+  position: relative;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  box-shadow: none !important;
+}
+
+.library-panel > [role="tablist"] [role="tab"]:hover {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.library-panel > [role="tablist"] [role="tab"][aria-selected="true"] {
+  background: var(--color-muted);
+  color: var(--color-primary-strong);
+}
+
+.library-panel > [role="tablist"] [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 28%;
+  inset-block-end: -0.1875rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+#library-panel-layers > section {
+  background: var(--color-surface);
+}
+
+#library-panel-layers > section > div:first-child {
+  min-height: 1.875rem;
+  padding-inline: 0.25rem;
+}
+
+#library-panel-layers h2 {
+  color: var(--color-foreground);
+  font-weight: 700;
+}
+
+#library-panel-layers h2 .text-muted-foreground {
+  color: var(--color-muted-foreground);
+}
+
+#library-panel-layers .semantic-option,
+#library-panel-layers [role="treeitem"] > button {
+  border-radius: 0.25rem;
+  border-color: transparent;
+  background: transparent;
+}
+
+#library-panel-layers .semantic-option:hover,
+#library-panel-layers [role="treeitem"] > button:hover {
+  background: var(--color-muted);
+}
+
+#library-panel-layers .semantic-option[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  background: var(--color-primary-soft);
+}
+
+#library-panel-layers [role="treeitem"] {
+  position: relative;
+}
+
+#library-panel-layers [role="treeitem"][aria-selected="true"] > button {
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  color: var(--color-primary-strong);
+}
+
+#library-panel-layers [role="treeitem"][aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.3rem;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+#library-panel-layers [role="treeitem"] button > span:first-child {
+  opacity: 0.55;
+}
+
+/* ----- Properties panel: persistent selected-widget identity ----- */
+.inspector-selection {
+  background: color-mix(in srgb, var(--color-surface) 96%, var(--color-muted));
+}
+
+.inspector-selection > div {
+  min-height: 2rem;
+}
+
+.inspector-selection > div > span:first-child {
+  border-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+}
+
+.inspector-selection button {
+  color: var(--color-muted-foreground);
+}
+
+.inspector-selection button:hover {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.inspector-panel > [role="tablist"] {
+  min-height: 2rem;
+  padding: 0.1875rem;
+  background: var(--color-surface);
+}
+
+.inspector-panel > [role="tablist"] [role="tab"] {
+  position: relative;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  box-shadow: none !important;
+}
+
+.inspector-panel > [role="tablist"] [role="tab"]:hover {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.inspector-panel > [role="tablist"] [role="tab"][aria-selected="true"] {
+  background: var(--color-muted);
+  color: var(--color-primary-strong);
+}
+
+.inspector-panel > [role="tablist"] [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 24%;
+  inset-block-end: -0.1875rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.inspector-panel section {
+  padding-block: 0.375rem !important;
+}
+
+.inspector-panel section h3 {
+  min-height: 1.375rem;
+  color: var(--color-foreground);
+}
+
+.inspector-panel section h3 svg {
+  color: var(--color-muted-foreground);
+}
+
+.inspector-panel section + section {
+  border-top: 1px solid var(--ui-divider);
+}
+
+.inspector-panel :where(input, textarea) {
+  background: var(--color-surface);
+}
+
+/* Flatten property controls into builder-like rows. */
+.inspector-panel [role="tabpanel"] button:not([role="tab"]):not([aria-label^="Posición"]) {
+  box-shadow: none;
+}
+
+.inspector-panel [role="tabpanel"] button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+}
+
+/* ----- Canvas toolbar: device controls are the central authority ----- */
+.canvas-toolbar {
+  background: var(--color-surface);
+}
+
+.canvas-toolbar > [role="group"] {
+  min-height: 2rem;
+  border-color: var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-muted);
+  padding: 0.125rem;
+}
+
+.canvas-toolbar > [role="group"] button {
+  border-radius: 0.25rem;
+  background: transparent;
+}
+
+.canvas-toolbar > [role="group"] button:hover {
+  background: var(--color-surface);
+}
+
+.canvas-toolbar > [role="group"] button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  background: var(--color-surface);
+  color: var(--color-primary-strong);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+}
+
+.canvas-breadcrumbs {
+  max-width: min(22rem, 28vw);
+}
+
+.canvas-breadcrumbs li {
+  min-width: 0;
+}
+
+.canvas-breadcrumbs li:last-child span {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+/* ----- Window chrome + resize system ----- */
+.panel-window.fixed {
+  border-radius: 0.5rem;
+}
+
+.panel-window__bar {
+  height: 1.875rem;
+  background: color-mix(in srgb, var(--color-surface) 96%, var(--color-muted));
+}
+
+.panel-window__bar [role="toolbar"] {
+  gap: 0.0625rem;
+}
+
+.panel-window__action {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.panel-window__action:hover,
+.panel-window__action[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-muted);
+}
+
+/* Existing separator hit area stays wide; visual handle becomes explicit. */
+.editor-shell [role="separator"] > span {
+  position: relative;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.editor-shell [role="separator"] > span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition: background-color 140ms var(--ease-standard), box-shadow 140ms var(--ease-standard);
+}
+
+.editor-shell [role="separator"]:hover > span,
+.editor-shell [role="separator"]:focus-visible > span {
+  background: var(--builder-handle);
+}
+
+.editor-shell [role="separator"]:hover > span::after,
+.editor-shell [role="separator"]:focus-visible > span::after {
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+/* ----- High density responsive rules ----- */
+@container (max-width: 270px) {
+  .inspector-selection p:last-child {
+    display: none;
+  }
+
+  .inspector-panel > [role="tablist"] [role="tab"] {
+    gap: 0;
+  }
+}
+
+@container (max-width: 220px) {
+  .library-panel > [role="tablist"] [role="tab"] svg,
+  .inspector-panel > [role="tablist"] [role="tab"] svg {
+    display: none;
+  }
+}
+
+@media (max-width: 75rem) and (min-width: 64rem) {
+  .canvas-breadcrumbs {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell [role="separator"] > span::after {
+    transition: none;
+  }
+}
