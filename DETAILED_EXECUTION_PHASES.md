@@ -429,3 +429,335 @@ Formato: `entrada → trabajo → evidencia de salida`. Cada microfase debe deja
 - Lint, typecheck, tests, build, accesibilidad, seguridad y rendimiento sin bloqueos.
 - Puerta G5: entregables de sección 31 completos y sin funciones simuladas.
 
+# AMPLIACIÓN FLUTTERFLOW-PARITY
+
+Las fases F19–F31 implementan `FLUTTERFLOW_PARITY_ADDENDUM.md`. Son posteriores a las dependencias existentes, no reabren F00–F18 y no cambian la microfase activa por su sola incorporación documental.
+
+## F19 — Visual Builder avanzado y workspace
+
+### M19.1 — Auditoría PARITY_GAP
+- Entrada: Addendum + implementación real acumulada en F00–F18.
+- Trabajo: clasificar builder, pages, tree, canvas, inspector, responsive y ventanas como completa/parcial/ausente/bloqueada.
+- Salida: matriz trazable sin duplicar capacidades existentes.
+
+### M19.2 — Selection Manager central
+- Crear selección única para page/node/multiselect/hover/editing/insertion target.
+- Sincronizar Canvas ↔ Widget Tree ↔ Inspector ↔ Breadcrumbs.
+- Pruebas de selección, foco, eliminación y selección inválida.
+
+### M19.3 — Page Manager y Page Selector
+- CRUD, carpetas, rutas, params, favoritos, recientes, página inicial y cambio rápido.
+- Preservar permisos, SEO y metadata sin duplicar modelos existentes.
+
+### M19.4 — Widget Tree profesional
+- Expand/collapse, rename, visibility, lock, reorder, nesting, copy/paste y búsqueda.
+- Drag con alternativa por clic/teclado.
+
+### M19.5 — Canvas avanzado
+- Viewports, zoom/pan/fit/center, grids, rulers, guides, snapping, safe areas y orientaciones.
+- Toda mutación pasa por Command Bus.
+
+### M19.6 — Workspace persistente y ventanas
+- Consolidar dock left/right, floating, minimized, pinned, resize, snap y restore.
+- Persistir layout por proyecto/usuario local y eliminar overrides UI redundantes.
+
+### M19.7 — Builder móvil/tablet
+- Móvil: Topbar + Canvas + Widgets/Pages/Canvas/Properties/More + tool sheets.
+- Tablet: rail compacto, panel contextual y overlays accesibles.
+- Verificar 320/375/768/landscape, safe areas, teclado y touch.
+
+### M19.8 — Puerta G6-A
+- Lint/typecheck/tests/build + browser + accesibilidad.
+- Sin overflow, funciones simuladas ni fuentes de verdad duplicadas.
+
+## F20 — Component System y Design System
+
+### M20.1 — Modelo de componentes
+- Parameters tipados, defaults, required, slots, callbacks, variants y lifecycle.
+
+### M20.2 — Component State y bindings
+- Estado interno, actions, backend bindings y herencia sin romper instancias.
+
+### M20.3 — Component Studio
+- Canvas, Tree, Parameters, State, Actions, Variants, Slots y Preview.
+
+### M20.4 — Design System Manager
+- Colors, typography, spacing, radius, borders, shadows, icons, assets, breakpoints y variants.
+
+### M20.5 — Migración y actualización de instancias
+- Cambios compatibles/incompatibles, diagnósticos, migrations y referencias.
+
+### M20.6 — Validación
+- Pruebas de instancias, slots, callbacks, state y tokens; cero hardcodes evitables.
+
+## F21 — Data Types, State y Set From Variable
+
+### M21.1 — Tipos universales
+- String, Number, Boolean, Date/DateTime, Color, File/Image, Enum, Object, List, Map, Reference.
+
+### M21.2 — Custom Data Types
+- Builder visual, campos, nullable, defaults, lists, relations y validation.
+
+### M21.3 — Enums y Constants
+- CRUD, orden, metadata, tipos, environments y referencias seguras.
+
+### M21.4 — State scopes
+- Widget, Component, Page, App, Session y Persistent State.
+
+### M21.5 — Set From Variable
+- Fuente estática, state, params, auth user, query, API, record, function, output, constant y conditional.
+
+### M21.6 — Conditional Value Builder
+- If/Else/Else If, AND/OR/NOT y comparadores tipados con diagnóstico.
+
+### M21.7 — Persistencia y pruebas
+- Migraciones, recovery y tests de resolución/reactividad sin ciclos.
+
+## F22 — Action Flow, Graph y App Events
+
+### M22.1 — Modelo y registro de acciones
+- Trigger/action schemas versionados, inputs/outputs y validación.
+
+### M22.2 — Triggers
+- Click, double click, long press, hover, change, submit, focus/blur, page/component lifecycle.
+
+### M22.3 — Acciones base
+- Navigation, dialogs/sheets, state, variables, notices, delay y loops.
+
+### M22.4 — Acciones de datos
+- Query/API/CRUD/upload/download y outputs tipados.
+
+### M22.5 — Conditional branches y errores
+- True/false/error paths, retries cuando proceda y cancelación.
+
+### M22.6 — Action Graph Editor
+- Nodes, edges, zoom, pan, reconnect, duplicate, delete e inspector.
+
+### M22.7 — App Events
+- Event Bus visual con parameters, scope, trigger/listen/unsubscribe.
+
+### M22.8 — Command Bus y pruebas
+- Edición del graph reversible; runtime probado sin mezclar editor/runtime.
+
+## F23 — Database Builder y Backend Queries
+
+### M23.1 — DataProvider contract
+- Interfaz desacoplada; ningún widget depende de proveedor concreto.
+
+### M23.2 — Provider local
+- Integrar IndexedDB/local actual mediante adapter común.
+
+### M23.3 — Database Schema Builder
+- Tables/collections, fields, indexes, defaults y validation.
+
+### M23.4 — Relaciones
+- 1:1, 1:N, N:N con integridad y migrations.
+
+### M23.5 — Backend Queries
+- Single/list/count/aggregate/pagination/filter/sort/relations.
+
+### M23.6 — Bindings a página/widget/componente
+- Loading/empty/error/success y cancelación.
+
+### M23.7 — Adapters futuros
+- Contratos para REST, MySQL/LAMP, WordPress y SQLite sin volverlos obligatorios.
+
+### M23.8 — Tests
+- Integridad, consultas, paginación, fallos y compatibilidad local-first.
+
+## F24 — API Manager
+
+### M24.1 — Modelo y grupos
+- GET/POST/PUT/PATCH/DELETE, folders/groups y environments.
+
+### M24.2 — Request Builder
+- URL, headers, path/query params, body, auth y variables.
+
+### M24.3 — API Tester
+- Ejecutar request; mostrar response/status/headers/duration/errors sin filtrar secretos.
+
+### M24.4 — Response Mapping
+- JSON path, type, nullable, list y transform.
+
+### M24.5 — Set From Variable integration
+- Exponer respuestas y outputs tipados.
+
+### M24.6 — Action/Backend Query integration
+- APIs como acción y fuente de datos declarativa.
+
+### M24.7 — Seguridad y tests
+- CORS/configuración, timeouts, cancelación, redaction y pruebas.
+
+## F25 — Authentication, RBAC y seguridad
+
+### M25.1 — AuthProvider
+- Contrato provider-agnostic y sesiones.
+
+### M25.2 — Local Auth
+- Registro/login/logout/reset/session restore local seguro.
+
+### M25.3 — Custom REST y WordPress adapters
+- Integraciones opcionales sin acoplar core.
+
+### M25.4 — Roles/Permissions/Capabilities
+- Pages, routes, widgets, actions, CMS y admin modules.
+
+### M25.5 — Protected routes y visibility
+- Denegación por defecto y condiciones por rol.
+
+### M25.6 — Secrets y environments
+- Secretos fuera del frontend y exports; redaction en debug.
+
+### M25.7 — Security tests
+- Authz/authn, session, injection, storage y export.
+
+## F26 — Media, routing, storyboard, responsive y localization
+
+### M26.1 — Media Manager ampliado
+- Assets, folders, search, metadata, alt, optimize, replace, references y dedupe.
+
+### M26.2 — Route Manager
+- Paths, dynamic segments, params, query, redirects, protected routes y deep links.
+
+### M26.3 — Storyboard
+- Pages, routes, dialogs, transitions, zoom/pan y broken-route diagnostics.
+
+### M26.4 — Responsive Property System avanzado
+- inherit/override/reset para layout, visibility, typography, spacing y sizing.
+
+### M26.5 — Animation Inspector
+- Load/action/hover/transition/loop/conditional respetando reduced motion.
+
+### M26.6 — Localization
+- Locales, translation keys, preview locale y fallback.
+
+### M26.7 — SEO y accessibility audit
+- Metadata Web + auditoría WCAG integrada antes de exportar.
+
+### M26.8 — Tests responsive/mobile
+- Mobile/tablet/desktop, keyboard, touch, screen reader y reduced motion.
+
+## F27 — Custom Code, dependencies, environments e integrations
+
+### M27.1 — Custom Functions
+- Funciones puras tipadas, inputs/outputs y tests.
+
+### M27.2 — Custom Actions
+- Async, outputs, error handling e integración Action Flow.
+
+### M27.3 — Custom Components
+- React custom components registrados mediante contrato seguro.
+
+### M27.4 — Code Files y Code Editor
+- Highlighting, diagnostics, references, formatting y typecheck/compile.
+
+### M27.5 — Dependency Manager
+- Package/version, compatibility, conflicts y security warnings.
+
+### M27.6 — Environment Manager
+- Development/Preview/Production y variables por entorno.
+
+### M27.7 — Function/Integration adapters
+- Backend functions y categorías auth/database/storage/payments/maps/analytics/email/messaging/AI/CMS/commerce.
+
+### M27.8 — Sandbox/security
+- Estrategia de aislamiento para código no confiable y supply-chain checks.
+
+## F28 — Test Mode y Debug
+
+### M28.1 — Runtime/Test Mode
+- Separar editor del runtime ejecutable y conservar proyecto sin mutaciones accidentales.
+
+### M28.2 — Debug Console
+- Actions, events, API calls, state changes, errors, warnings y performance.
+
+### M28.3 — State Inspector
+- Scopes, valores, origen y updates observables.
+
+### M28.4 — Action/API tracing
+- Timeline correlacionada con redaction de secretos.
+
+### M28.5 — Test Builder foundation
+- Unit, Component, Integration y E2E con stable test IDs.
+
+### M28.6 — Reports
+- Resultados reproducibles, filtros y enlaces a elemento/acción.
+
+### M28.7 — Puerta G7
+- Tests del propio Test Mode/Debug y cero contaminación de producción.
+
+## F29 — Versioning y Collaboration
+
+### M29.1 — Named versions y checkpoints
+- Extender History; no duplicar Command Bus.
+
+### M29.2 — Restore
+- Restore seguro, backup y compatibilidad de schema.
+
+### M29.3 — Logical branch model
+- projectVersionId, parentVersionId, branchName y reglas de divergencia.
+
+### M29.4 — Comments
+- Asociados a project/page/widget/component con open/resolved.
+
+### M29.5 — Presence architecture
+- Contratos futuros para cursors/presence sin dependencia online obligatoria.
+
+### M29.6 — Collaboration roles y activity
+- View/Edit y activity history auditable.
+
+### M29.7 — Offline compatibility
+- Modo local permanece completo cuando colaboración no existe.
+
+## F30 — AI Builder, Agents y Command Palette
+
+### M30.1 — AI command architecture
+- Todo cambio AI produce comandos validados y reversibles.
+
+### M30.2 — Generate page/component/layout/content
+- Generación estructurada contra schemas, nunca JSX arbitrario como fuente de verdad.
+
+### M30.3 — Modify selection
+- Operaciones limitadas a selección y confirmables según riesgo.
+
+### M30.4 — Generate Action Flow/schema/API mappings
+- Salidas tipadas y validadas antes de persistir.
+
+### M30.5 — Error explanation
+- Diagnósticos con contexto sin ocultar error original.
+
+### M30.6 — Agent registry
+- UI, Accessibility, SEO, Database, API, Testing y Refactor con permisos explícitos.
+
+### M30.7 — Command Palette
+- Buscar pages/widgets/components/actions/variables/data/APIs/media/settings; objetivo Ctrl/Cmd+K.
+
+### M30.8 — Seguridad y pruebas
+- Ningún agent persiste directamente; tests de permisos, undo y entradas inválidas.
+
+## F31 — Export ampliado y Deployment Center
+
+### M31.1 — Project Settings central
+- App/project IDs, icons, targets, environments, auth, integrations y dependencies.
+
+### M31.2 — Export source ampliado
+- Source, assets, config, schema, migrations y `.env.example` sin secretos.
+
+### M31.3 — Build abstraction
+- Un pipeline diagnosticable para Local, React, LAMP, WordPress y adapters futuros.
+
+### M31.4 — Deployment Center
+- Target, environment, build status, errors e history.
+
+### M31.5 — Deployment adapters
+- Local server, GitHub/Cloudflare, Vercel, FTP/SFTP, WordPress y custom server como adapters opcionales.
+
+### M31.6 — Pre-deploy validation
+- Lint, typecheck, tests, broken refs, accessibility, routes, API config, secrets y build.
+
+### M31.7 — Production verification
+- Smoke/E2E por target, rollback/diagnóstico cuando aplique y evidencia enlazada.
+
+### M31.8 — Puerta G8 / aceptación ampliada
+- Alcance de `FLUTTERFLOW_PARITY_ADDENDUM.md` trazable, probado y sin funciones simuladas.
+- El resultado mantiene local-first y exportaciones existentes mientras añade capacidades avanzadas.
