@@ -1,0 +1,272 @@
+/*
+ * ElectroCMS — unified component language
+ * Third professional refinement pass: one compact, predictable visual grammar
+ * for controls used across the topbar, navigation, library, inspector and canvas.
+ */
+
+:root {
+  --control-border: color-mix(in srgb, var(--color-border) 94%, var(--color-foreground));
+  --control-border-hover: color-mix(in srgb, var(--color-primary) 34%, var(--color-border));
+  --control-surface: color-mix(in srgb, var(--color-surface) 98%, var(--color-muted));
+  --control-surface-hover: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  --control-selected: color-mix(in srgb, var(--color-primary) 11%, var(--color-surface));
+  --control-muted: color-mix(in srgb, var(--color-muted) 86%, var(--color-surface));
+  --section-heading: var(--color-foreground);
+}
+
+/* ---------- Shared density and form language ---------- */
+.editor-shell :where(input, textarea, select) {
+  border-color: var(--control-border);
+  background: var(--control-surface);
+  color: var(--color-foreground);
+}
+
+.editor-shell :where(input, textarea, select):not(:disabled):hover {
+  border-color: var(--control-border-hover);
+}
+
+.editor-shell :where(input, textarea, select)::placeholder {
+  color: color-mix(in srgb, var(--color-muted-foreground) 82%, transparent);
+}
+
+.editor-shell :where(input, textarea, select):disabled {
+  background: var(--control-muted);
+  color: var(--color-muted-foreground);
+}
+
+.editor-shell textarea {
+  line-height: 1.35;
+}
+
+.editor-shell :where(label, .text-muted-foreground) {
+  text-rendering: optimizeLegibility;
+}
+
+/* Keep high-density desktop while retaining touch comfort below desktop. */
+@media (min-width: 64rem) {
+  .editor-shell :where(input:not([type="checkbox"]):not([type="radio"]), select) {
+    min-height: 2rem;
+  }
+
+  .editor-shell textarea {
+    min-height: 3.75rem;
+  }
+}
+
+/* ---------- Section hierarchy ---------- */
+.library-panel section > div:first-child,
+.inspector-panel section > h3,
+.inspector-panel section > div:first-child > h3 {
+  color: var(--section-heading);
+}
+
+.inspector-panel h3,
+.library-panel h2 {
+  font-weight: 650;
+}
+
+.inspector-panel section + section,
+.library-panel section + section {
+  border-color: var(--ui-divider);
+}
+
+/* ---------- Tab system ---------- */
+.library-panel [role="tablist"],
+.inspector-panel [role="tablist"] {
+  box-shadow: inset 0 -1px 0 var(--ui-divider);
+}
+
+.library-panel [role="tab"],
+.inspector-panel [role="tab"] {
+  position: relative;
+  color: var(--color-muted-foreground);
+}
+
+.library-panel [role="tab"]:not([aria-selected="true"]):hover,
+.inspector-panel [role="tab"]:not([aria-selected="true"]):hover {
+  background: color-mix(in srgb, var(--color-surface) 68%, transparent);
+  color: var(--color-foreground);
+}
+
+.library-panel [role="tab"][aria-selected="true"],
+.inspector-panel [role="tab"][aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  background: var(--color-surface);
+  color: var(--color-primary-strong);
+  box-shadow: none !important;
+}
+
+.library-panel [role="tab"][aria-selected="true"]::after,
+.inspector-panel [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.35rem;
+  inset-block-end: -0.25rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+/* ---------- Inspector controls ---------- */
+.inspector-panel [role="tabpanel"] button:not([role="tab"]):not(.panel-window__action) {
+  box-shadow: none;
+}
+
+.inspector-panel [role="tabpanel"] button.border-border,
+.inspector-panel [role="tabpanel"] button.border-primary\/30,
+.inspector-panel [role="tabpanel"] button.border-warning\/30 {
+  border-color: var(--control-border);
+  background: var(--control-surface);
+}
+
+.inspector-panel [role="tabpanel"] button.border-border:not(:disabled):hover,
+.inspector-panel [role="tabpanel"] button.border-primary\/30:not(:disabled):hover,
+.inspector-panel [role="tabpanel"] button.border-warning\/30:not(:disabled):hover {
+  border-color: var(--control-border-hover);
+  background: var(--control-surface-hover);
+  color: var(--color-primary-strong);
+}
+
+.inspector-panel [aria-label="Alineación visual"] {
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--ui-radius-md);
+}
+
+.inspector-panel [aria-label="Alineación visual"] > button {
+  border-radius: var(--ui-radius-sm);
+}
+
+.inspector-panel [aria-label="Alineación visual"] > button.bg-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.inspector-panel input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.inspector-panel code {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Library component cards ---------- */
+#library-panel-widgets .semantic-option {
+  border-radius: var(--ui-radius-md);
+  padding-inline: 0.375rem;
+}
+
+#library-panel-widgets .semantic-option > span:first-child {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  color: var(--color-primary-strong);
+  box-shadow: none;
+}
+
+#library-panel-widgets .semantic-option:hover > span:first-child,
+#library-panel-widgets .semantic-option:focus-visible > span:first-child {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  background: var(--color-primary-soft);
+}
+
+#library-panel-layers [role="treeitem"] button {
+  border-radius: var(--ui-radius-sm);
+}
+
+/* ---------- Topbar action hierarchy ---------- */
+.app-topbar [role="toolbar"] button {
+  white-space: nowrap;
+}
+
+.app-topbar [role="toolbar"] button:not(:disabled):not(.bg-primary):hover {
+  border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.app-topbar [role="toolbar"] button:disabled {
+  opacity: 0.42;
+}
+
+.project-switcher {
+  min-width: 0;
+}
+
+/* ---------- Canvas toolbar hierarchy ---------- */
+.canvas-toolbar {
+  isolation: isolate;
+}
+
+.canvas-toolbar [role="toolbar"] button,
+.canvas-toolbar [role="group"] button {
+  box-shadow: none;
+}
+
+.canvas-toolbar [role="group"] button[aria-pressed="false"] {
+  color: var(--color-muted-foreground);
+}
+
+.canvas-toolbar [role="group"] button[aria-pressed="false"]:hover {
+  background: var(--control-surface-hover);
+  color: var(--color-foreground);
+}
+
+.canvas-toolbar [role="group"] button[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ---------- Mobile navigation ---------- */
+.mobile-dock-option {
+  border-radius: 0;
+}
+
+.mobile-dock-option:not(:disabled):active {
+  transform: none;
+}
+
+.mobile-dock-option--active {
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+}
+
+/* ---------- Narrow component resilience ---------- */
+@container (max-width: 220px) {
+  .library-panel [role="tab"],
+  .inspector-panel [role="tab"] {
+    padding-inline: 0.125rem;
+  }
+
+  .inspector-panel section .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (max-width: 190px) {
+  #library-panel-widgets .semantic-option {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+  }
+
+  .library-panel h2,
+  .inspector-panel h3 {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ---------- Very small screens ---------- */
+@media (max-width: 23.5rem) {
+  .app-topbar [role="toolbar"] {
+    gap: 0;
+  }
+
+  .canvas-toolbar > div:last-child {
+    gap: 0;
+  }
+
+  .mobile-dock-option {
+    letter-spacing: -0.01em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell :where(button, input, textarea, select) {
+    transition-duration: 0.01ms !important;
+  }
+}
