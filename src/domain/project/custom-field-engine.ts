@@ -104,6 +104,10 @@ function taxonomyTermMatches(cms: CmsBackend, value: JsonValue, taxonomyId: stri
   return term?.taxonomyId === taxonomyId
 }
 
+function userExists(cms: CmsBackend, value: string): boolean {
+  return Object.values(cms.users).some((user) => user.id === value)
+}
+
 function validateDefaultValue(cms: CmsBackend, field: FieldDefinition): readonly CustomFieldDiagnostic[] {
   const value = field.defaultValue
   const path = ['cms', 'fields', field.id, 'defaultValue'] as const
@@ -157,7 +161,7 @@ function validateDefaultValue(cms: CmsBackend, field: FieldDefinition): readonly
     }
   }
 
-  if (field.type === 'user' && typeof value === 'string' && !cms.users[value]) {
+  if (field.type === 'user' && typeof value === 'string' && !userExists(cms, value)) {
     return [diagnostic('invalid-default-value', 'El usuario predeterminado no existe.', path)]
   }
   if (field.type === 'taxonomy' && field.taxonomyId) {
