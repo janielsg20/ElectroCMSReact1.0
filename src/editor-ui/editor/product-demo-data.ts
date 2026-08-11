@@ -430,5 +430,5 @@ export const demoModules: readonly DemoModule[] = [
 ] as const
 
 export function getDemoModule(id: NavigationSectionId): DemoModule {
-  return demoModules.find((module) => module.id === id) ?? demoModules[0]!
+  return demoModules.find((module) => module.id === id) ?? demoModules[0]
 }
