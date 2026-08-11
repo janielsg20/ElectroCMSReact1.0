@@ -49,6 +49,10 @@ import {
   type ProjectTheme,
   type ProjectThemeScope,
   type Result,
+  type Taxonomy,
+  type TaxonomyId,
+  type TaxonomyTerm,
+  type TaxonomyTermId,
   type TemplateCondition,
   type ThemePackage,
   type ThemePackageId,
@@ -62,6 +66,16 @@ import {
   updateContentType as updateContentTypeInStructure,
   type ContentTypeEditablePatch,
 } from './domain/project/content-type-engine'
+import {
+  createTaxonomy as createTaxonomyInStructure,
+  createTaxonomyTerm as createTaxonomyTermInStructure,
+  deleteTaxonomy as deleteTaxonomyInStructure,
+  deleteTaxonomyTerm as deleteTaxonomyTermInStructure,
+  updateTaxonomy as updateTaxonomyInStructure,
+  updateTaxonomyTerm as updateTaxonomyTermInStructure,
+  type TaxonomyEditablePatch,
+  type TaxonomyTermEditablePatch,
+} from './domain/project/taxonomy-engine'
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import {
   createProjectHistoryRepository,
@@ -208,6 +222,34 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     ))
   }
 
+  async createTaxonomy(taxonomy: Taxonomy): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-taxonomy',
+      `Crear taxonomía ${taxonomy.pluralName}`,
+      (structure) => {
+        const created = createTaxonomyInStructure(structure, taxonomy)
+        return created.ok ? success(created.value) : failure({
+          code: 'invalid-tree' as const,
+          message: created.error[0]?.message ?? 'La taxonomía no es válida.',
+        })
+      },
+    ))
+  }
+
+  async createTaxonomyTerm(term: TaxonomyTerm): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-taxonomy-term',
+      `Crear término ${term.name}`,
+      (structure) => {
+        const created = createTaxonomyTermInStructure(structure, term)
+        return created.ok ? success(created.value) : failure({
+          code: 'invalid-tree' as const,
+          message: created.error[0]?.message ?? 'El término no es válido.',
+        })
+      },
+    ))
+  }
+
   async deleteContentType(contentTypeId: ContentTypeId): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
       'cms.delete-content-type',
@@ -217,6 +259,34 @@ class BrowserEditorProjectSession implements EditorProjectSession {
         return deleted.ok ? success(deleted.value) : failure({
           code: 'invalid-tree' as const,
           message: deleted.error[0]?.message ?? 'El tipo de contenido no se puede eliminar.',
+        })
+      },
+    ))
+  }
+
+  async deleteTaxonomy(taxonomyId: TaxonomyId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-taxonomy',
+      'Eliminar taxonomía',
+      (structure) => {
+        const deleted = deleteTaxonomyInStructure(structure, taxonomyId)
+        return deleted.ok ? success(deleted.value) : failure({
+          code: 'invalid-tree' as const,
+          message: deleted.error[0]?.message ?? 'La taxonomía no se puede eliminar.',
+        })
+      },
+    ))
+  }
+
+  async deleteTaxonomyTerm(termId: TaxonomyTermId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-taxonomy-term',
+      'Eliminar término de taxonomía',
+      (structure) => {
+        const deleted = deleteTaxonomyTermInStructure(structure, termId)
+        return deleted.ok ? success(deleted.value) : failure({
+          code: 'invalid-tree' as const,
+          message: deleted.error[0]?.message ?? 'El término no se puede eliminar.',
         })
       },
     ))
@@ -376,6 +446,40 @@ class BrowserEditorProjectSession implements EditorProjectSession {
         return updated.ok ? success(updated.value) : failure({
           code: 'invalid-tree' as const,
           message: updated.error[0]?.message ?? 'El tipo de contenido no es válido.',
+        })
+      },
+    ))
+  }
+
+  async updateTaxonomy(
+    taxonomyId: TaxonomyId,
+    patch: TaxonomyEditablePatch,
+  ): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-taxonomy',
+      'Editar taxonomía',
+      (structure) => {
+        const updated = updateTaxonomyInStructure(structure, taxonomyId, patch)
+        return updated.ok ? success(updated.value) : failure({
+          code: 'invalid-tree' as const,
+          message: updated.error[0]?.message ?? 'La taxonomía no es válida.',
+        })
+      },
+    ))
+  }
+
+  async updateTaxonomyTerm(
+    termId: TaxonomyTermId,
+    patch: TaxonomyTermEditablePatch,
+  ): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-taxonomy-term',
+      'Editar término de taxonomía',
+      (structure) => {
+        const updated = updateTaxonomyTermInStructure(structure, termId, patch)
+        return updated.ok ? success(updated.value) : failure({
+          code: 'invalid-tree' as const,
+          message: updated.error[0]?.message ?? 'El término no es válido.',
         })
       },
     ))
