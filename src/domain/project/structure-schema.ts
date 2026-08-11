@@ -6,6 +6,7 @@ import {
   NodeIdSchema,
 } from './identity'
 import { JsonValueSchema } from './project-envelope'
+import { DEFAULT_PROJECT_THEMES, ProjectThemesSchema } from './theme-schema'
 
 const LabelSchema = z.string().trim().min(1).max(160)
 const PropertyKeySchema = z.string().min(1).max(160)
@@ -62,7 +63,15 @@ export const NodeResponsiveOverrideSchema = z.strictObject({
   hidden: z.boolean().optional(),
 })
 
+export const NodeAccessibilitySchema = z.strictObject({
+  description: z.string().trim().min(1).max(500).optional(),
+  label: z.string().trim().min(1).max(160).optional(),
+  role: z.enum(['article', 'banner', 'complementary', 'contentinfo', 'group', 'main', 'navigation', 'none', 'presentation', 'region']).optional(),
+  tabIndex: z.union([z.literal(-1), z.literal(0)]).optional(),
+})
+
 const NodeBaseShape = {
+  accessibility: NodeAccessibilitySchema.optional(),
   id: NodeIdSchema,
   name: LabelSchema,
   properties: PropertyMapSchema,
@@ -110,6 +119,7 @@ export const ProjectStructureSchema = z.strictObject({
   breakpoints: z.array(BreakpointSchema).min(1),
   documents: z.record(DocumentIdSchema, DocumentSchema),
   globalComponents: z.record(GlobalComponentIdSchema, GlobalComponentSchema),
+  themes: ProjectThemesSchema.default(() => structuredClone(DEFAULT_PROJECT_THEMES)),
 })
 
 export type Breakpoint = z.infer<typeof BreakpointSchema>
@@ -117,6 +127,7 @@ export type BindingSource = z.infer<typeof BindingSourceSchema>
 export type ConditionPredicate = z.infer<typeof ConditionPredicateSchema>
 export type ConditionGroup = z.infer<typeof ConditionGroupSchema>
 export type NodeResponsiveOverride = z.infer<typeof NodeResponsiveOverrideSchema>
+export type NodeAccessibility = z.infer<typeof NodeAccessibilitySchema>
 export type Node = z.infer<typeof NodeSchema>
 export type Document = z.infer<typeof DocumentSchema>
 export type GlobalComponent = z.infer<typeof GlobalComponentSchema>

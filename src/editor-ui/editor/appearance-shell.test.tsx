@@ -42,6 +42,7 @@ function resetDocumentAppearance(): void {
   delete document.documentElement.dataset.theme
   delete document.documentElement.dataset.colorMode
   delete document.documentElement.dataset.uiTheme
+  delete document.documentElement.dataset.uiPreset
   document.documentElement.style.removeProperty('color-scheme')
 }
 
@@ -72,6 +73,18 @@ describe('M04.5 temas del editor', () => {
     expect(within(colors).getByRole('radio', { name: 'Automático' })).toHaveAttribute('aria-checked', 'false')
   })
 
+  it('separa visualmente editor, frontend y backend sin mezclar su persistencia', () => {
+    render(<App />)
+    const appearance = openAppearance()
+    const scope = within(appearance).getByRole('group', { name: 'Ámbito de tema' })
+    expect(within(scope).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(within(scope).getByRole('button', { name: 'Frontend' }))
+    expect(within(appearance).getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
+    expect(within(appearance).getByRole('textbox', { name: /tokens semánticos/i })).toBeInTheDocument()
+    expect(within(appearance).queryByRole('radiogroup', { name: 'Preset visual' })).not.toBeInTheDocument()
+    expect(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY)).toBeNull()
+  })
+
   it('cambia color por teclado, preserva el preset y persiste appearance.v1', async () => {
     render(<App />)
     let appearance = openAppearance()
@@ -83,14 +96,14 @@ describe('M04.5 temas del editor', () => {
     expect(document.documentElement).toHaveAttribute('data-color-mode', 'dark')
     expect(within(colors).getByRole('radio', { name: 'Oscuro' })).toHaveFocus()
 
-    fireEvent.click(within(appearance).getByRole('radio', { name: /flow builder/i }))
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-theme', 'flow'))
+    fireEvent.click(within(appearance).getByRole('radio', { name: /minimal clean/i }))
+    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'minimal-clean'))
 
     const saved = JSON.parse(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY) ?? '{}') as Record<string, unknown>
-    expect(saved).toEqual({ version: 1, uiTheme: 'flow', colorMode: 'dark' })
+    expect(saved).toEqual({ version: 1, uiTheme: 'minimal-clean', colorMode: 'dark' })
 
     appearance = openAppearance()
-    expect(within(appearance).getByRole('radio', { name: /flow builder/i })).toHaveAttribute('aria-checked', 'true')
+    expect(within(appearance).getByRole('radio', { name: /minimal clean/i })).toHaveAttribute('aria-checked', 'true')
     expect(within(appearance).getByRole('radio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'true')
   })
 
@@ -105,7 +118,7 @@ describe('M04.5 temas del editor', () => {
 
     await changeSystemScheme(true)
     await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'dark'))
-    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density')
 
     await changeSystemScheme(false)
     await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'light'))
@@ -117,17 +130,17 @@ describe('M04.5 temas del editor', () => {
 
     render(<App />)
 
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-theme', 'bento'))
+    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'google-bento-grid'))
     expect(document.documentElement).toHaveAttribute('data-color-mode', 'system')
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(screen.getByRole('button', { name: /preset: bento motion · color: automático/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /preset: google bento grid · color: automático/i })).toBeInTheDocument()
   })
 
   it('recupera defaults seguros cuando appearance.v1 está corrupto', async () => {
     window.localStorage.setItem(EDITOR_APPEARANCE_PREFERENCES_KEY, '{')
     render(<App />)
 
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio'))
+    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density'))
     expect(document.documentElement).toHaveAttribute('data-color-mode', 'light')
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
   })

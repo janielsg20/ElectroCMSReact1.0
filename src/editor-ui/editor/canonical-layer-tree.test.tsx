@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { success, type NodeId, type NodePlacement, type ProjectStructure } from '../../domain'
 import { ProjectStructureRenderStore } from '../../renderers'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
-import { TEST_DOCUMENT_ID, TEST_PROJECT_STRUCTURE } from './test-project-structure'
+import { TEST_DOCUMENT_ID, TEST_PROJECT_STRUCTURE, TEST_SELECTED_NODE_ID } from './test-project-structure'
 import { EditorProjectProvider } from './EditorProjectProvider'
 import { buildLayerTreeEntries, dragPlacement, LAYER_DRAG_POLICY, placementRelativeTo } from './layer-tree-model'
 
@@ -16,13 +16,26 @@ function createSession() {
   return {
     move,
     session: {
+      createBreakpoint: () => Promise.resolve(success({ breakpointId: store.structure.breakpoints[0].id, structure: store.structure })),
       documentId: TEST_DOCUMENT_ID,
+      insertWidget: () => Promise.resolve(success({ nodeId: TEST_SELECTED_NODE_ID, structure: store.structure })),
       moveNodes: move,
+      reorderBreakpoint: () => Promise.resolve(success(store.structure)),
       redo: () => Promise.resolve(success(store.structure)),
+      resetNodeVisualStyles: () => Promise.resolve(success(store.structure)),
+      resetProjectTheme: () => Promise.resolve(success(store.structure)),
+      resetNodeBreakpointOverride: () => Promise.resolve(success(store.structure)),
+      resetNodeDataSettings: () => Promise.resolve(success(store.structure)),
+      resetWidgetProperty: () => Promise.resolve(success(store.structure)),
       resizeNode: () => Promise.resolve(success(store.structure)),
       store,
       undo: () => Promise.resolve(success(store.structure)),
       updateNodeSpacing: () => Promise.resolve(success(store.structure)),
+      updateNodeDataSettings: () => Promise.resolve(success(store.structure)),
+      updateBreakpoint: () => Promise.resolve(success(store.structure)),
+      updateNodeVisualStyles: () => Promise.resolve(success(store.structure)),
+      updateProjectTheme: () => Promise.resolve(success(store.structure)),
+      updateWidgetProperty: () => Promise.resolve(success(store.structure)),
     },
   }
 }
@@ -81,13 +94,26 @@ describe('M05.3 CanonicalLayerTree', () => {
     const store = new ProjectStructureRenderStore(structure)
     render(
       <EditorProjectProvider session={{
+        createBreakpoint: () => Promise.resolve(success({ breakpointId: store.structure.breakpoints[0].id, structure: store.structure })),
         documentId: TEST_DOCUMENT_ID,
+        insertWidget: () => Promise.resolve(success({ nodeId: TEST_SELECTED_NODE_ID, structure: store.structure })),
         moveNodes: () => Promise.resolve(success(store.structure)),
+        reorderBreakpoint: () => Promise.resolve(success(store.structure)),
         redo: () => Promise.resolve(success(store.structure)),
+        resetNodeVisualStyles: () => Promise.resolve(success(store.structure)),
+        resetProjectTheme: () => Promise.resolve(success(store.structure)),
+        resetNodeBreakpointOverride: () => Promise.resolve(success(store.structure)),
+        resetNodeDataSettings: () => Promise.resolve(success(store.structure)),
+        resetWidgetProperty: () => Promise.resolve(success(store.structure)),
         resizeNode: () => Promise.resolve(success(store.structure)),
         store,
         undo: () => Promise.resolve(success(store.structure)),
         updateNodeSpacing: () => Promise.resolve(success(store.structure)),
+        updateNodeDataSettings: () => Promise.resolve(success(store.structure)),
+        updateBreakpoint: () => Promise.resolve(success(store.structure)),
+        updateNodeVisualStyles: () => Promise.resolve(success(store.structure)),
+        updateProjectTheme: () => Promise.resolve(success(store.structure)),
+        updateWidgetProperty: () => Promise.resolve(success(store.structure)),
       }}>
         <CanonicalLayerTree />
       </EditorProjectProvider>,

@@ -1,6 +1,6 @@
 # Sistema de widgets
 
-Estado: `M06.1–M06.4` completadas; `M06.5 — UX de biblioteca` activa.
+Estado: `F06 — Registro de widgets y biblioteca` completada; el inspector continúa en `INSPECTOR_SYSTEM.md` con M07.2 activa.
 
 Cada widget debe declarar ID/version, categoría, schema, defaults, renderer, inspector, icono SVG, migraciones, accesibilidad, serialización y soporte por exportador. El catálogo mínimo es el de la sección 9 del prompt maestro.
 
@@ -25,3 +25,12 @@ Un widget no está terminado si solo funciona en preview o si su botón/acción 
 - Los adapters dinámicos exponen bindings, fallbacks y estados vacíos sin ejecutar DataProvider, queries, relaciones ni expresiones.
 - M06.4 añade 15 widgets de comercio, 20 de formularios y 11 filtros; el catálogo acumulado contiene 115 definiciones.
 - Checkout, carrito, CAPTCHA, submit y filtros remotos se mantienen como contratos declarativos, sin efectos ficticios en preview.
+
+## Biblioteca implementada
+
+- Búsqueda diferida, categorías y filtros Todos/Favoritos/Recientes/Guardados consumen el mismo `WidgetRegistry`.
+- Las miniaturas renderizan el path SVG validado de cada definición, sin activos paralelos.
+- `library.v1` guarda preferencias y presets locales con schema estricto, límites y fallback seguro; no modifica el documento.
+- Un preset conserva propiedades, estilos y overrides responsive del nodo, nunca hijos ni referencias a otros nodos.
+- Clic y DnD pointer/touch/teclado convergen en `EditorProjectSession.insertWidget`; la mutación entra por `ProjectStructureCommand` y `ProjectCommandBus`.
+- La colocación usa el contenedor estructural seleccionado o la posición posterior a la selección, con ID nuevo y defaults validados.

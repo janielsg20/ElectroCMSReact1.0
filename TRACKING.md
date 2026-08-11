@@ -4,8 +4,8 @@ Actualizado: 2026-08-11.
 
 ## Estado global
 
-- Fase actual: `F06 — Registro de widgets y biblioteca`.
-- Microfase actual: `M06.5 — UX de biblioteca`.
+- Fase actual: `F08 — Temas, plantillas y paquetes`.
+- Microfase actual: `M08.3 — Motor de plantillas`.
 - Estado: `EN_CURSO`.
 - F00–F04: `COMPLETADA`.
 - `M05.1 — Operaciones del árbol`: `COMPLETADA`.
@@ -18,8 +18,18 @@ Actualizado: 2026-08-11.
 - `M06.2 — Estructurales y básicos`: `COMPLETADA`.
 - `M06.3 — Contenido y dinámicos`: `COMPLETADA`.
 - `M06.4 — Comercio, formularios y filtros`: `COMPLETADA`.
-- F06: `EN_CURSO` en M06.5.
-- F07–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
+- `M06.5 — UX de biblioteca`: `COMPLETADA`.
+- F06: `COMPLETADA`.
+- `M07.1 — Inspector generado por schema`: `COMPLETADA`.
+- `M07.2 — Controles y validación`: `COMPLETADA`.
+- `M07.3 — Motor de estilos`: `COMPLETADA`.
+- `M07.4 — Motor de breakpoints`: `COMPLETADA`.
+- `M07.5 — Datos, condiciones y accesibilidad`: `COMPLETADA`.
+- F07: `COMPLETADA`.
+- `M08.1 — Tres ámbitos de tema`: `COMPLETADA`.
+- `M08.2 — Presets visuales`: `COMPLETADA`.
+- F08: `EN_CURSO` en M08.3.
+- F09–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
 
 ## Roadmap ampliado
@@ -32,8 +42,10 @@ Actualizado: 2026-08-11.
 | F03 | COMPLETADA | Persistencia local-first, proyectos, autosave, recuperación y Command Bus/History |
 | F04 | COMPLETADA | Shell desktop/tablet/móvil, workspace persistente y temas del editor |
 | F05 | COMPLETADA | Árbol, renderer, DnD, manipulación directa, selección simple y viewport |
-| F06 | EN_CURSO | M06.1–M06.4 completadas; M06.5 UX de biblioteca activa |
-| F07–F18 | NO_INICIADA | Roadmap base restante |
+| F06 | COMPLETADA | Registro versionado, 115 widgets, adapters y biblioteca funcional |
+| F07 | COMPLETADA | Inspector, controles, estilos, responsive, bindings, condiciones y ARIA |
+| F08 | EN_CURSO | M08.1–M08.2 completadas; M08.3 motor de plantillas activa |
+| F09–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
 | F21 | NO_INICIADA | Data Types, State, Variables y condiciones |
@@ -156,24 +168,97 @@ Actualizado: 2026-08-11.
 - Retirada por decisión de producto la “demo final” y sus datos: dashboard, módulos futuros, métricas, rutas profundas, command palette y navegación a páginas no implementadas.
 - Eliminados controles inertes que aparentaban funciones futuras: Run, preview, IA, bindings, acciones, backend, páginas y creación/inserción aún inexistentes.
 - El runtime arranca con `Proyecto local / Página inicial`, una estructura canónica mínima de cuatro nodos y una base IndexedDB v2 separada de la antigua demo.
-- La biblioteca consume directamente las 115 definiciones del `WidgetRegistry`, con búsqueda real y catálogo informativo; no afirma inserción hasta que exista el comando correspondiente.
+- La biblioteca consume directamente las 115 definiciones del `WidgetRegistry`; este corte de limpieza fue la base previa a la inserción formal de M06.5.
 - El inspector dejó de mantener inputs decorativos: muestra selección, estado, propiedades, estilos y overrides tomados del nodo canónico.
 - Desktop conserva rail, canvas, paneles acoplables/flotantes, capas, direct manipulation, historial, responsive, zoom/pan y apariencia; móvil queda reducido a Widgets, Capas, Canvas e Inspector.
-- `M06.5` continúa `EN_CURSO`: este ajuste no implementa favoritos, recientes, filtros por categoría ni inserción click/drag.
+- En este corte aún no existían favoritos, recientes, filtros por categoría ni inserción; esas capacidades quedaron completadas después en el cierre formal de M06.5.
 - Puerta local posterior a la limpieza: lint, typecheck, **46 archivos / 200 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 316.13 kB y catálogo 153.39 kB.
+
+## Cierre M06.5 — UX de biblioteca
+
+- La biblioteca ofrece búsqueda diferida, categorías y vistas Todos/Favoritos/Recientes/Guardados sobre las 115 definiciones canónicas.
+- Cada tarjeta usa la miniatura SVG declarada por su `WidgetDefinition`, conserva descripción y expone inserción por clic y handle DnD.
+- DnD usa sensores pointer, touch y teclado; el canvas muestra un destino explícito y el botón Insertar mantiene la alternativa completa sin arrastre.
+- `library.v1` persiste favoritos, recientes y hasta 50 presets locales fuera de `ProjectStructure`, con schema estricto y recuperación segura ante datos corruptos.
+- Guardar selección conserva propiedades, estilos y overrides responsive, pero elimina hijos, bindings y condiciones para no crear referencias rotas.
+- La inserción genera un nodo válido desde el registro, lo coloca dentro del contenedor estructural seleccionado o después de la selección y ejecuta `ProjectStructureCommand` mediante el `ProjectCommandBus` persistente.
+- El nodo insertado se selecciona y una prueba IndexedDB verifica inserción y undo real.
+- Puerta local: lint, typecheck, **49 archivos / 209 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 329.71 kB, DnD 53.27 kB, persistencia 96.44 kB y catálogo 153.39 kB.
+- F06 queda completada y `M07.1 — Inspector generado por schema` pasa a `EN_CURSO`.
+
+## Cierre M07.1 — Inspector generado por schema
+
+- `generateInspectorSections` usa exclusivamente `WidgetDefinition.inspector` y produce las nueve secciones normativas en orden estable.
+- Cada campo expone descriptor, tipo de control previsto, opciones, obligatoriedad, valor efectivo y origen Nodo/Predeterminado.
+- Las secciones usan `details/summary`, targets touch y estados vacíos; un widget sin definición no genera datos ni controles ficticios.
+- El inspector conserva estado canónico visible y no adelanta edición, validación, reset, bindings, condiciones ni animaciones.
+- Pruebas cubren agrupación, orden, fallback a defaults, origen de valores, semántica y ausencia de inputs inertes.
+- Puerta local: lint, typecheck, **51 archivos / 213 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 332.28 kB y catálogo 153.39 kB.
+- `M07.2 — Controles y validación` pasa a `EN_CURSO`.
+
+## Cierre M07.2 — Controles y validación
+
+- `InspectorFieldControl` genera controles nativos para texto, JSON complejo, número, booleano, select, color, asset y binding desde el descriptor de M07.1.
+- Cada campo mantiene un draft local y crea una única mutación al aplicar; no se añade historial por cada pulsación.
+- `updateWidgetProperty` valida defaults + propiedades explícitas con `WidgetDefinition.propertySchema` antes de ejecutar el comando.
+- Parseo y schema producen error inline anunciado; campos locked o no declarados se rechazan.
+- Reset elimina el override explícito y vuelve al default mediante otra operación reversible.
+- `setNodeProperties` valida la estructura final; update/reset pasan por `ProjectStructureCommand`, `ProjectCommandBus`, IndexedDB y render store.
+- Pruebas de integración cubren rechazo inválido, update, reset y undo; pruebas UI cubren control tipado, envío y error accesible.
+- Puerta local: lint, typecheck, **51 archivos / 215 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 337.13 kB y catálogo 153.39 kB.
+- `M07.3 — Motor de estilos` pasa a `EN_CURSO`.
+
+## Cierre M07.4 — Motor de breakpoints
+
+- `breakpoint-engine.ts` crea, edita, reordena y restablece overrides sobre `ProjectStructure.breakpoints`, siempre con validación integral e inmutabilidad.
+- IDs, anchos, orientación y herencia son canónicos; padres inexistentes, autoreferencia y ciclos se rechazan antes del historial.
+- `BreakpointManager` ofrece selección completa, alta/edición, padre, orden por botones y reset del override activo con diálogo accesible.
+- El canvas usa el ancho real del breakpoint activo y conserva ID/orientación de preview en `workspace.v1`, fuera del proyecto.
+- Cada mutación pasa por `ProjectStructureCommand`, `ProjectCommandBus`, IndexedDB y renderer; pruebas cubren undo del reset.
+- Puerta local: lint, typecheck, **54 archivos / 229 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 360.86 kB y catálogo 153.39 kB.
+- `M07.5 — Datos, condiciones y accesibilidad` pasa a `EN_CURSO`.
+
+## Cierre M07.5 — Datos, condiciones y accesibilidad
+
+- `data-condition-engine.ts` resuelve bindings literales, rutas de proyecto y propiedades de otros nodos sobre propiedades responsive ya heredadas.
+- Condiciones `all/any/negate` controlan visibilidad; rutas ausentes producen diagnóstico fail-visible y `exists` conserva semántica predecible.
+- Segmentos peligrosos, valores no JSON, comparaciones incompatibles, roles no permitidos y bindings a campos no declarados se rechazan.
+- `node.accessibility` opcional conserva label, description, role y tabIndex; el frame canónico los aplica sin romper el frame interactivo del editor.
+- El inspector ofrece edición JSON estructurada, errores inline, diagnósticos y reset; cada submit genera una sola operación reversible.
+- Store y renderer invalidan snapshots dinámicos cuando cambia un nodo fuente, sin repintar nodos estáticos no relacionados.
+- Update/reset pasan por Command Bus e IndexedDB; pruebas cubren persistencia, renderer reactivo y undo.
+- Puerta local: lint, typecheck, **55 archivos / 236 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 370.25 kB y catálogo 153.40 kB.
+- F07 queda completada y `M08.1 — Tres ámbitos de tema` pasa a `EN_CURSO`.
+
+## Cierre M08.1 — Tres ámbitos de tema
+
+- `ThemeScopeSchema` declara editor/frontend/backend; el contrato de persistencia fija editor en `appearance.v1` y frontend/backend dentro de `ProjectStructure.themes`.
+- Las estructuras anteriores reciben defaults independientes mediante el schema, sin copiar el preset visual del editor al proyecto.
+- Cada tema de proyecto usa schema v1 y tokens semánticos estrictos para color, tipografía, espaciado, radios, sombras, movimiento y densidad.
+- `setProjectTheme` y `resetProjectTheme` validan entradas completas y las sesiones persisten cada cambio por `ProjectStructureCommand`, `ProjectCommandBus` e IndexedDB con undo/redo.
+- `compileThemeStyleTokens` alimenta el motor de estilos; `CanonicalProjectRenderer` usa frontend por defecto y admite backend explícito sin compartir tokens.
+- El store conserva snapshots granulares y emite cambios por ámbito, evitando invalidar nodos cuando el tema no cambia.
+- Ajustes de apariencia incorpora selector Editor/Frontend/Backend; editor conserva sus controles y los temas de salida ofrecen paleta, edición validada, aplicar y restablecer sin controles ficticios.
+- Puerta local: lint, typecheck, **57 archivos / 246 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 380.58 kB y catálogo 153.40 kB.
+
+## Cierre M08.2 — Presets visuales
+
+- `EDITOR_THEME_PRESETS` implementa High Density, Google Bento Grid, Minimal Clean, Elegant Editorial, Sophisticated Dark, SaaS Glassmorphism, Material Neutral, Neobrutalist Modern y Corporate Pro.
+- Cada preset del editor define claro/oscuro, tipografía, sombras, radios, densidad y gramática estructural mediante tokens; `appearance.v1` migra Studio/Bento/Flow a IDs canónicos.
+- `PROJECT_THEME_PRESETS` implementa Bento Grid, Minimal Clean, Elegant, Sophisticated Dark, High Density, Material, Glassmorphism, Neobrutalism, Corporate, Editorial y Dashboard técnico.
+- Cada preset de proyecto declara layout, componentes, bordes, elevación, perfil responsive y WCAG 2.2 AA; aplicar copia el tema al ámbito elegido sin tocar documentos ni breakpoints.
+- Frontend/backend permanecen independientes y editables después de aplicar; cada cambio usa el Command Bus e IndexedDB con undo/redo.
+- Los dos catálogos usan radiogroups con flechas, Home/End, foco roving y paletas visibles; no hay botones inertes ni valores visuales dispersos en JSX.
+- Pruebas automáticas validan contraste AA en 20 variantes de editor y 11 temas de proyecto, catálogo completo, migración, aplicación, persistencia y undo.
+- Puerta local: lint, typecheck, **59 archivos / 271 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 396.37 kB y catálogo 153.40 kB.
 
 ## Próximo paso exacto
 
-`M06.5 — UX de biblioteca`:
-
-- conservar el catálogo ya conectado a las 115 definiciones reales y su búsqueda;
-- implementar categorías, filtros, favoritos, recientes, miniaturas y widgets guardados;
-- insertar por clic y drag mediante el Command Bus, con alternativa completa sin arrastre;
-- persistir solo preferencias de biblioteca fuera del documento.
+`M08.3 — Motor de plantillas`: formalizar páginas, headers, footers, single, archive, 404, componentes globales y condiciones sobre el árbol canónico.
 
 ## Bloqueos
 
-- Ninguno para M06.5.
+- Ninguno para M08.3.
 - F19–F31 siguen deliberadamente pendientes de sus dependencias.
 
 ## Criterio para cambiar de microfase
@@ -197,6 +282,14 @@ No avanzar hasta cerrar la microfase activa con evidencia reproducible. La docum
 - M06.3: puerta local, 197/197 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
 - M06.4: puerta local, 206/206 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
 - Ajuste de alcance en M06.5: puerta local, 200/200 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M06.5: puerta local, 209/209 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M07.1: puerta local, 213/213 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M07.2: puerta local, 215/215 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M07.3: puerta local, 223/223 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M07.4: puerta local, 229/229 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M07.5: puerta local, 236/236 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M08.1: puerta local, 246/246 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
+- M08.2: puerta local, 271/271 pruebas, lint/typecheck/build y `git diff --check` verdes; publicación/CI aún no ejecutados.
 - Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
 ## Documentos de control

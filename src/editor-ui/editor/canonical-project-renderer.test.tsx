@@ -96,6 +96,64 @@ describe('CanonicalProjectRenderer', () => {
     expect(container.querySelector('[data-node-name="Países"]')).toHaveAttribute('data-node-locked', 'true')
   })
 
+  it('aplica clases, tokens y estados compilados con alcance por nodo', () => {
+    const structure = cloneStructure(TEST_PROJECT_STRUCTURE)
+    const targetId = findNodeId(structure, 'Header')
+    const document = structure.documents[TEST_DOCUMENT_ID]
+    if (!document) throw new Error('Falta documento de prueba.')
+    const node = document.nodes[targetId]
+    if (!node) throw new Error('Falta Header.')
+    node.styles = {
+      $classes: ['featured', 'card'],
+      $states: { hover: { backgroundColor: '#2563eb', color: '#ffffff' } },
+      borderRadius: { $token: 'radius.md' },
+      color: '#111827',
+    }
+    const { container } = render(
+      <CanonicalProjectRenderer breakpointId={breakpoint(0)} documentId={TEST_DOCUMENT_ID} renderWidget={diagnosticRenderer} store={new ProjectStructureRenderStore(structure)} />,
+    )
+
+    const frame = container.querySelector(`[data-node-id="${targetId}"]`)
+    expect(frame).toHaveClass('card', 'featured')
+    expect(frame).toHaveAttribute('data-style-scope', targetId)
+    expect(frame).toHaveStyle({ borderRadius: '10px', color: 'rgb(17, 24, 39)' })
+    expect(frame?.querySelector('style')).toHaveTextContent(`[data-style-scope="${targetId}"]:hover{background-color:#2563eb;color:#ffffff}`)
+  })
+
+  it('resuelve tokens y superficie desde el ámbito frontend o backend sin mezclarlos', () => {
+    const structure = cloneStructure(TEST_PROJECT_STRUCTURE)
+    const targetId = findNodeId(structure, 'Header')
+    const node = structure.documents[TEST_DOCUMENT_ID]?.nodes[targetId]
+    if (!node) throw new Error('Falta Header.')
+    node.styles = { backgroundColor: { $token: 'color.surface' }, color: { $token: 'color.primary' } }
+    structure.themes.frontend.name = 'Frontend test'
+    structure.themes.frontend.tokens.color.primary = '#7c3aed'
+    structure.themes.frontend.tokens.color.surface = '#faf5ff'
+    structure.themes.backend.name = 'Backend test'
+    structure.themes.backend.tokens.color.primary = '#be123c'
+    structure.themes.backend.tokens.color.surface = '#fff1f2'
+    const store = new ProjectStructureRenderStore(structure)
+    const { container, rerender } = render(<CanonicalProjectRenderer breakpointId={breakpoint(0)} documentId={TEST_DOCUMENT_ID} renderWidget={diagnosticRenderer} store={store} />)
+
+    const root = container.querySelector(`[data-canonical-document="${TEST_DOCUMENT_ID}"]`)
+    const frame = container.querySelector(`[data-node-id="${targetId}"]`)
+    expect(root).toHaveAttribute('data-project-theme-scope', 'frontend')
+    expect(root).toHaveAttribute('data-project-theme', 'Frontend test')
+    expect(frame).toHaveStyle({ backgroundColor: 'rgb(250, 245, 255)', color: 'rgb(124, 58, 237)' })
+
+    const updated = cloneStructure(store.structure)
+    updated.themes.frontend.name = 'Frontend actualizado'
+    updated.themes.frontend.tokens.color.primary = '#0f766e'
+    act(() => { expect(store.replaceStructure(updated).ok).toBe(true) })
+    expect(root).toHaveAttribute('data-project-theme', 'Frontend actualizado')
+    expect(frame).toHaveStyle({ color: 'rgb(15, 118, 110)' })
+
+    rerender(<CanonicalProjectRenderer breakpointId={breakpoint(0)} documentId={TEST_DOCUMENT_ID} renderWidget={diagnosticRenderer} store={store} themeScope="backend" />)
+    expect(root).toHaveAttribute('data-project-theme-scope', 'backend')
+    expect(root).toHaveAttribute('data-project-theme', 'Backend test')
+    expect(frame).toHaveStyle({ backgroundColor: 'rgb(255, 241, 242)', color: 'rgb(190, 18, 60)' })
+  })
+
   it('aísla el error de un nodo sin derribar ramas hermanas', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const store = new ProjectStructureRenderStore(TEST_PROJECT_STRUCTURE)
@@ -155,6 +213,41 @@ describe('CanonicalProjectRenderer', () => {
     expect(renderCounts.get(siblingId)).toBe(before.get(siblingId))
     expect(renderCounts.get(ancestorId)).toBe(before.get(ancestorId))
     expect(screen.getByText('Lectores')).toHaveAttribute('data-rendered-value', '13k')
+  })
+
+  it('resuelve bindings reactivos, condiciones de visibilidad y ARIA canónica', () => {
+    const structure = cloneStructure(TEST_PROJECT_STRUCTURE)
+    const targetId = findNodeId(structure, 'Lectores')
+    const sourceId = findNodeId(structure, 'Países')
+    const document = structure.documents[TEST_DOCUMENT_ID]
+    const target = document?.nodes[targetId]
+    if (!document || !target) throw new Error('Faltan nodos dinámicos.')
+    target.accessibility = { description: 'Dato actualizado', label: 'Total de lectores', role: 'region', tabIndex: 0 }
+    target.bindings = { value: { kind: 'node-property', nodeId: sourceId, path: ['properties', 'value'] } }
+    target.conditions = [{ negate: false, operator: 'all', predicates: [{ operator: 'exists', source: { kind: 'node-property', nodeId: sourceId, path: ['properties', 'value'] }, value: null }] }]
+    const store = new ProjectStructureRenderStore(structure)
+    const { container } = render(<CanonicalProjectRenderer breakpointId={breakpoint(0)} documentId={TEST_DOCUMENT_ID} renderWidget={diagnosticRenderer} store={store} />)
+
+    const frame = container.querySelector(`[data-node-id="${targetId}"]`)
+    expect(frame).toHaveAttribute('aria-label', 'Total de lectores')
+    expect(frame).toHaveAttribute('aria-description', 'Dato actualizado')
+    expect(frame).toHaveAttribute('role', 'region')
+    expect(frame).toHaveAttribute('tabindex', '0')
+    expect(screen.getByText('Lectores')).toHaveAttribute('data-rendered-value', '18')
+
+    const next = cloneStructure(store.structure)
+    const source = next.documents[TEST_DOCUMENT_ID]?.nodes[sourceId]
+    if (!source) throw new Error('Falta nodo fuente.')
+    source.properties = { ...source.properties, value: '12' }
+    act(() => { expect(store.replaceStructure(next).ok).toBe(true) })
+    expect(screen.getByText('Lectores')).toHaveAttribute('data-rendered-value', '12')
+
+    const hidden = cloneStructure(store.structure)
+    const hiddenTarget = hidden.documents[TEST_DOCUMENT_ID]?.nodes[targetId]
+    if (!hiddenTarget) throw new Error('Falta nodo destino.')
+    hiddenTarget.conditions = [{ negate: false, operator: 'all', predicates: [{ operator: 'equals', source: { kind: 'literal', value: false }, value: true }] }]
+    act(() => { expect(store.replaceStructure(hidden).ok).toBe(true) })
+    expect(container.querySelector(`[data-node-id="${targetId}"]`)).not.toBeInTheDocument()
   })
 
   it('rechaza estructuras inválidas sin reemplazar el snapshot vigente', () => {

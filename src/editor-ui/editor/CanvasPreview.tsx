@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Button, Icon } from '../primitives'
-import { DEFAULT_BREAKPOINTS, type BreakpointId, type NodeId } from '../../domain'
+import type { Breakpoint, BreakpointId, NodeId } from '../../domain'
 import { CanonicalProjectRenderer } from '../../renderers'
 import { DirectManipulationFrame } from './DirectManipulationFrame'
 import { DirectManipulationMenu } from './DirectManipulationMenu'
@@ -9,6 +9,8 @@ import { selectionBreadcrumbs } from './direct-manipulation-model'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId, useEditorSelection } from './editor-project-context'
 import { fitCanvas, stepCanvasZoom, updateCanvasPan } from './canvas-viewport'
 import { DEFAULT_CANVAS_WORKSPACE, type CanvasWorkspaceState } from './workspace-preferences'
+import { useWidgetLibraryCanvasDrop } from './widget-library-context'
+import { BreakpointManager } from './BreakpointManager'
 import './direct-manipulation.css'
 
 export type ViewportMode = 'desktop' | 'tablet' | 'mobile'
@@ -29,17 +31,19 @@ interface DeviceProfile {
   readonly width: number
 }
 
-const portraitProfiles: Record<ViewportMode, DeviceProfile> = {
-  desktop: { height: 720, width: 940 },
-  tablet: { height: 920, width: 700 },
-  mobile: { height: 844, width: 390 },
+function viewportModeForBreakpoint(breakpoint: Breakpoint): ViewportMode {
+  if (breakpoint.width <= 600) return 'mobile'
+  if (breakpoint.width <= 1100) return 'tablet'
+  return 'desktop'
 }
 
-function deviceProfile(viewport: ViewportMode, orientation: CanvasWorkspaceState['orientation']): DeviceProfile {
-  const profile = portraitProfiles[viewport]
-  return orientation === 'landscape' && viewport !== 'desktop'
-    ? { height: profile.width, width: profile.height }
-    : profile
+function deviceProfile(breakpoint: Breakpoint, orientation: CanvasWorkspaceState['orientation']): DeviceProfile {
+  const mode = viewportModeForBreakpoint(breakpoint)
+  const ratio = mode === 'mobile' ? 1.78 : mode === 'tablet' ? 1.31 : 1.6
+  return {
+    height: Math.round(breakpoint.width * (orientation === 'landscape' ? 1 / ratio : ratio)),
+    width: breakpoint.width,
+  }
 }
 
 const viewportLabels: Record<ViewportMode, string> = {
@@ -48,16 +52,11 @@ const viewportLabels: Record<ViewportMode, string> = {
   mobile: 'Móvil · 390',
 }
 
-function breakpointIdAt(index: number): BreakpointId {
-  const breakpoint = DEFAULT_BREAKPOINTS[index]
-  if (!breakpoint) throw new Error(`Falta el breakpoint predeterminado ${index}.`)
-  return breakpoint.id
-}
-
-const viewportBreakpoints: Record<ViewportMode, BreakpointId> = {
-  desktop: breakpointIdAt(0),
-  tablet: breakpointIdAt(3),
-  mobile: breakpointIdAt(4),
+function breakpointForViewport(breakpoints: readonly Breakpoint[], mode: ViewportMode): Breakpoint {
+  const match = breakpoints.find((item) => viewportModeForBreakpoint(item) === mode)
+  const fallback = match ?? breakpoints[0]
+  if (!fallback) throw new Error('El proyecto requiere al menos un breakpoint.')
+  return fallback
 }
 
 interface PanInteraction {
@@ -73,16 +72,20 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
   const structure = useEditorProjectStructure()
   const selection = useEditorSelection()
   const selectedNodeId = useEditorSelectedNodeId()
+  const { active: widgetDropActive, isOver: widgetDropIsOver, setNodeRef: setWidgetDropNodeRef } = useWidgetLibraryCanvasDrop()
   const [contextMenu, setContextMenu] = useState<{ readonly nodeId: NodeId; readonly position: MenuPosition } | null>(null)
   const [status, setStatus] = useState('')
   const [localCanvasWorkspace, setLocalCanvasWorkspace] = useState<CanvasWorkspaceState>(DEFAULT_CANVAS_WORKSPACE)
   const panInteractionRef = useRef<PanInteraction | null>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const canvasWorkspace = controlledCanvasWorkspace ?? localCanvasWorkspace
-  const isDevice = viewport !== 'desktop'
-  const profile = deviceProfile(viewport, canvasWorkspace.orientation)
+  const fallbackBreakpoint = breakpointForViewport(structure.breakpoints, viewport)
+  const activeBreakpoint = structure.breakpoints.find((item) => item.id === canvasWorkspace.breakpointId) ?? fallbackBreakpoint
+  const activeViewport = viewportModeForBreakpoint(activeBreakpoint)
+  const isDevice = activeViewport !== 'desktop'
+  const profile = deviceProfile(activeBreakpoint, canvasWorkspace.orientation)
   const scale = canvasWorkspace.zoom / 100
-  const breakpointId = viewportBreakpoints[viewport]
+  const breakpointId = activeBreakpoint.id
   const activeDocument = structure.documents[documentId]
   const breadcrumbs = useMemo(
     () => activeDocument ? selectionBreadcrumbs(activeDocument, selectedNodeId) : [],
@@ -102,8 +105,31 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
   }
 
   function changeViewport(mode: ViewportMode): void {
+    const nextBreakpoint = breakpointForViewport(structure.breakpoints, mode)
     onViewportChange(mode)
-    commitCanvasWorkspace({ ...canvasWorkspace, panX: 0, panY: 0, viewport: mode })
+    commitCanvasWorkspace({
+      ...canvasWorkspace,
+      breakpointId: nextBreakpoint.id,
+      orientation: nextBreakpoint.orientation === 'any' ? canvasWorkspace.orientation : nextBreakpoint.orientation,
+      panX: 0,
+      panY: 0,
+      viewport: mode,
+    })
+  }
+
+  function changeActiveBreakpoint(nextBreakpointId: BreakpointId): void {
+    const nextBreakpoint = structure.breakpoints.find((item) => item.id === nextBreakpointId)
+    if (!nextBreakpoint) return
+    const mode = viewportModeForBreakpoint(nextBreakpoint)
+    onViewportChange(mode)
+    commitCanvasWorkspace({
+      ...canvasWorkspace,
+      breakpointId: nextBreakpoint.id,
+      orientation: nextBreakpoint.orientation === 'any' ? canvasWorkspace.orientation : nextBreakpoint.orientation,
+      panX: 0,
+      panY: 0,
+      viewport: mode,
+    })
   }
 
   function focusEditorRegion(region: 'layers' | 'canvas' | 'inspector'): void {
@@ -220,6 +246,7 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
           {(['mobile', 'tablet', 'desktop'] as const).map((mode) => (
             <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors lg:size-8 ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} data-tooltip={viewportLabels[mode]} key={mode} onClick={() => changeViewport(mode)} type="button"><Icon name={mode} size={14} /></button>
           ))}
+          <BreakpointManager activeBreakpointId={breakpointId} onActiveBreakpointChange={changeActiveBreakpoint} />
           <button aria-label="Cambiar orientación del dispositivo" aria-pressed={canvasWorkspace.orientation === 'landscape'} className="grid size-11 cursor-pointer place-items-center rounded-md text-muted-foreground hover:bg-muted lg:size-8" data-tooltip="Rotar dispositivo" disabled={!isDevice} onClick={() => commitCanvasWorkspace({ ...canvasWorkspace, orientation: canvasWorkspace.orientation === 'portrait' ? 'landscape' : 'portrait', panX: 0, panY: 0 })} type="button"><Icon name="resize" size={14} /></button>
         </div>
 
@@ -252,11 +279,12 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
         role="region"
         tabIndex={0}
       >
-        <div className="relative mx-auto" data-canvas-pan-x={canvasWorkspace.panX} data-canvas-pan-y={canvasWorkspace.panY} data-canvas-zoom={canvasWorkspace.zoom} style={{ height: profile.height * scale, width: profile.width * scale }}>
+        <div className={`relative mx-auto rounded-xl transition-shadow motion-reduce:transition-none ${widgetDropIsOver ? 'ring-4 ring-primary ring-offset-2 ring-offset-canvas' : ''}`} data-canvas-pan-x={canvasWorkspace.panX} data-canvas-pan-y={canvasWorkspace.panY} data-canvas-zoom={canvasWorkspace.zoom} ref={setWidgetDropNodeRef} style={{ height: profile.height * scale, width: profile.width * scale }}>
+          {widgetDropActive ? <div aria-hidden="true" className={`pointer-events-none absolute inset-0 z-30 grid place-items-center rounded-xl border-2 border-dashed ${widgetDropIsOver ? 'border-primary bg-primary-soft/80 text-primary-strong' : 'border-border bg-canvas/55 text-muted-foreground'}`}><span className="rounded-md bg-surface/95 px-3 py-2 text-xs font-bold shadow-sm">{widgetDropIsOver ? 'Suelta para insertar' : 'Arrastra el widget sobre el canvas'}</span></div> : null}
           <div className="transition-transform duration-150 motion-reduce:transition-none" style={{ height: profile.height, transform: `translate(${canvasWorkspace.panX}px, ${canvasWorkspace.panY}px) scale(${scale})`, transformOrigin: 'top left', width: profile.width }}>
-          <div className={isDevice ? `relative mx-auto h-full w-full border-slate-950 bg-slate-950 p-2 shadow-[0_24px_55px_rgba(30,20,50,.28)] ${viewport === 'mobile' ? 'rounded-[2.75rem] border-[5px]' : 'rounded-[2rem] border-[4px]'}` : 'h-full w-full overflow-hidden rounded-xl border border-border bg-white shadow-lg'}>
-            {isDevice ? <div className={`absolute left-1/2 top-3 z-20 -translate-x-1/2 bg-slate-950 ${viewport === 'mobile' ? 'h-6 w-24 rounded-full' : 'h-2 w-16 rounded-full'}`} aria-hidden="true" /> : null}
-            <div className={`h-full overflow-auto bg-white text-slate-950 ${isDevice ? viewport === 'mobile' ? 'rounded-[2rem]' : 'rounded-[1.35rem]' : ''}`}>
+          <div className={isDevice ? `relative mx-auto h-full w-full border-slate-950 bg-slate-950 p-2 shadow-[0_24px_55px_rgba(30,20,50,.28)] ${activeViewport === 'mobile' ? 'rounded-[2.75rem] border-[5px]' : 'rounded-[2rem] border-[4px]'}` : 'h-full w-full overflow-hidden rounded-xl border border-border bg-white shadow-lg'}>
+            {isDevice ? <div className={`absolute left-1/2 top-3 z-20 -translate-x-1/2 bg-slate-950 ${activeViewport === 'mobile' ? 'h-6 w-24 rounded-full' : 'h-2 w-16 rounded-full'}`} aria-hidden="true" /> : null}
+            <div className={`h-full overflow-auto bg-white text-slate-950 ${isDevice ? activeViewport === 'mobile' ? 'rounded-[2rem]' : 'rounded-[1.35rem]' : ''}`}>
               {isDevice ? <div className="flex h-8 items-end justify-between px-5 pb-1 text-[0.625rem] font-bold"><span>9:41</span><span className="flex items-end gap-1" aria-label="Señal, wifi y batería"><span className="h-2 w-2 rounded-full bg-slate-900" /><span className="h-2 w-3 rounded-t-full border-2 border-b-0 border-slate-900" /><span className="h-2 w-4 rounded-sm border-2 border-slate-900" /></span></div> : null}
               <div className="relative pl-[18px] pt-[18px]">
                 <span aria-hidden="true" className="canvas-ruler canvas-ruler--horizontal" data-testid="canvas-horizontal-ruler" />
@@ -266,11 +294,11 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
                 </DirectManipulationContext>
               </div>
             </div>
-            {viewport === 'mobile' ? <div className="mx-auto mt-2 h-1 w-24 rounded-full bg-white/90" aria-hidden="true" /> : null}
+            {activeViewport === 'mobile' ? <div className="mx-auto mt-2 h-1 w-24 rounded-full bg-white/90" aria-hidden="true" /> : null}
           </div>
           </div>
         </div>
-        <div aria-live="polite" className="sticky bottom-0 mx-auto mt-1.5 flex w-fit items-center justify-center gap-1.5 rounded bg-canvas/90 px-2 py-0.5 text-center font-heading text-[0.625rem] text-muted-foreground"><span className="size-1.5 rounded-full bg-success" />{viewportLabels[viewport]} · {canvasWorkspace.orientation === 'landscape' ? 'Horizontal' : 'Vertical'} · {canvasWorkspace.zoom}%</div>
+        <div aria-live="polite" className="sticky bottom-0 mx-auto mt-1.5 flex w-fit items-center justify-center gap-1.5 rounded bg-canvas/90 px-2 py-0.5 text-center font-heading text-[0.625rem] text-muted-foreground"><span className="size-1.5 rounded-full bg-success" />{activeBreakpoint.name} · {activeBreakpoint.width}px · {canvasWorkspace.orientation === 'landscape' ? 'Horizontal' : 'Vertical'} · {canvasWorkspace.zoom}%</div>
       </div>
       {contextMenu ? (
         <DirectManipulationMenu

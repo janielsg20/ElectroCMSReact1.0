@@ -1,12 +1,13 @@
-import { failure, moveNodes, parseProjectHistoryEntryId, parseProjectId, parseTimestamp, ProjectStructureSchema, resizeNode, success, updateNodeSpacing, type BreakpointId, type NodeId, type NodePlacement, type NodeSize, type NodeSpacing, type ProjectId, type ProjectRecord, type ProjectStructure, type Result } from './domain'
+import { createBreakpoint, createCompleteWidgetRegistry, editableVisualStyles, failure, insertNode, mergeEditableVisualStyles, moveNodes, parseBreakpointId, parseNodeId, parseProjectHistoryEntryId, parseProjectId, parseTimestamp, ProjectStructureSchema, reorderBreakpoint, resetNodeBreakpointOverride, resetProjectTheme, resizeNode, resolveNodeDataState, setNodeDataSettings, setNodeProperties, setNodeStyles, setProjectTheme, success, updateBreakpoint, updateNodeSpacing, type BreakpointId, type BreakpointInput, type BreakpointPatch, type JsonValue, type Node, type NodeDataSettings, type NodeId, type NodePlacement, type NodeSize, type NodeSpacing, type ProjectId, type ProjectRecord, type ProjectStructure, type ProjectTheme, type ProjectThemeScope, type Result } from './domain'
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import { createProjectHistoryRepository, createProjectRecordRepository, ElectroCmsLocalDatabase } from './infrastructure'
 import { ProjectStructureRenderStore } from './renderers'
 import { STARTER_DOCUMENT_ID, STARTER_PROJECT_STRUCTURE, STARTER_SELECTED_NODE_ID } from './editor-ui/editor/starter-project-structure'
-import type { EditorProjectSession } from './editor-ui/editor/editor-project-context'
+import type { BreakpointCreationResult, EditorProjectSession, WidgetInsertionResult, WidgetInsertionTemplate } from './editor-ui/editor/editor-project-context'
 
 const EDITOR_PROJECT_ID = parseProjectId('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1')
 const EDITOR_DATABASE_NAME = 'electrocms-editor-project-v2'
+const widgetRegistry = createCompleteWidgetRegistry()
 
 function now() {
   return parseTimestamp(new Date().toISOString())
@@ -43,17 +44,64 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   readonly documentId = STARTER_DOCUMENT_ID
   readonly initialSelectedNodeId = STARTER_SELECTED_NODE_ID
   readonly store = new ProjectStructureRenderStore(STARTER_PROJECT_STRUCTURE)
-  readonly #database = new ElectroCmsLocalDatabase(EDITOR_DATABASE_NAME)
-  readonly #projects = createProjectRecordRepository(this.#database, ProjectStructureSchema)
-  readonly #histories = createProjectHistoryRepository(this.#database, ProjectStructureSchema)
-  readonly #bus = new ProjectCommandBus(this.#projects, this.#histories, ProjectStructureSchema, {
-    createHistoryEntryId: () => parseProjectHistoryEntryId(crypto.randomUUID()),
-    now,
-  })
+  readonly #database: ElectroCmsLocalDatabase
+  readonly #projects: ReturnType<typeof createProjectRecordRepository<ProjectStructure>>
+  readonly #histories: ReturnType<typeof createProjectHistoryRepository<ProjectStructure>>
+  readonly #bus: ProjectCommandBus<ProjectStructure>
   readonly #ready: Promise<Result<void, string>>
 
-  constructor() {
+  constructor(databaseName = EDITOR_DATABASE_NAME) {
+    this.#database = new ElectroCmsLocalDatabase(databaseName)
+    this.#projects = createProjectRecordRepository(this.#database, ProjectStructureSchema)
+    this.#histories = createProjectHistoryRepository(this.#database, ProjectStructureSchema)
+    this.#bus = new ProjectCommandBus(this.#projects, this.#histories, ProjectStructureSchema, {
+      createHistoryEntryId: () => parseProjectHistoryEntryId(crypto.randomUUID()),
+      now,
+    })
     this.#ready = this.#initialize()
+  }
+
+  async createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>> {
+    const breakpointId = parseBreakpointId(crypto.randomUUID())
+    const created = await this.#execute(new ProjectStructureCommand(
+      'responsive.create-breakpoint',
+      `Crear breakpoint ${input.name}`,
+      (structure) => createBreakpoint(structure, breakpointId, input, index),
+    ))
+    return created.ok ? success({ breakpointId, structure: created.value }) : created
+  }
+
+  async insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template: WidgetInsertionTemplate = {}): Promise<Result<WidgetInsertionResult, string>> {
+    const ready = await this.#ready
+    if (!ready.ok) return ready
+    const definition = widgetRegistry.get(widgetType)
+    if (!definition) return failure(`El widget ${widgetType} no está registrado.`)
+    const properties = { ...structuredClone(definition.defaults), ...structuredClone(template.properties ?? {}) }
+    const validatedProperties = definition.propertySchema.safeParse(properties)
+    if (!validatedProperties.success) return failure(`El preset de ${definition.label} contiene propiedades inválidas.`)
+
+    const nodeId = parseNodeId(crypto.randomUUID())
+    const node: Node = {
+      bindings: {},
+      conditions: [],
+      hidden: false,
+      id: nodeId,
+      kind: 'widget',
+      locked: false,
+      name: template.name?.trim() || definition.label,
+      properties: validatedProperties.data,
+      responsive: structuredClone(template.responsive ?? {}),
+      slots: {},
+      styles: structuredClone(template.styles ?? {}),
+      widgetType,
+    }
+    const placement = this.#insertionPlacement(anchorNodeId ?? null)
+    const inserted = await this.#execute(new ProjectStructureCommand(
+      'tree.insert-widget',
+      `Insertar ${definition.label}`,
+      (structure) => insertNode(structure, { documentId: this.documentId, kind: 'document' }, node, placement),
+    ))
+    return inserted.ok ? success({ nodeId, structure: inserted.value }) : inserted
   }
 
   async moveNodes(nodeIds: readonly NodeId[], placement: NodePlacement): Promise<Result<ProjectStructure, string>> {
@@ -66,6 +114,58 @@ class BrowserEditorProjectSession implements EditorProjectSession {
         nodeIds,
         placement,
       ),
+    ))
+  }
+
+  async reorderBreakpoint(breakpointId: BreakpointId, targetIndex: number): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'responsive.reorder-breakpoint',
+      'Reordenar breakpoint',
+      (structure) => reorderBreakpoint(structure, breakpointId, targetIndex),
+    ))
+  }
+
+  async resetNodeBreakpointOverride(nodeId: NodeId, breakpointId: BreakpointId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'responsive.reset-node-override',
+      'Restablecer override responsive',
+      (structure) => resetNodeBreakpointOverride(
+        structure,
+        { documentId: this.documentId, kind: 'document' },
+        nodeId,
+        breakpointId,
+      ),
+    ))
+  }
+
+  async resetNodeDataSettings(nodeId: NodeId): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateNodeDataSettings(nodeId, { accessibility: {}, bindings: {}, conditions: [] }, true)
+  }
+
+  async updateWidgetProperty(nodeId: NodeId, key: string, value: JsonValue): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateWidgetProperty(nodeId, key, value, false)
+  }
+
+  async resetWidgetProperty(nodeId: NodeId, key: string): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateWidgetProperty(nodeId, key, undefined, true)
+  }
+
+  async updateNodeVisualStyles(nodeId: NodeId, styles: Readonly<Record<string, JsonValue>>): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateNodeVisualStyles(nodeId, styles)
+  }
+
+  async resetNodeVisualStyles(nodeId: NodeId): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateNodeVisualStyles(nodeId, {})
+  }
+
+  async resetProjectTheme(scope: ProjectThemeScope): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      `theme.reset-${scope}`,
+      `Restablecer tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
+      (structure) => {
+        const reset = resetProjectTheme(structure, scope)
+        return reset.ok ? reset : failure({ code: 'invalid-theme' as const, message: reset.error[0]?.message ?? 'El tema no es válido.' })
+      },
     ))
   }
 
@@ -90,6 +190,29 @@ class BrowserEditorProjectSession implements EditorProjectSession {
         nodeId,
         owner: { documentId: this.documentId, kind: 'document' },
       }, spacing),
+    ))
+  }
+
+  async updateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings): Promise<Result<ProjectStructure, string>> {
+    return this.#mutateNodeDataSettings(nodeId, settings, false)
+  }
+
+  async updateProjectTheme(scope: ProjectThemeScope, theme: ProjectTheme): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      `theme.update-${scope}`,
+      `Editar tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
+      (structure) => {
+        const updated = setProjectTheme(structure, scope, theme)
+        return updated.ok ? updated : failure({ code: 'invalid-theme' as const, message: updated.error[0]?.message ?? 'El tema no es válido.' })
+      },
+    ))
+  }
+
+  async updateBreakpoint(breakpointId: BreakpointId, patch: BreakpointPatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'responsive.update-breakpoint',
+      'Editar breakpoint',
+      (structure) => updateBreakpoint(structure, breakpointId, patch),
     ))
   }
 
@@ -128,6 +251,101 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return replaced.ok ? success(replaced.value) : failure('El comando persistido no pudo publicarse en el renderer.')
   }
 
+  #insertionPlacement(anchorNodeId: NodeId | null): NodePlacement {
+    const document = this.store.structure.documents[this.documentId]
+    if (!document) return { index: 0, parentId: null, slot: null }
+    if (!anchorNodeId) return { index: document.rootNodeIds.length, parentId: null, slot: null }
+    const anchor = document.nodes[anchorNodeId]
+    if (!anchor) return { index: document.rootNodeIds.length, parentId: null, slot: null }
+    const anchorDefinition = anchor.kind === 'widget' ? widgetRegistry.get(anchor.widgetType) : undefined
+    if (anchor.kind === 'widget' && anchorDefinition?.category === 'structure' && !anchor.locked) {
+      const slot = Object.keys(anchor.slots)[0] ?? 'content'
+      return { index: anchor.slots[slot]?.length ?? 0, parentId: anchor.id, slot }
+    }
+    const rootIndex = document.rootNodeIds.indexOf(anchor.id)
+    if (rootIndex >= 0) return { index: rootIndex + 1, parentId: null, slot: null }
+    for (const parent of Object.values(document.nodes)) {
+      for (const [slot, children] of Object.entries(parent.slots)) {
+        const index = children.indexOf(anchor.id)
+        if (index >= 0) return { index: index + 1, parentId: parent.id, slot }
+      }
+    }
+    return { index: document.rootNodeIds.length, parentId: null, slot: null }
+  }
+
+  async #mutateWidgetProperty(nodeId: NodeId, key: string, value: JsonValue | undefined, reset: boolean): Promise<Result<ProjectStructure, string>> {
+    const ready = await this.#ready
+    if (!ready.ok) return ready
+    const document = this.store.structure.documents[this.documentId]
+    const node = document?.nodes[nodeId]
+    if (!node || node.kind !== 'widget') return failure('El nodo seleccionado no es un widget editable.')
+    if (node.locked) return failure('El nodo está bloqueado.')
+    const definition = widgetRegistry.get(node.widgetType)
+    if (!definition) return failure(`El widget ${node.widgetType} no está registrado.`)
+    if (!definition.inspector.some((field) => field.key === key)) return failure(`La propiedad ${key} no está declarada en el inspector.`)
+    const properties = structuredClone(node.properties)
+    if (reset) delete properties[key]
+    else if (value !== undefined) properties[key] = value
+    const effective = { ...structuredClone(definition.defaults), ...properties }
+    const validated = definition.propertySchema.safeParse(effective)
+    if (!validated.success) {
+      const issue = validated.error.issues.find((candidate) => candidate.path[0] === key) ?? validated.error.issues[0]
+      return failure(issue?.message ?? `La propiedad ${key} no es válida.`)
+    }
+    return this.#execute(new ProjectStructureCommand(
+      reset ? 'inspector.reset-property' : 'inspector.update-property',
+      reset ? `Restablecer ${key}` : `Editar ${key}`,
+      (structure) => setNodeProperties(structure, { documentId: this.documentId, kind: 'document' }, nodeId, properties),
+    ))
+  }
+
+  async #mutateNodeVisualStyles(nodeId: NodeId, styles: Readonly<Record<string, JsonValue>>): Promise<Result<ProjectStructure, string>> {
+    const ready = await this.#ready
+    if (!ready.ok) return ready
+    const document = this.store.structure.documents[this.documentId]
+    const node = document?.nodes[nodeId]
+    if (!node) return failure('El nodo seleccionado no existe.')
+    if (node.locked) return failure('El nodo está bloqueado.')
+    const merged = mergeEditableVisualStyles(node.styles, styles)
+    return this.#execute(new ProjectStructureCommand(
+      Object.keys(editableVisualStyles(merged)).length === 0 ? 'inspector.reset-styles' : 'inspector.update-styles',
+      Object.keys(editableVisualStyles(merged)).length === 0 ? 'Restablecer estilos visuales' : 'Editar estilos visuales',
+      (structure) => setNodeStyles(structure, { documentId: this.documentId, kind: 'document' }, nodeId, merged),
+    ))
+  }
+
+  async #mutateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings, reset: boolean): Promise<Result<ProjectStructure, string>> {
+    const ready = await this.#ready
+    if (!ready.ok) return ready
+    const node = this.store.structure.documents[this.documentId]?.nodes[nodeId]
+    if (!node) return failure('El nodo seleccionado no existe.')
+    if (node.locked) return failure('El nodo está bloqueado.')
+    if (node.kind === 'widget') {
+      const definition = widgetRegistry.get(node.widgetType)
+      const declaredKeys = new Set(definition?.inspector.map((field) => field.key) ?? [])
+      const unknownBinding = Object.keys(settings.bindings).find((key) => !declaredKeys.has(key))
+      if (unknownBinding) return failure(`El binding ${unknownBinding} no corresponde a una propiedad declarada del widget.`)
+      if (definition) {
+        const prospectiveNode = { ...node, accessibility: settings.accessibility, bindings: settings.bindings, conditions: settings.conditions }
+        const resolved = resolveNodeDataState(this.store.structure, prospectiveNode, node.properties)
+        if (resolved.diagnostics.length === 0) {
+          const properties = definition.propertySchema.safeParse({ ...definition.defaults, ...resolved.properties })
+          if (!properties.success) return failure(properties.error.issues[0]?.message ?? 'Los bindings no producen propiedades válidas.')
+        }
+      }
+    }
+    return this.#execute(new ProjectStructureCommand(
+      reset ? 'inspector.reset-data-settings' : 'inspector.update-data-settings',
+      reset ? 'Restablecer datos y accesibilidad' : 'Editar datos y accesibilidad',
+      (structure) => setNodeDataSettings(
+        structure,
+        { documentId: this.documentId, kind: 'document' },
+        nodeId,
+        settings,
+      ),
+    ))
+  }
+
   async #execute(command: ProjectStructureCommand): Promise<Result<ProjectStructure, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
@@ -137,6 +355,6 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   }
 }
 
-export function createBrowserEditorProjectSession(): EditorProjectSession {
-  return new BrowserEditorProjectSession()
+export function createBrowserEditorProjectSession(databaseName = EDITOR_DATABASE_NAME): EditorProjectSession {
+  return new BrowserEditorProjectSession(databaseName)
 }

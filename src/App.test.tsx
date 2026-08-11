@@ -181,44 +181,49 @@ describe('App', () => {
     expect(screen.getAllByText('Página inicial').length).toBeGreaterThan(0)
     expect(screen.getByRole('treeitem', { name: /contenedor/i })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toHaveTextContent('Contenedor')
-    expect(screen.getByRole('heading', { name: /propiedades canónicas/i })).toBeInTheDocument()
+    const inspector = screen.getByRole('complementary', { name: /inspector de propiedades/i })
+    expect(within(inspector).getByText('Ancho máximo')).toBeInTheDocument()
+    expect(within(inspector).getByTestId('generated-inspector-sections')).toBeInTheDocument()
   })
 
-  it('aplica el tema Bento Motion desde los ajustes del header sin sustituir Studio', () => {
+  it('aplica Google Bento Grid sin sustituir High Density', () => {
     render(<App />)
 
     const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
-    expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density')
     fireEvent.click(settings)
 
     const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
-    expect(within(appearance).getByRole('radio', { name: /studio/i })).toHaveAttribute('aria-checked', 'true')
-    const bento = within(appearance).getByRole('radio', { name: /bento motion/i })
+    expect(within(appearance).getByRole('radio', { name: /high density/i })).toHaveAttribute('aria-checked', 'true')
+    const bento = within(appearance).getByRole('radio', { name: /google bento grid/i })
     expect(bento).toHaveAttribute('aria-checked', 'false')
     fireEvent.click(bento)
 
     expect(document.documentElement).toHaveAttribute('data-ui-theme', 'bento')
+    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'google-bento-grid')
     expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()
     expect(settings).toHaveAttribute('aria-expanded', 'false')
 
     fireEvent.click(settings)
     const reopened = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
-    expect(within(reopened).getByRole('radio', { name: /bento motion/i })).toHaveAttribute('aria-checked', 'true')
-    fireEvent.click(within(reopened).getByRole('radio', { name: /studio/i }))
+    expect(within(reopened).getByRole('radio', { name: /google bento grid/i })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(within(reopened).getByRole('radio', { name: /high density/i }))
     expect(document.documentElement).toHaveAttribute('data-ui-theme', 'studio')
+    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density')
   })
 
-  it('aplica Flow Builder como tema independiente', () => {
+  it('aplica Minimal Clean como tema independiente', () => {
     render(<App />)
 
     const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
     fireEvent.click(settings)
     const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
-    const flow = within(appearance).getByRole('radio', { name: /flow builder/i })
+    const flow = within(appearance).getByRole('radio', { name: /minimal clean/i })
     expect(flow).toHaveAttribute('aria-checked', 'false')
     fireEvent.click(flow)
 
     expect(document.documentElement).toHaveAttribute('data-ui-theme', 'flow')
+    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'minimal-clean')
     expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()
     expect(settings).toHaveAttribute('aria-expanded', 'false')
   })
@@ -229,10 +234,10 @@ describe('App', () => {
     const settings = screen.getByRole('button', { name: /ajustes de apariencia/i })
     fireEvent.click(settings)
     const appearance = screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
-    const studio = within(appearance).getByRole('radio', { name: /studio/i })
+    const studio = within(appearance).getByRole('radio', { name: /high density/i })
     fireEvent.keyDown(studio, { key: 'ArrowRight' })
     expect(document.documentElement).toHaveAttribute('data-ui-theme', 'bento')
-    expect(within(appearance).getByRole('radio', { name: /bento motion/i })).toHaveFocus()
+    expect(within(appearance).getByRole('radio', { name: /google bento grid/i })).toHaveFocus()
     fireEvent.keyDown(appearance, { key: 'Escape' })
 
     expect(screen.queryByRole('dialog', { name: /apariencia de la interfaz/i })).not.toBeInTheDocument()

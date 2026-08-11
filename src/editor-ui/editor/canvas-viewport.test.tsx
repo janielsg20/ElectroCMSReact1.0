@@ -23,14 +23,27 @@ function session() {
   const store = new ProjectStructureRenderStore(TEST_PROJECT_STRUCTURE)
   const result = () => Promise.resolve(success(store.structure))
   return {
+    createBreakpoint: () => Promise.resolve(success({ breakpointId: store.structure.breakpoints[0].id, structure: store.structure })),
     documentId: TEST_DOCUMENT_ID,
     initialSelectedNodeId: TEST_SELECTED_NODE_ID,
+    insertWidget: () => Promise.resolve(success({ nodeId: TEST_SELECTED_NODE_ID, structure: store.structure })),
     moveNodes: vi.fn<(_nodeIds: readonly NodeId[], _placement: NodePlacement) => Promise<ReturnType<typeof success<ProjectStructure>>>>(result),
+    reorderBreakpoint: result,
     redo: result,
+    resetNodeVisualStyles: result,
+    resetProjectTheme: result,
+    resetNodeBreakpointOverride: result,
+    resetNodeDataSettings: result,
+    resetWidgetProperty: result,
     resizeNode: result,
     store,
     undo: result,
     updateNodeSpacing: result,
+    updateNodeDataSettings: result,
+    updateBreakpoint: result,
+    updateNodeVisualStyles: result,
+    updateProjectTheme: result,
+    updateWidgetProperty: result,
   }
 }
 

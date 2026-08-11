@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { BreakpointIdSchema, type BreakpointId } from '../../domain/project/identity'
 import type { DockSide, PanelBounds, PanelMode, WorkspacePanel } from './PanelWindow'
 
 const WorkspacePanelSchema = z.enum(['library', 'inspector'])
@@ -20,6 +21,7 @@ const WorkspacePanelStateSchema = z.strictObject({
 })
 
 export const DEFAULT_CANVAS_WORKSPACE = {
+  breakpointId: null,
   orientation: 'portrait',
   panX: 0,
   panY: 0,
@@ -29,6 +31,7 @@ export const DEFAULT_CANVAS_WORKSPACE = {
 } as const satisfies CanvasWorkspaceState
 
 const CanvasWorkspaceStateSchema = z.strictObject({
+  breakpointId: BreakpointIdSchema.nullable().default(null),
   orientation: z.enum(['portrait', 'landscape']),
   panX: z.number().finite().min(-2000).max(2000),
   panY: z.number().finite().min(-2000).max(2000),
@@ -51,6 +54,7 @@ export interface WorkspacePanelState {
 export type WorkspaceState = Record<WorkspacePanel, WorkspacePanelState>
 
 export interface CanvasWorkspaceState {
+  readonly breakpointId: BreakpointId | null
   readonly orientation: 'portrait' | 'landscape'
   readonly panX: number
   readonly panY: number
