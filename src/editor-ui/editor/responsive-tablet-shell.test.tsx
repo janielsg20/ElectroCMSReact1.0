@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { App } from '../../App'
 import { EDITOR_WORKSPACE_PREFERENCES_KEY } from './workspace-preferences'
@@ -29,9 +29,10 @@ describe('M04.2 shell tablet', () => {
     render(<App />)
 
     const persistent = await screen.findByRole('complementary', { name: /panel contextual persistente de tablet/i })
+    const persistentControls = within(persistent)
     expect(persistent).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Capas' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Props' })).toHaveAttribute('aria-pressed', 'false')
+    expect(persistentControls.getByRole('button', { name: 'Capas' })).toHaveAttribute('aria-pressed', 'true')
+    expect(persistentControls.getByRole('button', { name: 'Props' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
     expect(document.querySelector('[data-tablet-shell="active"]')).toBeInTheDocument()
   })
@@ -54,12 +55,14 @@ describe('M04.2 shell tablet', () => {
   it('permite fijar el secundario como único panel persistente', async () => {
     render(<App />)
 
+    const persistent = await screen.findByRole('complementary', { name: /panel contextual persistente de tablet/i })
     fireEvent.click(await screen.findByRole('button', { name: /abrir inspector como panel secundario/i }))
     fireEvent.click(await screen.findByRole('button', { name: /fijar inspector como panel persistente/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(screen.getByRole('button', { name: 'Props' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Capas' })).toHaveAttribute('aria-pressed', 'false')
+    const persistentControls = within(persistent)
+    expect(persistentControls.getByRole('button', { name: 'Props' })).toHaveAttribute('aria-pressed', 'true')
+    expect(persistentControls.getByRole('button', { name: 'Capas' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: /abrir páginas y capas como panel secundario/i })).toBeInTheDocument()
   })
 
@@ -73,7 +76,7 @@ describe('M04.2 shell tablet', () => {
     const separator = await screen.findByRole('separator', { name: /redimensionar inspector secundario/i })
     expect(separator).toHaveAttribute('aria-valuenow', '320')
     fireEvent.keyDown(separator, { key: 'ArrowLeft' })
-    expect(separator).toHaveAttribute('aria-valuenow', '336')
+    await waitFor(() => expect(separator).toHaveAttribute('aria-valuenow', '336'))
 
     expect(window.localStorage.getItem(EDITOR_WORKSPACE_PREFERENCES_KEY)).toBe(before)
   })
