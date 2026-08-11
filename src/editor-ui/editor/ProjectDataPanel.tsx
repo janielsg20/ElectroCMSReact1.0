@@ -8,7 +8,7 @@ export function ProjectDataPanel() {
   const [activeTab, setActiveTab] = useState<DataTab>('content-types')
 
   return (
-    <div className="flex min-h-0 h-full flex-col bg-surface">
+    <div className="flex h-full min-h-0 flex-col bg-surface">
       <div aria-label="Datos del proyecto" className="grid shrink-0 grid-cols-2 gap-0.5 border-b border-border bg-muted/40 p-1" role="tablist">
         <button
           aria-controls="project-data-content-types"
@@ -36,7 +36,8 @@ export function ProjectDataPanel() {
 
       <div
         aria-labelledby="project-data-tab-content-types"
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${activeTab === 'content-types' ? '' : 'hidden'}`}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        hidden={activeTab !== 'content-types'}
         id="project-data-content-types"
         role="tabpanel"
       >
@@ -44,7 +45,8 @@ export function ProjectDataPanel() {
       </div>
       <div
         aria-labelledby="project-data-tab-taxonomies"
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${activeTab === 'taxonomies' ? '' : 'hidden'}`}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        hidden={activeTab !== 'taxonomies'}
         id="project-data-taxonomies"
         role="tabpanel"
       >
