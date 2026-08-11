@@ -2,10 +2,15 @@
 
 ## 2026-08-10
 
+- Ejecutada una nueva auditoría de integridad UI/UX del shell desde navegación hasta inspector para corregir incoherencias de selección, tamaños, estados, affordance, legibilidad y overrides entre temas.
+- Corregido el sidebar principal con estado activo persistente y claramente distinguible en Studio, Bento Motion y Flow Builder; filas compactas aumentadas a 36 px en desktop y 44 px en superficies touch, con iconos y foco más legibles.
+- Páginas y Árbol de widgets ahora actualizan selección real al hacer clic; el Inspector sustituye dropdowns falsos por `select` nativos y hace funcionales la matriz de alineación y el estado de vinculado de padding.
+- Controles futuros que antes parecían clicables sin comportamiento se marcan explícitamente como deshabilitados/planificados en topbar, biblioteca, inspector y canvas.
+- Añadida `src/ui-integrity-v11.css` como guardrail final cross-theme para selected/focus states, tamaños mínimos, microcopy, overflow y reducción de movimiento; la consolidación estructural de las capas CSS sigue reservada a las fases propietarias y no cambia `F03 / M03.4`.
 - Añadido `FLUTTERFLOW_PARITY_ADDENDUM.md` como ampliación normativa no destructiva del Prompt Maestro para cubrir capacidades de visual app builder equivalentes en alcance a FlutterFlow mediante arquitectura propia de ElectroCMS.
 - Restauradas y preservadas íntegramente las 33 secciones originales de `PROMPT_MAESTRO_ELECTROCMS.md` y añadida la nueva sección 34 que incorpora el Addendum sin sustituir requisitos previos.
 - Ampliado `PHASES.md` con F19–F31 y `DETAILED_EXECUTION_PHASES.md` con M19.1–M31.8 para Visual Builder avanzado, Component/Design System, Data/State, Action Flow, Database/API/Auth, Custom Code, Test/Debug, Versioning/Collaboration, AI Builder y Deployment.
-- Actualizados `REQUIREMENTS.md`, `RULES.md`, `AGENTS.md`, `README.md`, `MEMORY.md` y `TRACKING.md` para hacer trazable el nuevo alcance y evitar que una IA futura salte la microfase activa.
+- Actualizados `REQUIREMENTS.md`, `RULES.md`, `AGENTS.md`, `README.md` y `MEMORY.md` para hacer trazable el nuevo alcance y evitar que una IA futura salte la microfase activa.
 - La fase activa permanece `F03 / M03.4 — Command bus e historial`; F19–F31 se registran `NO_INICIADA` y su documentación no se considera implementación.
 - Introducida la clasificación `PARITY_GAP` para capacidades futuras faltantes, con obligación de fase propietaria, arquitectura, criterios de aceptación y pruebas.
 - Añadido `Bento Motion` como segundo tema seleccionable desde Ajustes de apariencia en el header, conservando intacto el tema Studio.
