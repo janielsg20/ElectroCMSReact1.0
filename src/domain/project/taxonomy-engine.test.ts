@@ -64,7 +64,12 @@ function taxonomy(id = taxonomyId, slug = 'category'): Taxonomy {
   }
 }
 
-function term(id: typeof parentTermId, name: string, slug: string, parentId: typeof parentTermId | typeof childTermId | null = null): TaxonomyTerm {
+function term(
+  id: typeof parentTermId,
+  name: string,
+  slug: string,
+  parentId: TaxonomyTerm['parentId'] = null,
+): TaxonomyTerm {
   return {
     id,
     name,
