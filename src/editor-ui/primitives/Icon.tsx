@@ -8,6 +8,7 @@ export type IconName =
   | 'columns'
   | 'content'
   | 'cursor'
+  | 'database'
   | 'desktop'
   | 'dock-left'
   | 'dock-right'
@@ -59,6 +60,7 @@ const paths: Record<IconName, string> = {
   columns: 'M4 5h16v14H4zM12 5v14',
   content: 'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5',
   cursor: 'm5 3 12 9-6 1-3 6z',
+  database: 'M4 6c0 1.7 3.6 3 8 3s8-1.3 8-3-3.6-3-8-3-8 1.3-8 3zm0 0v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6',
   desktop: 'M3 5h18v12H3zM8 21h8M12 17v4',
   'dock-left': 'M3 4h18v16H3zM9 4v16M5.5 8h1M5.5 12h1M5.5 16h1',
   'dock-right': 'M3 4h18v16H3zM15 4v16M17.5 8h1M17.5 12h1M17.5 16h1',
@@ -79,7 +81,7 @@ const paths: Record<IconName, string> = {
   pin: 'm9 3 6 6-2 2 3 3-2 2-3-3-4 4-1-1 4-4-3-3zM5 19l-2 2',
   play: 'm8 5 11 7-11 7z',
   plus: 'M12 5v14M5 12h14',
-  redo: 'M20 7h-7a6 6 0 0 0-6 6v4m13-10-4-4m4 4-4 4',
+  redo: 'M20 7h-7a6 6 0 0 0-6 6v4m13-10-4-4m4 4-4 4 4',
   resize: 'M8 20 20 8M14 20l6-6M18 20l2-2',
   search: 'm21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z',
   settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4.9 4.9l2 2M17.1 17.1l2 2M19.1 4.9l-2 2M6.9 17.1l-2 2M2 12h3M19 12h3M12 2v3M12 19v3',
