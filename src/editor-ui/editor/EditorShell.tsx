@@ -4,23 +4,17 @@ import { CanvasPreview, type ViewportMode } from './CanvasPreview'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
 import { MobileDock, type MobilePanel } from './MobileDock'
-import { PanelWindow, type DockSide, type PanelBounds, type PanelMode, type WorkspacePanel } from './PanelWindow'
+import { PanelWindow, type DockSide, type PanelBounds, type WorkspacePanel } from './PanelWindow'
 import { ProductDemoView } from './ProductDemoView'
 import { TopBar, type UiTheme } from './TopBar'
 import { navigationItems, type NavigationSectionId } from './editor-data'
+import {
+  BrowserWorkspacePreferencesStore,
+  EDITOR_WORKSPACE_PREFERENCES_VERSION,
+  type WorkspacePanelState,
+  type WorkspaceState,
+} from './workspace-preferences'
 import { Button, Icon } from '../primitives'
-
-type RestorableMode = 'docked' | 'floating'
-
-interface WorkspacePanelState {
-  readonly mode: PanelMode
-  readonly restoreMode: RestorableMode
-  readonly dockSide: Exclude<DockSide, 'rail'>
-  readonly pinned: boolean
-  readonly bounds: PanelBounds
-}
-
-type WorkspaceState = Record<WorkspacePanel, WorkspacePanelState>
 
 type PointerInteraction =
   | { readonly kind: 'nav-resize'; readonly startX: number; readonly startWidth: number }
@@ -62,6 +56,18 @@ function clamp(value: number, min: number, max: number): number {
 
 function clampPanelWidth(panel: WorkspacePanel, width: number): number {
   return clamp(width, panelLimits[panel].min, panelLimits[panel].max)
+}
+
+function fitBoundsToViewport(panel: WorkspacePanel, bounds: PanelBounds, railWidth: number, viewportWidth: number, viewportHeight: number): PanelBounds {
+  const { minWidth, minHeight } = floatingLimits[panel]
+  const width = clamp(bounds.width, minWidth, viewportWidth - 64)
+  const height = clamp(bounds.height, minHeight, viewportHeight - 80)
+  return {
+    width,
+    height,
+    x: clamp(bounds.x, railWidth + 8, viewportWidth - width - 8),
+    y: clamp(bounds.y, 44, viewportHeight - height - 28),
+  }
 }
 
 function dockWorkspace(current: WorkspaceState, panel: WorkspacePanel, target: DockSide): WorkspaceState {
@@ -111,14 +117,17 @@ export function EditorShell() {
   const [libraryWidth, setLibraryWidth] = useState(216)
   const [inspectorWidth, setInspectorWidth] = useState(288)
   const [railWidth, setRailWidth] = useState(44)
+  const [panelOrder, setPanelOrder] = useState<readonly WorkspacePanel[]>(['library', 'inspector'])
+  const [workspacePreferencesReady, setWorkspacePreferencesReady] = useState(false)
   const [dockPreview, setDockPreview] = useState<DockTarget>(null)
   const [draggingPanel, setDraggingPanel] = useState<WorkspacePanel | null>(null)
-  const [activePanel, setActivePanel] = useState<WorkspacePanel>('inspector')
   const sheetRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const interactionRef = useRef<PointerInteraction | null>(null)
   const dockTargetRef = useRef<DockTarget>(null)
+  const workspacePreferencesRef = useRef<BrowserWorkspacePreferencesStore | null>(null)
 
+  const activePanel = panelOrder[panelOrder.length - 1] ?? 'inspector'
   const editorActive = activeSection === 'editor'
   const activeNavigationItem = navigationItems.find((item) => item.id === activeSection) ?? navigationItems[1]
   const leftDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'left')
@@ -137,6 +146,44 @@ export function EditorShell() {
     document.documentElement.dataset.uiTheme = uiTheme
     return () => { delete document.documentElement.dataset.uiTheme }
   }, [uiTheme])
+
+  useEffect(() => {
+    const store = new BrowserWorkspacePreferencesStore(window.localStorage)
+    workspacePreferencesRef.current = store
+    const saved = store.load()
+    if (saved) {
+      const restoredRailWidth = clamp(saved.railWidth, 44, 168)
+      setRailWidth(restoredRailWidth)
+      setLibraryWidth(clampPanelWidth('library', saved.libraryWidth))
+      setInspectorWidth(clampPanelWidth('inspector', saved.inspectorWidth))
+      setPanelOrder(saved.panelOrder)
+      setWorkspace({
+        library: {
+          ...saved.workspace.library,
+          pinned: saved.workspace.library.mode === 'floating' && saved.workspace.library.pinned,
+          bounds: fitBoundsToViewport('library', saved.workspace.library.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
+        },
+        inspector: {
+          ...saved.workspace.inspector,
+          pinned: saved.workspace.inspector.mode === 'floating' && saved.workspace.inspector.pinned,
+          bounds: fitBoundsToViewport('inspector', saved.workspace.inspector.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
+        },
+      })
+    }
+    setWorkspacePreferencesReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (!workspacePreferencesReady) return
+    workspacePreferencesRef.current?.save({
+      schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
+      railWidth,
+      libraryWidth,
+      inspectorWidth,
+      workspace,
+      panelOrder,
+    })
+  }, [workspacePreferencesReady, railWidth, libraryWidth, inspectorWidth, workspace, panelOrder])
 
   useEffect(() => {
     if (!mobilePanel) return
@@ -233,6 +280,10 @@ export function EditorShell() {
     }
   }, [railWidth])
 
+  function activatePanel(panel: WorkspacePanel): void {
+    setPanelOrder((current) => [...current.filter((candidate) => candidate !== panel), panel])
+  }
+
   function updatePanel(panel: WorkspacePanel, update: (current: WorkspacePanelState) => WorkspacePanelState): void {
     setWorkspace((current) => ({ ...current, [panel]: update(current[panel]) }))
   }
@@ -265,6 +316,7 @@ export function EditorShell() {
       changeMobilePanel(panel === 'library' ? 'layers' : 'inspector')
       return
     }
+    activatePanel(panel)
     setWorkspace((current) => current[panel].mode === 'minimized'
       ? dockWorkspace(current, panel, current[panel].dockSide)
       : { ...current, [panel]: { ...current[panel], mode: 'minimized', restoreMode: current[panel].mode === 'floating' ? 'floating' : 'docked', pinned: false } })
@@ -311,23 +363,16 @@ export function EditorShell() {
   }
 
   function fitFloatingBounds(panel: WorkspacePanel, bounds: PanelBounds): PanelBounds {
-    const { minWidth, minHeight } = floatingLimits[panel]
-    const width = clamp(bounds.width, minWidth, window.innerWidth - 64)
-    const height = clamp(bounds.height, minHeight, window.innerHeight - 80)
-    return {
-      width,
-      height,
-      x: clamp(bounds.x, railWidth + 8, window.innerWidth - width - 8),
-      y: clamp(bounds.y, 44, window.innerHeight - height - 28),
-    }
+    return fitBoundsToViewport(panel, bounds, railWidth, window.innerWidth, window.innerHeight)
   }
 
   function floatPanel(panel: WorkspacePanel): void {
-    setActivePanel(panel)
+    activatePanel(panel)
     updatePanel(panel, (current) => ({ ...current, mode: 'floating', restoreMode: 'floating', bounds: fitFloatingBounds(panel, current.bounds) }))
   }
 
   function dockPanel(panel: WorkspacePanel, side: DockSide): void {
+    activatePanel(panel)
     setWorkspace((current) => dockWorkspace(current, panel, side))
   }
 
@@ -336,24 +381,26 @@ export function EditorShell() {
       ...current,
       mode: 'minimized',
       restoreMode: current.mode === 'floating' ? 'floating' : current.mode === 'docked' ? 'docked' : current.restoreMode,
+      pinned: false,
     }))
   }
 
   function restorePanel(panel: WorkspacePanel): void {
-    setActivePanel(panel)
+    activatePanel(panel)
     setWorkspace((current) => current[panel].restoreMode === 'docked'
       ? dockWorkspace(current, panel, current[panel].dockSide)
       : { ...current, [panel]: { ...current[panel], mode: 'floating' } })
   }
 
   function togglePin(panel: WorkspacePanel): void {
+    activatePanel(panel)
     updatePanel(panel, (current) => ({ ...current, pinned: !current.pinned }))
   }
 
   function startWindowInteraction(panel: WorkspacePanel, kind: 'move' | 'window-resize', event: ReactPointerEvent<HTMLButtonElement>): void {
     event.preventDefault()
     event.stopPropagation()
-    setActivePanel(panel)
+    activatePanel(panel)
     if (kind === 'move') {
       dockTargetRef.current = null
       setDockPreview(null)
@@ -428,7 +475,7 @@ export function EditorShell() {
         bounds={panelState.bounds}
         dockSide={panelState.dockSide}
         mode={mode}
-        onActivate={() => setActivePanel(panel)}
+        onActivate={() => activatePanel(panel)}
         onDock={(side) => dockPanel(panel, side)}
         onFloat={() => floatPanel(panel)}
         onMinimize={() => minimizePanel(panel)}
@@ -473,15 +520,16 @@ export function EditorShell() {
           ) : null}
 
           <div className="hidden lg:contents">
-            {(['library', 'inspector'] as const).map((panel) => {
+            {panelOrder.map((panel) => {
               const mode = workspace[panel].mode
               return mode === 'floating' ? <div className="contents" key={panel}>{renderPanelWindow(panel, mode)}</div> : null
             })}
           </div>
 
           {workspace.library.mode === 'minimized' || workspace.inspector.mode === 'minimized' ? <div aria-label="Paneles minimizados" className="panel-minimized-shelf fixed bottom-6 right-0 top-10 z-40 hidden w-8 flex-col border-l border-border bg-surface shadow-lg lg:flex" role="toolbar">
-            {workspace.library.mode === 'minimized' ? <button aria-label="Restaurar Páginas y capas" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-primary/30 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('library')} title="Restaurar Páginas y capas" type="button"><Icon name="layers" size={13} /><span>Páginas y capas</span></button> : null}
-            {workspace.inspector.mode === 'minimized' ? <button aria-label="Restaurar Inspector" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('inspector')} title="Restaurar Inspector" type="button"><Icon name="settings" size={13} /><span>Inspector</span></button> : null}
+            {panelOrder.map((panel) => workspace[panel].mode === 'minimized' ? (
+              <button aria-label={`Restaurar ${panel === 'library' ? 'Páginas y capas' : 'Inspector'}`} className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-primary/30 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors last:border-b-0 hover:bg-primary hover:text-on-primary" key={panel} onClick={() => restorePanel(panel)} title={`Restaurar ${panel === 'library' ? 'Páginas y capas' : 'Inspector'}`} type="button"><Icon name={panel === 'library' ? 'layers' : 'settings'} size={13} /><span>{panel === 'library' ? 'Páginas y capas' : 'Inspector'}</span></button>
+            ) : null)}
           </div> : null}
 
           {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
@@ -491,7 +539,7 @@ export function EditorShell() {
       <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
         <span>Producto / {activeNavigationItem.label}</span>
-        <span className="ml-auto">{editorActive ? 'Ventanas personalizables · Demo estable' : 'Superficie final · Activación progresiva por fases'}</span>
+        <span className="ml-auto">{editorActive ? 'Workspace persistente · M04.1' : 'Superficie final · Activación progresiva por fases'}</span>
         <span className="font-heading">{editorActive ? '390 × 844 · 90%' : activeNavigationItem.phase}</span>
       </footer>
 
