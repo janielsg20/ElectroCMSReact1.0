@@ -1,5 +1,28 @@
 import { createContext, useContext, useSyncExternalStore } from 'react'
-import type { BreakpointId, BreakpointInput, BreakpointPatch, Document, DocumentId, JsonValue, NodeDataSettings, NodeId, NodePlacement, NodeResponsiveOverride, NodeSize, NodeSpacing, ProjectStructure, ProjectTheme, ProjectThemeScope, Result, TemplateCondition } from '../../domain'
+import type {
+  BreakpointId,
+  BreakpointInput,
+  BreakpointPatch,
+  Document,
+  DocumentId,
+  JsonValue,
+  NodeDataSettings,
+  NodeId,
+  NodePlacement,
+  NodeResponsiveOverride,
+  NodeSize,
+  NodeSpacing,
+  ProjectStructure,
+  ProjectTheme,
+  ProjectThemeScope,
+  Result,
+  TemplateCondition,
+  ThemePackage,
+  ThemePackageId,
+  ThemePackageImportReport,
+  ThemePackagePartSelection,
+  ThemePackageRouteConflictPolicy,
+} from '../../domain'
 import type { ProjectStructureRenderStore } from '../../renderers'
 
 export interface WidgetInsertionTemplate {
@@ -23,10 +46,17 @@ export interface EditorProjectSession {
   readonly documentId: DocumentId
   readonly initialSelectedNodeId?: NodeId
   readonly store: ProjectStructureRenderStore
+  applyThemePackage(
+    themePackage: ThemePackage,
+    selection: ThemePackagePartSelection,
+    routeConflict: ThemePackageRouteConflictPolicy,
+  ): Promise<Result<ThemePackageImportReport, string>>
   createDocument?(document: Document): Promise<Result<ProjectStructure, string>>
   createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>>
   insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template?: WidgetInsertionTemplate): Promise<Result<WidgetInsertionResult, string>>
+  listThemePackages(): Promise<Result<readonly ThemePackage[], string>>
   moveNodes(nodeIds: readonly NodeId[], placement: NodePlacement): Promise<Result<ProjectStructure, string>>
+  removeThemePackage(packageId: ThemePackageId): Promise<Result<boolean, string>>
   reorderBreakpoint(breakpointId: BreakpointId, targetIndex: number): Promise<Result<ProjectStructure, string>>
   resetNodeBreakpointOverride(nodeId: NodeId, breakpointId: BreakpointId): Promise<Result<ProjectStructure, string>>
   resetNodeDataSettings(nodeId: NodeId): Promise<Result<ProjectStructure, string>>
@@ -34,6 +64,7 @@ export interface EditorProjectSession {
   resetNodeVisualStyles(nodeId: NodeId): Promise<Result<ProjectStructure, string>>
   resetProjectTheme(scope: ProjectThemeScope): Promise<Result<ProjectStructure, string>>
   resizeNode(nodeId: NodeId, size: NodeSize, breakpointId?: BreakpointId): Promise<Result<ProjectStructure, string>>
+  saveThemePackage(themePackage: ThemePackage): Promise<Result<void, string>>
   updateWidgetProperty(nodeId: NodeId, key: string, value: JsonValue): Promise<Result<ProjectStructure, string>>
   updateNodeVisualStyles(nodeId: NodeId, styles: Readonly<Record<string, JsonValue>>): Promise<Result<ProjectStructure, string>>
   updateProjectTheme(scope: ProjectThemeScope, theme: ProjectTheme): Promise<Result<ProjectStructure, string>>
