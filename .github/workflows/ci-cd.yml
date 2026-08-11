@@ -83,4 +83,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=electrocms-react --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          wranglerVersion: "4"
+          wranglerVersion: "4.120.0"
