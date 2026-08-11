@@ -1,5 +1,5 @@
-import { EditorShell } from './editor-ui/editor/EditorShell'
+import { ResponsiveEditorShell } from './editor-ui/editor/ResponsiveEditorShell'
 
 export function App() {
-  return <EditorShell />
+  return <ResponsiveEditorShell />
 }
