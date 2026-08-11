@@ -1,6 +1,6 @@
 # Sistema de layout UI/UX — ElectroCMS
 
-Estado de implementación: `M04.1 — Shell desktop`, `M04.2 — Shell tablet` y `M04.3 — Shell móvil` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio, tablet y móvil, conservando una sola jerarquía funcional. Rutas/shortcuts y temas del editor continúan en M04.4–M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
+Estado de implementación: `M04.1 — Shell desktop`, `M04.2 — Shell tablet`, `M04.3 — Shell móvil` y `M04.4 — Navegación, rutas y shortcuts` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio, tablet, móvil y navegación profunda, conservando una sola jerarquía funcional y una sola selección visual. Los temas del editor continúan en M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
 
 ## Decisión de producto
 
@@ -36,8 +36,7 @@ Estado: `M04.2` `COMPLETADA`.
 - El resize del secundario admite puntero y teclado: flechas en pasos de 16 px, `Home`/`End` y valores ARIA.
 - El overlay secundario cierra con `Escape`, retiene foco mientras está abierto y restaura el foco al disparador al cerrar.
 - Portrait 768 y landscape 1023 están cubiertos por pruebas; al entrar en 1024 se desmonta la adaptación tablet y recupera el layout desktop.
-- La geometría efímera del overlay vive solo en estado React y no se serializa en `workspace.v1`; existe una prueba que verifica que el payload persistido no cambia por redimensionar el overlay.
-- Las acciones del header se mantienen mediante el responsive existente; M04.2 no crea una toolbar paralela.
+- La geometría efímera del overlay vive solo en estado React y no se serializa en `workspace.v1`.
 
 ### Móvil/tablet vertical — 320 a 767 px
 
@@ -54,6 +53,19 @@ Estado: `M04.3` `COMPLETADA`.
 - `prefers-reduced-motion` elimina transiciones no esenciales del dock.
 - 320 y 375 px están cubiertos por pruebas funcionales específicas, además de la transición móvil→tablet.
 
+## Navegación, rutas y shortcuts
+
+Estado: `M04.4` `COMPLETADA`.
+
+- Las rutas del shell son hashes profundos canónicos `#/sección`, adecuados para la PWA y hosting estático sin reglas de rewrite obligatorias.
+- `activeSection` sigue siendo la única selección visual. La capa responsive observa `aria-current="page"` en los botones con `data-navigation-section` y sincroniza esa selección con History API.
+- URL vacía o desconocida cae en `#/editor`; el estado de historial está versionado con `schemaVersion: 1`.
+- `popstate` restaura la sección sin desmontar el shell, de modo que `workspace.v1`, anchuras, docks y otras preferencias de UI permanecen intactas.
+- El contexto de TopBar `Producto / sección` funciona como breadcrumb visible y se mantiene sincronizado con la sección activa.
+- Existe launcher visible de paleta de comandos; `Ctrl/⌘+K` abre/cierra la paleta, con búsqueda, listbox accesible, flechas, Enter, Escape, focus trap y restauración de foco.
+- Shortcuts visibles/documentados: `Alt+Shift+E` Editor, `Alt+Shift+H` Inicio y `Alt+Shift+P` Páginas; no sustituyen controles visibles ni se activan en campos editables.
+- Rail desktop, navegación móvil, command palette y shortcuts convergen en el mismo flujo `onSectionChange`.
+
 ## Responsive basado en contenedor
 
 - Los breakpoints globales gobiernan el shell.
@@ -67,6 +79,7 @@ Estado: `M04.3` `COMPLETADA`.
 - Toolbars con tres o más controles usan patrón ARIA Toolbar y roving tabindex cuando corresponda.
 - Capas jerárquicas usan patrón Tree View; tablas editables usan Grid solo si se implementa toda su gestión de foco.
 - Sheets y modales retienen foco, tienen cierre explícito, `Escape` y restauran foco al disparador.
+- La paleta usa `dialog`, `combobox`, `listbox` y `option` con selección activa semántica.
 - Los atajos no reemplazan controles visibles.
 - El estado activo se comunica mediante texto/semántica además de color.
 
@@ -89,20 +102,23 @@ Estado: `M04.3` `COMPLETADA`.
 - Drag, resize y reordenar tienen alternativa de una sola activación y teclado.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
 - Las preferencias del workspace nunca deben impedir abrir el editor; corrupción, versiones futuras o geometría fuera de pantalla se recuperan con defaults/clamping.
+- Back/forward debe restaurar navegación sin perder estado del workspace.
 
 ## Implementación vigente
 
 - Desktop desde 1024 px: header/toolbar de 40 px, rail redimensionable, páginas/capas, canvas, inspector y barra de estado de 24 px simultáneos.
 - Paneles desktop: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, orden de apilado y restauración por puntero o teclado dentro de límites explícitos.
-- Persistencia M04.1: `src/editor-ui/editor/workspace-preferences.ts` + `workspace.v1`, con pruebas de round-trip, corrupción/versionado y remontaje real del shell.
-- Tablet 768–1023: `ResponsiveEditorShell`, rail visualmente contraído, canvas + un panel persistente, overlay lateral secundario accesible/redimensionable y geometría efímera aislada de `workspace.v1`.
+- Persistencia M04.1: `src/editor-ui/editor/workspace-preferences.ts` + `workspace.v1`.
+- Tablet 768–1023: `ResponsiveEditorShell`, rail visualmente contraído, canvas + un panel persistente y overlay lateral secundario accesible/redimensionable.
 - Móvil 320–767: canvas prioritario, bottom dock de cinco destinos, sheets accesibles, safe areas, guardrails de overflow y transición explícita a tablet.
-- Evidencia M04.2: PR #8 / run `31453249710`, 27 archivos de test y 107/107 pruebas, incluyendo 5 pruebas específicas tablet, más lint/typecheck/build verdes.
-- Evidencia M04.3: PR #9 / run `31454024650`, 28 archivos de test y 112/112 pruebas, incluyendo 5 pruebas específicas móvil, más lint/typecheck/build verdes.
-- Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
+- Navegación M04.4: `navigation-routing.ts`, `CommandPalette.tsx` y sincronización History API en `ResponsiveEditorShell`.
+- Evidencia M04.2: PR #8 / run `31453249710`, 27 archivos / 107 pruebas.
+- Evidencia M04.3: PR #9 / run `31454024650`, 28 archivos / 112 pruebas.
+- Evidencia M04.4: PR #10 / run `31454811218`, 30 archivos / 120 pruebas, lint/typecheck/build verdes y sin warnings React del nuevo flujo.
+- Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, navegación profunda, command palette, tema y sheets con `Escape` y restauración de foco.
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito.
 - Acciones de fases posteriores que aún no tienen motor funcional permanecen deshabilitadas o identificadas como planificadas.
-- Tema alternativo seleccionable `Bento Motion`: base neutral, azul de marca, paneles/secciones modulares, Lottie local diferido y movimiento adaptativo. Especificación en `design-system/electrocms/pages/bento-motion.md`.
+- Presets visuales existentes: Studio, Bento Motion y Flow Builder; M04.5 debe formalizar su relación con light/dark/system y tokens.
 
 ## Fuentes
 

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Button, Icon } from '../primitives'
+import { CommandPalette } from './CommandPalette'
 import { EditorShell } from './EditorShell'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
+import { navigationItems, type NavigationSectionId } from './editor-data'
+import { sectionFromHash, sectionFromLocation, writeNavigationHistory } from './navigation-routing'
 import './responsive-mobile-shell.css'
 import './responsive-tablet-shell.css'
 
@@ -35,6 +38,12 @@ function panelTitle(panel: TabletPanel): string {
   return panel === 'library' ? 'Páginas y capas' : 'Inspector'
 }
 
+function activeSectionIn(frame: HTMLElement | null): NavigationSectionId | null {
+  const current = frame?.querySelector<HTMLElement>('[data-navigation-section][aria-current="page"]')
+  const section = current?.dataset.navigationSection
+  return navigationItems.some((item) => item.id === section) ? section as NavigationSectionId : null
+}
+
 export function ResponsiveEditorShell() {
   const [mobileViewport, setMobileViewport] = useState(() => isMobileViewport())
   const [tabletViewport, setTabletViewport] = useState(() => isTabletViewport())
@@ -57,6 +66,12 @@ export function ResponsiveEditorShell() {
   const closeOverlay = useCallback((): void => {
     setOverlayPanel(null)
     requestAnimationFrame(() => previousFocusRef.current?.focus())
+  }, [])
+
+  const activateNavigationSection = useCallback((section: NavigationSectionId): void => {
+    const button = frameRef.current?.querySelector<HTMLButtonElement>(`[data-navigation-section="${section}"]`)
+    if (!button || button.getAttribute('aria-current') === 'page') return
+    button.click()
   }, [])
 
   useEffect(() => {
@@ -90,6 +105,40 @@ export function ResponsiveEditorShell() {
     observer.observe(frame, { childList: true, subtree: true })
     return () => observer.disconnect()
   }, [closeOverlay, overlayPanel])
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+    let navigationSyncQueued = false
+
+    function syncHistoryFromShell(): void {
+      navigationSyncQueued = false
+      const section = activeSectionIn(frame)
+      if (!section || sectionFromLocation(window.location) === section) return
+      writeNavigationHistory(section, 'push')
+    }
+
+    function queueNavigationSync(): void {
+      if (navigationSyncQueued) return
+      navigationSyncQueued = true
+      queueMicrotask(syncHistoryFromShell)
+    }
+
+    function restoreFromHistory(): void {
+      activateNavigationSection(sectionFromLocation(window.location))
+    }
+
+    if (!sectionFromHash(window.location.hash)) writeNavigationHistory(sectionFromLocation(window.location), 'replace')
+    restoreFromHistory()
+
+    const observer = new MutationObserver(queueNavigationSync)
+    observer.observe(frame, { attributes: true, attributeFilter: ['aria-current'], subtree: true })
+    window.addEventListener('popstate', restoreFromHistory)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('popstate', restoreFromHistory)
+    }
+  }, [activateNavigationSection])
 
   useEffect(() => {
     if (!overlayPanel || !tabletActive) return
@@ -191,6 +240,7 @@ export function ResponsiveEditorShell() {
       style={{ '--tablet-context-width': `${persistentWidth}px` } as CSSProperties}
     >
       <EditorShell />
+      <CommandPalette onNavigate={activateNavigationSection} />
 
       {tabletActive ? (
         <aside aria-label="Panel contextual persistente de tablet" className="tablet-context-panel">
