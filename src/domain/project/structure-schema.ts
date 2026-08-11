@@ -72,6 +72,7 @@ const NodeBaseShape = {
   responsive: z.record(BreakpointIdSchema, NodeResponsiveOverrideSchema),
   slots: z.record(PropertyKeySchema, z.array(NodeIdSchema)),
   locked: z.boolean(),
+  hidden: z.boolean().default(false),
 } as const
 
 export const NodeSchema = z.discriminatedUnion('kind', [

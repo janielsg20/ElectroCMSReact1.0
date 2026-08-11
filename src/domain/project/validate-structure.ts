@@ -372,7 +372,7 @@ export function resolveNodeResponsiveState(
 
   const properties = new Map(Object.entries(node.properties))
   const styles = new Map(Object.entries(node.styles))
-  let hidden = false
+  let hidden = node.hidden
 
   for (const item of chain) {
     const override = node.responsive[item.id]
