@@ -5,7 +5,7 @@ import { EDITOR_APPEARANCE_PREFERENCES_KEY } from './appearance-preferences'
 
 vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" /> }))
 
-const originalMatchMedia = window.matchMedia
+const originalMatchMedia = typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : undefined
 
 function installColorScheme(initialDark: boolean) {
   let dark = initialDark
@@ -57,7 +57,8 @@ describe('M04.5 temas del editor', () => {
     window.localStorage.clear()
     window.history.replaceState({}, '', window.location.pathname)
     resetDocumentAppearance()
-    window.matchMedia = originalMatchMedia
+    if (originalMatchMedia) window.matchMedia = originalMatchMedia
+    else Reflect.deleteProperty(window, 'matchMedia')
   })
 
   it('separa preset visual y modo de color en dos radiogroups accesibles', () => {
