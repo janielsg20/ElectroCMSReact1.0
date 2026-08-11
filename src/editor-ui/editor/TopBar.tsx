@@ -1,14 +1,30 @@
-import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Button, Icon } from '../primitives'
+import {
+  applyAppearance,
+  BrowserAppearancePreferencesStore,
+  readInitialAppearance,
+  resolveColorMode,
+  systemPrefersDark,
+  type AppearancePreferences,
+  type ColorMode,
+  type UiTheme,
+} from './appearance-preferences'
+
+export type { UiTheme } from './appearance-preferences'
 
 const BentoMotionIcon = lazy(() => import('./BentoMotionIcon'))
-
-export type UiTheme = 'studio' | 'bento' | 'flow'
 
 const uiThemeLabels: Record<UiTheme, string> = {
   studio: 'Studio',
   bento: 'Bento Motion',
   flow: 'Flow Builder',
+}
+
+const colorModeLabels: Record<ColorMode, string> = {
+  light: 'Claro',
+  dark: 'Oscuro',
+  system: 'Automático',
 }
 
 interface TopBarProps {
@@ -21,9 +37,44 @@ interface TopBarProps {
 
 export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [appearance, setAppearance] = useState<AppearancePreferences>(() => readInitialAppearance())
+  const [systemDark, setSystemDark] = useState(() => systemPrefersDark())
+  const [appearanceStore] = useState(() => new BrowserAppearancePreferencesStore(window.localStorage))
   const settingsButtonRef = useRef<HTMLButtonElement>(null)
   const settingsPanelRef = useRef<HTMLDivElement>(null)
-  const activeThemeLabel = uiThemeLabels[uiTheme]
+  const pendingDarkModeRef = useRef<boolean | null>(null)
+  const activeThemeLabel = uiThemeLabels[appearance.uiTheme]
+  const activeColorModeLabel = colorModeLabels[appearance.colorMode]
+  const resolvedDark = resolveColorMode(appearance.colorMode, systemDark) === 'dark'
+
+  useLayoutEffect(() => {
+    applyAppearance(document.documentElement, appearance, systemDark)
+
+    if (uiTheme !== appearance.uiTheme) onUiThemeChange(appearance.uiTheme)
+
+    if (darkMode === resolvedDark) {
+      pendingDarkModeRef.current = null
+    } else if (pendingDarkModeRef.current !== resolvedDark) {
+      pendingDarkModeRef.current = resolvedDark
+      onToggleTheme()
+    }
+  }, [appearance, darkMode, onToggleTheme, onUiThemeChange, resolvedDark, systemDark, uiTheme])
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const update = (): void => setSystemDark(media.matches)
+
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', update)
+      return () => media.removeEventListener('change', update)
+    }
+
+    if (typeof media.addListener === 'function') {
+      media.addListener(update)
+      return () => media.removeListener(update)
+    }
+  }, [])
 
   useEffect(() => {
     if (!settingsOpen) return
@@ -40,14 +91,23 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
   }, [settingsOpen])
 
+  function commitAppearance(next: AppearancePreferences): void {
+    appearanceStore.save(next)
+    setAppearance(next)
+  }
+
   function closeSettings(): void {
     setSettingsOpen(false)
     requestAnimationFrame(() => settingsButtonRef.current?.focus())
   }
 
-  function selectTheme(theme: UiTheme): void {
-    onUiThemeChange(theme)
-    closeSettings()
+  function selectTheme(theme: UiTheme, closeAfterSelection = true): void {
+    commitAppearance({ ...appearance, uiTheme: theme })
+    if (closeAfterSelection) closeSettings()
+  }
+
+  function selectColorMode(colorMode: ColorMode): void {
+    commitAppearance({ ...appearance, colorMode })
   }
 
   function handleSettingsKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
@@ -59,9 +119,11 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
 
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
     const target = event.target
-    if (!(target instanceof HTMLElement) || target.getAttribute('role') !== 'radio') return
-    const options = Array.from(settingsPanelRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]') ?? [])
-    const currentIndex = options.indexOf(target as HTMLButtonElement)
+    if (!(target instanceof HTMLButtonElement) || target.getAttribute('role') !== 'radio') return
+    const isThemeChoice = Boolean(target.dataset.themeChoice)
+    const selector = isThemeChoice ? '[data-theme-choice]' : '[data-color-choice]'
+    const options = Array.from(settingsPanelRef.current?.querySelectorAll<HTMLButtonElement>(selector) ?? [])
+    const currentIndex = options.indexOf(target)
     if (currentIndex < 0 || options.length === 0) return
     event.preventDefault()
     const nextIndex = event.key === 'Home'
@@ -70,9 +132,15 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
         ? options.length - 1
         : (currentIndex + (event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1) + options.length) % options.length
     const next = options[nextIndex]
-    const nextTheme = next?.dataset.themeChoice
-    if (!next || (nextTheme !== 'studio' && nextTheme !== 'bento' && nextTheme !== 'flow')) return
-    onUiThemeChange(nextTheme)
+    if (!next) return
+
+    if (isThemeChoice) {
+      const nextTheme = next.dataset.themeChoice
+      if (nextTheme === 'studio' || nextTheme === 'bento' || nextTheme === 'flow') selectTheme(nextTheme, false)
+    } else {
+      const nextMode = next.dataset.colorChoice
+      if (nextMode === 'light' || nextMode === 'dark' || nextMode === 'system') selectColorMode(nextMode)
+    }
     next.focus()
   }
 
@@ -114,52 +182,65 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
             <button
               aria-expanded={settingsOpen}
               aria-haspopup="dialog"
-              aria-label={`Ajustes de apariencia · Cambiar tema de interfaz · Tema actual: ${activeThemeLabel}`}
-              className={`theme-settings-trigger relative inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-focus md:h-8 ${uiTheme !== 'studio' ? 'border-primary/35 bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:bg-muted'}`}
-              data-tooltip={`Cambiar tema · ${activeThemeLabel}`}
+              aria-label={`Ajustes de apariencia · Preset: ${activeThemeLabel} · Color: ${activeColorModeLabel}`}
+              className={`theme-settings-trigger relative inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-focus md:h-8 ${appearance.uiTheme !== 'studio' || appearance.colorMode !== 'light' ? 'border-primary/35 bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:bg-muted'}`}
+              data-tooltip={`Apariencia · ${activeThemeLabel} · ${activeColorModeLabel}`}
               onClick={() => setSettingsOpen((current) => !current)}
               ref={settingsButtonRef}
               type="button"
             >
               <Icon name="palette" size={15} />
               <span className="hidden sm:inline">Tema</span>
-              <span className="hidden max-w-28 truncate rounded bg-muted/70 px-1.5 py-0.5 text-[0.625rem] font-bold text-muted-foreground lg:inline">{activeThemeLabel}</span>
+              <span className="hidden max-w-32 truncate rounded bg-muted/70 px-1.5 py-0.5 text-[0.625rem] font-bold text-muted-foreground lg:inline">{activeThemeLabel}</span>
               <Icon className="hidden text-muted-foreground sm:block" name="chevron-down" size={11} />
-              {uiTheme !== 'studio' ? <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-primary ring-2 ring-surface sm:hidden" /> : null}
+              {appearance.uiTheme !== 'studio' || appearance.colorMode !== 'light' ? <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-primary ring-2 ring-surface sm:hidden" /> : null}
             </button>
             {settingsOpen ? (
               <div
                 aria-label="Apariencia de la interfaz"
-                className="theme-settings-popover fixed left-1/2 top-12 z-50 w-[min(28rem,calc(100vw-0.75rem))] -translate-x-1/2 rounded-lg border border-border bg-surface p-2 shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+0.35rem)] sm:translate-x-0"
+                className="theme-settings-popover fixed left-1/2 top-12 z-50 w-[min(32rem,calc(100vw-0.75rem))] -translate-x-1/2 rounded-lg border border-border bg-surface p-2 shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+0.35rem)] sm:translate-x-0"
                 onKeyDown={handleSettingsKeyDown}
                 ref={settingsPanelRef}
                 role="dialog"
               >
-                <div className="mb-1.5 flex items-start gap-2 px-1">
+                <div className="mb-2 flex items-start gap-2 px-1">
                   <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="palette" size={15} /></span>
-                  <div><h2 className="text-xs font-bold">Tema de interfaz</h2><p className="text-xs leading-4 text-muted-foreground">Selecciona el diseño del editor. El proyecto y sus datos no cambian.</p></div>
+                  <div><h2 className="text-xs font-bold">Apariencia del editor</h2><p className="text-xs leading-4 text-muted-foreground">El preset cambia el lenguaje visual; el modo de color controla claro, oscuro o sistema. Los datos del proyecto no cambian.</p></div>
                 </div>
-                <div aria-label="Tema de diseño" className="grid grid-cols-1 gap-1.5 sm:grid-cols-3" role="radiogroup">
-                  <button aria-checked={uiTheme === 'studio'} className={`theme-choice group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${uiTheme === 'studio' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="studio" onClick={() => selectTheme('studio')} role="radio" type="button">
-                    <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Icon name="editor" size={14} /></span>{uiTheme === 'studio' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
-                    <span className="block text-xs font-bold">Studio</span>
-                    <span className="block text-xs leading-4 text-muted-foreground">Compacto y clásico</span>
-                  </button>
-                  <button aria-checked={uiTheme === 'bento'} className={`theme-choice theme-choice--bento group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${uiTheme === 'bento' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="bento" onClick={() => selectTheme('bento')} role="radio" type="button">
-                    <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Suspense fallback={<Icon name="columns" size={14} />}><BentoMotionIcon className="size-6" /></Suspense></span>{uiTheme === 'bento' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
-                    <span className="block text-xs font-bold">Bento Motion</span>
-                    <span className="block text-xs leading-4 text-muted-foreground">Neutral y dinámico</span>
-                  </button>
-                  <button aria-checked={uiTheme === 'flow'} className={`theme-choice theme-choice--flow group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${uiTheme === 'flow' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="flow" onClick={() => selectTheme('flow')} role="radio" type="button">
-                    <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Icon name="columns" size={14} /></span>{uiTheme === 'flow' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
-                    <span className="block text-xs font-bold">Flow Builder</span>
-                    <span className="block text-xs leading-4 text-muted-foreground">Minimal + high density</span>
-                  </button>
-                </div>
+
+                <fieldset className="min-w-0 border-0 p-0">
+                  <legend className="mb-1 px-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Preset visual</legend>
+                  <div aria-label="Preset visual" className="grid grid-cols-1 gap-1.5 sm:grid-cols-3" role="radiogroup">
+                    <button aria-checked={appearance.uiTheme === 'studio'} className={`theme-choice group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${appearance.uiTheme === 'studio' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="studio" onClick={() => selectTheme('studio')} role="radio" type="button">
+                      <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Icon name="editor" size={14} /></span>{appearance.uiTheme === 'studio' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
+                      <span className="block text-xs font-bold">Studio</span>
+                      <span className="block text-xs leading-4 text-muted-foreground">Compacto y clásico</span>
+                    </button>
+                    <button aria-checked={appearance.uiTheme === 'bento'} className={`theme-choice theme-choice--bento group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${appearance.uiTheme === 'bento' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="bento" onClick={() => selectTheme('bento')} role="radio" type="button">
+                      <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Suspense fallback={<Icon name="columns" size={14} />}><BentoMotionIcon className="size-6" /></Suspense></span>{appearance.uiTheme === 'bento' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
+                      <span className="block text-xs font-bold">Bento Motion</span>
+                      <span className="block text-xs leading-4 text-muted-foreground">Neutral y dinámico</span>
+                    </button>
+                    <button aria-checked={appearance.uiTheme === 'flow'} className={`theme-choice theme-choice--flow group min-h-20 cursor-pointer rounded-md border p-2 text-left transition-colors ${appearance.uiTheme === 'flow' ? 'border-primary bg-primary-soft' : 'border-border bg-muted/30 hover:bg-muted'}`} data-theme-choice="flow" onClick={() => selectTheme('flow')} role="radio" type="button">
+                      <span className="mb-1 flex items-center justify-between"><span className="grid size-7 place-items-center rounded border border-border bg-surface text-primary"><Icon name="columns" size={14} /></span>{appearance.uiTheme === 'flow' ? <Icon className="text-primary" name="check" size={14} /> : null}</span>
+                      <span className="block text-xs font-bold">Flow Builder</span>
+                      <span className="block text-xs leading-4 text-muted-foreground">Minimal + high density</span>
+                    </button>
+                  </div>
+                </fieldset>
+
+                <fieldset className="mt-2 min-w-0 border-0 p-0">
+                  <legend className="mb-1 px-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Modo de color</legend>
+                  <div aria-label="Modo de color" className="grid grid-cols-3 gap-1" role="radiogroup">
+                    <button aria-checked={appearance.colorMode === 'light'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border px-1.5 text-xs font-semibold transition-colors ${appearance.colorMode === 'light' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-muted/30 text-foreground hover:bg-muted'}`} data-color-choice="light" onClick={() => selectColorMode('light')} role="radio" type="button"><Icon name="sun" size={14} /><span>Claro</span></button>
+                    <button aria-checked={appearance.colorMode === 'dark'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border px-1.5 text-xs font-semibold transition-colors ${appearance.colorMode === 'dark' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-muted/30 text-foreground hover:bg-muted'}`} data-color-choice="dark" onClick={() => selectColorMode('dark')} role="radio" type="button"><Icon name="moon" size={14} /><span>Oscuro</span></button>
+                    <button aria-checked={appearance.colorMode === 'system'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border px-1.5 text-xs font-semibold transition-colors ${appearance.colorMode === 'system' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-muted/30 text-foreground hover:bg-muted'}`} data-color-choice="system" onClick={() => selectColorMode('system')} role="radio" type="button"><Icon name="desktop" size={14} /><span>Automático</span></button>
+                  </div>
+                  <p className="mt-1 px-1 text-[0.625rem] leading-4 text-muted-foreground">Automático sigue <code>prefers-color-scheme</code> del sistema y cambia sin recargar.</p>
+                </fieldset>
               </div>
             ) : null}
           </div>
-          <Button aria-label={darkMode ? 'Usar tema claro' : 'Usar tema oscuro'} className="text-muted-foreground hover:bg-muted hover:text-foreground" data-tooltip={darkMode ? 'Tema claro' : 'Tema oscuro'} onClick={onToggleTheme} size="icon" variant="ghost"><Icon name={darkMode ? 'sun' : 'moon'} size={15} /></Button>
           <Button aria-label="Previsualizar, no disponible" className="hidden md:inline-flex" data-tooltip="Preview · planificado" disabled size="icon" variant="ghost"><Icon name="eye" size={15} /></Button>
         </div>
 

@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/inter'
 import { App } from './App'
+import { applyAppearance, readInitialAppearance, systemPrefersDark } from './editor-ui/editor/appearance-preferences'
 import { registerElectroCmsServiceWorker } from './infrastructure/pwa/register-service-worker'
 import './styles.css'
 import './professional-ui.css'
@@ -15,6 +16,8 @@ import './flutterflow-builder-v8.css'
 import './flutterflow-fidelity-v9.css'
 import './flow-builder-theme-v10.css'
 import './ui-integrity-v11.css'
+
+applyAppearance(document.documentElement, readInitialAppearance(), systemPrefersDark())
 
 const rootElement = document.getElementById('root')
 
