@@ -118,7 +118,6 @@ export function EditorShell() {
   const [inspectorWidth, setInspectorWidth] = useState(288)
   const [railWidth, setRailWidth] = useState(44)
   const [panelOrder, setPanelOrder] = useState<readonly WorkspacePanel[]>(['library', 'inspector'])
-  const [workspacePreferencesReady, setWorkspacePreferencesReady] = useState(false)
   const [dockPreview, setDockPreview] = useState<DockTarget>(null)
   const [draggingPanel, setDraggingPanel] = useState<WorkspacePanel | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -126,6 +125,7 @@ export function EditorShell() {
   const interactionRef = useRef<PointerInteraction | null>(null)
   const dockTargetRef = useRef<DockTarget>(null)
   const workspacePreferencesRef = useRef<BrowserWorkspacePreferencesStore | null>(null)
+  const workspacePreferencesHydratedRef = useRef(false)
 
   const activePanel = panelOrder[panelOrder.length - 1] ?? 'inspector'
   const editorActive = activeSection === 'editor'
@@ -173,15 +173,24 @@ export function EditorShell() {
             bounds: fitBoundsToViewport('inspector', saved.workspace.inspector.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
           },
         })
+      } else {
+        store.save({
+          schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
+          railWidth: 44,
+          libraryWidth: 216,
+          inspectorWidth: 288,
+          workspace: initialWorkspace,
+          panelOrder: ['library', 'inspector'],
+        })
       }
-      setWorkspacePreferencesReady(true)
+      workspacePreferencesHydratedRef.current = true
     })
 
     return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    if (!workspacePreferencesReady) return
+    if (!workspacePreferencesHydratedRef.current) return
     workspacePreferencesRef.current?.save({
       schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
       railWidth,
@@ -190,7 +199,7 @@ export function EditorShell() {
       workspace,
       panelOrder,
     })
-  }, [workspacePreferencesReady, railWidth, libraryWidth, inspectorWidth, workspace, panelOrder])
+  }, [railWidth, libraryWidth, inspectorWidth, workspace, panelOrder])
 
   useEffect(() => {
     if (!mobilePanel) return
