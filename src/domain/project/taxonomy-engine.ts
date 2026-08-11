@@ -7,8 +7,8 @@ import {
   type Taxonomy,
   type TaxonomyTerm,
 } from './cms-schema'
-import type { ContentTypeId, DocumentId, TaxonomyId, TaxonomyTermId } from './identity'
-import type { ProjectStructure, TemplateCondition } from './structure-schema'
+import type { ContentTypeId, TaxonomyId, TaxonomyTermId } from './identity'
+import type { ProjectStructure } from './structure-schema'
 import { validateCmsBackend } from './validate-cms'
 import { validateProjectStructure } from './validate-structure'
 
@@ -41,32 +41,18 @@ export type TaxonomyEditablePatch = Partial<Pick<Taxonomy,
   | 'slug'
   | 'singularName'
   | 'pluralName'
+  | 'description'
   | 'hierarchical'
-  | 'public'
   | 'contentTypeIds'
-  | 'order'
+  | 'archiveTemplateId'
 >>
 
 export type TaxonomyTermEditablePatch = Partial<Pick<TaxonomyTerm,
   | 'name'
   | 'slug'
+  | 'description'
   | 'parentId'
 >>
-
-export interface TaxonomyMutationInput {
-  readonly archiveTemplateId?: DocumentId | null
-  readonly taxonomy: Taxonomy
-}
-
-export interface TaxonomyUpdateInput {
-  readonly archiveTemplateId?: DocumentId | null
-  readonly patch: TaxonomyEditablePatch
-}
-
-export interface TaxonomyListItem {
-  readonly archiveTemplateId: DocumentId | null
-  readonly taxonomy: Taxonomy
-}
 
 function diagnostic(
   code: TaxonomyDiagnosticCode,
@@ -74,10 +60,6 @@ function diagnostic(
   path: readonly (string | number)[] = [],
 ): TaxonomyDiagnostic {
   return { code, message, path }
-}
-
-function archiveBindingKey(taxonomyId: TaxonomyId): string {
-  return `taxonomy:${taxonomyId}`
 }
 
 function normalizeTaxonomy(taxonomy: Taxonomy): Taxonomy {
@@ -105,10 +87,7 @@ function termSlugOwner(
   ))
 }
 
-function validateAssociations(
-  cms: CmsBackend,
-  taxonomy: Taxonomy,
-): readonly TaxonomyDiagnostic[] {
+function validateAssociations(cms: CmsBackend, taxonomy: Taxonomy): readonly TaxonomyDiagnostic[] {
   const diagnostics: TaxonomyDiagnostic[] = []
   for (const contentTypeId of taxonomy.contentTypeIds) {
     if (!cms.contentTypes[contentTypeId]) {
@@ -120,6 +99,22 @@ function validateAssociations(
     }
   }
   return diagnostics
+}
+
+function validateArchiveTemplate(
+  structure: ProjectStructure,
+  taxonomy: Taxonomy,
+): readonly TaxonomyDiagnostic[] {
+  if (!taxonomy.archiveTemplateId) return []
+  const document = structure.documents[taxonomy.archiveTemplateId]
+  if (!document || (document.kind !== 'archive' && document.kind !== 'template')) {
+    return [diagnostic(
+      'invalid-archive-template',
+      'La plantilla archive de taxonomía debe apuntar a un documento Archive o Template existente.',
+      ['cms', 'taxonomies', taxonomy.id, 'archiveTemplateId'],
+    )]
+  }
+  return []
 }
 
 function synchronizeContentTypeAssociations(
@@ -136,51 +131,6 @@ function synchronizeContentTypeAssociations(
       contentType.taxonomyIds = contentType.taxonomyIds.filter((id) => id !== taxonomyId)
     }
   }
-}
-
-function resolveArchiveTemplateId(
-  structure: ProjectStructure,
-  taxonomyId: TaxonomyId,
-): DocumentId | null {
-  const key = archiveBindingKey(taxonomyId)
-  const match = Object.values(structure.documents)
-    .filter((document) => document.kind === 'archive' || document.kind === 'template')
-    .sort((left, right) => left.id.localeCompare(right.id))
-    .find((document) => document.conditions.some((condition) => (
-      condition.target === 'archive' && condition.contentType === key
-    )))
-  return match?.id ?? null
-}
-
-function applyArchiveTemplateBinding(
-  structure: ProjectStructure,
-  taxonomyId: TaxonomyId,
-  archiveTemplateId: DocumentId | null | undefined,
-): Result<ProjectStructure, readonly TaxonomyDiagnostic[]> {
-  if (archiveTemplateId === undefined) return success(structuredClone(structure))
-  const candidate = structuredClone(structure)
-  const key = archiveBindingKey(taxonomyId)
-  for (const document of Object.values(candidate.documents)) {
-    document.conditions = document.conditions.filter((condition) => !(
-      condition.target === 'archive' && condition.contentType === key
-    ))
-  }
-  if (archiveTemplateId === null) return success(candidate)
-  const document = candidate.documents[archiveTemplateId]
-  if (!document || (document.kind !== 'archive' && document.kind !== 'template')) {
-    return failure([diagnostic(
-      'invalid-archive-template',
-      'La plantilla de archivo de taxonomía debe apuntar a Archive o Template.',
-      ['documents', archiveTemplateId],
-    )])
-  }
-  const condition: TemplateCondition = {
-    contentType: key,
-    priority: 0,
-    target: 'archive',
-  }
-  document.conditions = [...document.conditions, condition]
-  return success(candidate)
 }
 
 function validateCandidate(
@@ -203,30 +153,25 @@ function validateCandidate(
   return success(validated.value)
 }
 
-export function listTaxonomies(structure: ProjectStructure): readonly TaxonomyListItem[] {
+export function listTaxonomies(structure: ProjectStructure): readonly Taxonomy[] {
   const cms = projectCmsBackend(structure.cms)
-  return Object.values(cms.taxonomies)
-    .sort((left, right) => (
-      left.order - right.order
-      || left.pluralName.localeCompare(right.pluralName, 'es')
-      || left.id.localeCompare(right.id)
-    ))
-    .map((taxonomy) => ({
-      archiveTemplateId: resolveArchiveTemplateId(structure, taxonomy.id),
-      taxonomy,
-    }))
+  return Object.values(cms.taxonomies).sort((left, right) => (
+    left.pluralName.localeCompare(right.pluralName, 'es')
+    || left.slug.localeCompare(right.slug)
+    || left.id.localeCompare(right.id)
+  ))
 }
 
 export function createTaxonomy(
   structure: ProjectStructure,
-  input: TaxonomyMutationInput,
+  input: Taxonomy,
 ): Result<ProjectStructure, readonly TaxonomyDiagnostic[]> {
-  const parsed = TaxonomySchema.safeParse(input.taxonomy)
+  const parsed = TaxonomySchema.safeParse(input)
   if (!parsed.success) {
     return failure(parsed.error.issues.map((issue) => diagnostic(
       'invalid-taxonomy',
       issue.message,
-      ['cms', 'taxonomies', input.taxonomy.id, ...issue.path.map(String)],
+      ['cms', 'taxonomies', input.id, ...issue.path.map(String)],
     )))
   }
   const taxonomy = normalizeTaxonomy(parsed.data)
@@ -242,22 +187,21 @@ export function createTaxonomy(
       ['cms', 'taxonomies', taxonomy.id, 'slug'],
     )])
   }
-  const associationDiagnostics = validateAssociations(cms, taxonomy)
-  if (associationDiagnostics.length > 0) return failure(associationDiagnostics)
+  const diagnostics = [
+    ...validateAssociations(cms, taxonomy),
+    ...validateArchiveTemplate(structure, taxonomy),
+  ]
+  if (diagnostics.length > 0) return failure(diagnostics)
 
   cms.taxonomies[taxonomy.id] = taxonomy
   synchronizeContentTypeAssociations(cms, taxonomy.id, taxonomy.contentTypeIds)
-  const withCms = validateCandidate(structure, cms)
-  if (!withCms.ok) return withCms
-  const withArchive = applyArchiveTemplateBinding(withCms.value, taxonomy.id, input.archiveTemplateId ?? null)
-  if (!withArchive.ok) return withArchive
-  return validateCandidate(withArchive.value, projectCmsBackend(withArchive.value.cms))
+  return validateCandidate(structure, cms)
 }
 
 export function updateTaxonomy(
   structure: ProjectStructure,
   taxonomyId: TaxonomyId,
-  input: TaxonomyUpdateInput,
+  patch: TaxonomyEditablePatch,
 ): Result<ProjectStructure, readonly TaxonomyDiagnostic[]> {
   const cms = projectCmsBackend(structure.cms)
   const current = cms.taxonomies[taxonomyId]
@@ -266,7 +210,7 @@ export function updateTaxonomy(
   }
   const parsed = TaxonomySchema.safeParse({
     ...current,
-    ...structuredClone(input.patch),
+    ...structuredClone(patch),
     id: taxonomyId,
     fieldIds: current.fieldIds,
   })
@@ -286,8 +230,11 @@ export function updateTaxonomy(
       ['cms', 'taxonomies', taxonomyId, 'slug'],
     )])
   }
-  const associations = validateAssociations(cms, taxonomy)
-  if (associations.length > 0) return failure(associations)
+  const diagnostics = [
+    ...validateAssociations(cms, taxonomy),
+    ...validateArchiveTemplate(structure, taxonomy),
+  ]
+  if (diagnostics.length > 0) return failure(diagnostics)
   if (!taxonomy.hierarchical) {
     const child = Object.values(cms.taxonomyTerms).find((term) => (
       term.taxonomyId === taxonomyId && term.parentId !== null
@@ -303,11 +250,13 @@ export function updateTaxonomy(
 
   cms.taxonomies[taxonomyId] = taxonomy
   synchronizeContentTypeAssociations(cms, taxonomyId, taxonomy.contentTypeIds)
-  const withCms = validateCandidate(structure, cms)
-  if (!withCms.ok) return withCms
-  const withArchive = applyArchiveTemplateBinding(withCms.value, taxonomyId, input.archiveTemplateId)
-  if (!withArchive.ok) return withArchive
-  return validateCandidate(withArchive.value, projectCmsBackend(withArchive.value.cms))
+  return validateCandidate(structure, cms)
+}
+
+function queryUsesTaxonomy(cms: CmsBackend, taxonomyId: TaxonomyId): boolean {
+  return Object.values(cms.queries).some((query) => query.groups.some((group) => (
+    group.predicates.some((predicate) => predicate.source === 'taxonomy' && predicate.taxonomyId === taxonomyId)
+  )))
 }
 
 function taxonomyDependencies(cms: CmsBackend, taxonomyId: TaxonomyId): readonly string[] {
@@ -317,8 +266,10 @@ function taxonomyDependencies(cms: CmsBackend, taxonomyId: TaxonomyId): readonly
   if (taxonomy.fieldIds.length > 0) dependencies.push('campos de término')
   if (Object.values(cms.taxonomyTerms).some((term) => term.taxonomyId === taxonomyId)) dependencies.push('términos')
   if (Object.values(cms.fields).some((field) => (
-    field.owner.kind === 'taxonomy' && field.owner.taxonomyId === taxonomyId
+    (field.owner.kind === 'taxonomy' && field.owner.taxonomyId === taxonomyId)
+    || field.taxonomyId === taxonomyId
   ))) dependencies.push('definiciones de campo')
+  if (queryUsesTaxonomy(cms, taxonomyId)) dependencies.push('consultas')
   return [...new Set(dependencies)]
 }
 
@@ -341,11 +292,7 @@ export function deleteTaxonomy(
   }
   delete cms.taxonomies[taxonomyId]
   synchronizeContentTypeAssociations(cms, taxonomyId, [])
-  const withCms = validateCandidate(structure, cms)
-  if (!withCms.ok) return withCms
-  const withoutArchive = applyArchiveTemplateBinding(withCms.value, taxonomyId, null)
-  if (!withoutArchive.ok) return withoutArchive
-  return validateCandidate(withoutArchive.value, projectCmsBackend(withoutArchive.value.cms))
+  return validateCandidate(structure, cms)
 }
 
 export function listTaxonomyTerms(
@@ -445,7 +392,13 @@ export function updateTaxonomyTerm(
   if (!taxonomy) {
     return failure([diagnostic('taxonomy-not-found', 'La taxonomía del término ya no existe.', ['cms', 'taxonomyTerms', termId, 'taxonomyId'])])
   }
-  const parsed = TaxonomyTermSchema.safeParse({ ...current, ...structuredClone(patch), id: termId, taxonomyId: current.taxonomyId, values: current.values })
+  const parsed = TaxonomyTermSchema.safeParse({
+    ...current,
+    ...structuredClone(patch),
+    id: termId,
+    taxonomyId: current.taxonomyId,
+    values: current.values,
+  })
   if (!parsed.success) {
     return failure(parsed.error.issues.map((issue) => diagnostic(
       'invalid-term',
