@@ -97,18 +97,11 @@ export interface ContentTypeSession {
 }
 
 export interface TaxonomySession {
-  createTaxonomy(taxonomy: Taxonomy, archiveTemplateId?: DocumentId | null): Promise<Result<ProjectStructure, string>>
-  updateTaxonomy(
-    taxonomyId: TaxonomyId,
-    patch: TaxonomyEditablePatch,
-    archiveTemplateId?: DocumentId | null,
-  ): Promise<Result<ProjectStructure, string>>
+  createTaxonomy(taxonomy: Taxonomy): Promise<Result<ProjectStructure, string>>
+  updateTaxonomy(taxonomyId: TaxonomyId, patch: TaxonomyEditablePatch): Promise<Result<ProjectStructure, string>>
   deleteTaxonomy(taxonomyId: TaxonomyId): Promise<Result<ProjectStructure, string>>
   createTaxonomyTerm(term: TaxonomyTerm): Promise<Result<ProjectStructure, string>>
-  updateTaxonomyTerm(
-    termId: TaxonomyTermId,
-    patch: TaxonomyTermEditablePatch,
-  ): Promise<Result<ProjectStructure, string>>
+  updateTaxonomyTerm(termId: TaxonomyTermId, patch: TaxonomyTermEditablePatch): Promise<Result<ProjectStructure, string>>
   deleteTaxonomyTerm(termId: TaxonomyTermId): Promise<Result<ProjectStructure, string>>
 }
 
