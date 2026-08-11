@@ -15,7 +15,7 @@ describe('M04.4 navigation routing contract', () => {
     expect(sectionFromHash('#/pages')).toBe('pages')
     expect(sectionFromHash('#pages')).toBe('pages')
     expect(sectionFromHash('#/no-existe')).toBeNull()
-    expect(sectionFromLocation({ hash: '#/no-existe' } as Location)).toBe(DEFAULT_NAVIGATION_SECTION)
+    expect(sectionFromLocation({ hash: '#/no-existe' })).toBe(DEFAULT_NAVIGATION_SECTION)
   })
 
   it('escribe push/replace sin alterar pathname ni query actuales', () => {
@@ -23,10 +23,10 @@ describe('M04.4 navigation routing contract', () => {
     writeNavigationHistory('content', 'push')
     expect(window.location.search).toBe('?source=test')
     expect(window.location.hash).toBe('#/content')
-    expect(window.history.state.electrocmsSection).toBe('content')
+    expect(window.history.state).toEqual({ schemaVersion: 1, electrocmsSection: 'content' })
 
     writeNavigationHistory('dashboard', 'replace')
     expect(window.location.hash).toBe('#/dashboard')
-    expect(window.history.state.electrocmsSection).toBe('dashboard')
+    expect(window.history.state).toEqual({ schemaVersion: 1, electrocmsSection: 'dashboard' })
   })
 })
