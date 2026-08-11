@@ -1,6 +1,11 @@
 import * as z from 'zod'
 import { failure, success, type Result } from '../common/result'
-import { deserializeCanonical, serializeCanonical } from './canonical-json'
+import {
+  deserializeCanonical,
+  serializeCanonical,
+  type CanonicalJsonError,
+  type ValidationIssue,
+} from './canonical-json'
 import type { BreakpointId, DocumentId, GlobalComponentId, NodeId } from './identity'
 import {
   BreakpointSchema,
@@ -8,7 +13,6 @@ import {
   GlobalComponentSchema,
   type Breakpoint,
   type Document,
-  type GlobalComponent,
   type Node,
   type ProjectStructure,
 } from './structure-schema'
@@ -19,7 +23,10 @@ export const THEME_PACKAGE_FORMAT = 'electrocms.theme-package' as const
 export const THEME_PACKAGE_SCHEMA_VERSION = 1 as const
 
 export const ThemePackageIdSchema = z.uuid().brand<'ThemePackageId'>()
-export const ThemePackageVersionSchema = z.string().regex(/^\d+\.\d+\.\d+$/, 'La versión debe usar formato semántico mayor.menor.parche.')
+export const ThemePackageVersionSchema = z.string().regex(
+  /^\d+\.\d+\.\d+$/,
+  'La versión debe usar formato semántico mayor.menor.parche.',
+)
 const ThemePackageTimestampSchema = z.iso.datetime({ offset: false, precision: 3 })
 const ThemePackageNameSchema = z.string().trim().min(1).max(160)
 const ThemePackageDescriptionSchema = z.string().trim().max(1_000)
@@ -37,6 +44,7 @@ export const ThemePackageContentsSchema = z.strictObject({
 })
 
 export const ThemePackageSchema = z.strictObject({
+  contents: ThemePackageContentsSchema,
   createdAt: ThemePackageTimestampSchema,
   description: ThemePackageDescriptionSchema,
   format: z.literal(THEME_PACKAGE_FORMAT),
@@ -45,13 +53,16 @@ export const ThemePackageSchema = z.strictObject({
   schemaVersion: z.literal(THEME_PACKAGE_SCHEMA_VERSION),
   updatedAt: ThemePackageTimestampSchema,
   version: ThemePackageVersionSchema,
-  contents: ThemePackageContentsSchema,
 }).superRefine((themePackage, context) => {
   const duplicateIds = (values: readonly { readonly id: string }[], path: string): void => {
     const seen = new Set<string>()
     for (const [index, value] of values.entries()) {
       if (seen.has(value.id)) {
-        context.addIssue({ code: 'custom', message: `El ID ${value.id} está duplicado dentro del paquete.`, path: ['contents', path, index, 'id'] })
+        context.addIssue({
+          code: 'custom',
+          message: `El ID ${value.id} está duplicado dentro del paquete.`,
+          path: ['contents', path, index, 'id'],
+        })
       }
       seen.add(value.id)
     }
@@ -78,7 +89,7 @@ export interface ThemePackageCreateInput {
   readonly name: string
   readonly packageId: ThemePackageId
   readonly selection: ThemePackagePartSelection
-  readonly version?: ThemePackageVersion | string
+  readonly version?: ThemePackageVersion
 }
 
 export type ThemePackageDiagnosticCode =
@@ -126,26 +137,95 @@ export function parseThemePackageId(value: unknown): ThemePackageId {
   return ThemePackageIdSchema.parse(value)
 }
 
-function diagnostic(code: ThemePackageDiagnosticCode, message: string, path: readonly (string | number)[] = []): ThemePackageDiagnostic {
+function diagnostic(
+  code: ThemePackageDiagnosticCode,
+  message: string,
+  path: readonly (string | number)[] = [],
+): ThemePackageDiagnostic {
   return { code, message, path }
 }
 
+function normalizePath(path: readonly PropertyKey[]): readonly (string | number)[] {
+  return path.map((segment) => (
+    typeof segment === 'symbol' ? (segment.description ?? segment.toString()) : segment
+  ))
+}
+
+function issueDiagnostic(issue: ValidationIssue): ThemePackageDiagnostic {
+  return diagnostic('invalid-package', issue.message, normalizePath(issue.path))
+}
+
+function canonicalJsonDiagnostics(error: CanonicalJsonError): readonly ThemePackageDiagnostic[] {
+  if (error.kind === 'invalid-json') return [diagnostic('invalid-package', error.message)]
+  return error.issues.map(issueDiagnostic)
+}
+
 function selectedPartCount(selection: ThemePackagePartSelection): number {
-  return Number(selection.backendTheme) + Number(selection.documents) + Number(selection.frontendTheme) + Number(selection.globalComponents)
+  return Number(selection.backendTheme)
+    + Number(selection.documents)
+    + Number(selection.frontendTheme)
+    + Number(selection.globalComponents)
+}
+
+function packagePartCount(themePackage: ThemePackage): number {
+  return Number(Boolean(themePackage.contents.themes.backend))
+    + Number(themePackage.contents.documents.length > 0)
+    + Number(Boolean(themePackage.contents.themes.frontend))
+    + Number(themePackage.contents.globalComponents.length > 0)
 }
 
 function packageUsesComponents(documents: readonly Document[]): boolean {
-  return documents.some((document) => Object.values(document.nodes).some((node) => node.kind === 'component-instance'))
+  return documents.some((document) => (
+    Object.values(document.nodes).some((node) => node.kind === 'component-instance')
+  ))
 }
 
+const FALLBACK_PACKAGE_THEME: ProjectTheme = ProjectThemeSchema.parse({
+  name: 'Validación de paquete',
+  schemaVersion: 1,
+  tokens: {
+    color: {
+      background: '#ffffff',
+      border: '#d1d5db',
+      danger: '#b91c1c',
+      focus: '#2563eb',
+      muted: '#4b5563',
+      onPrimary: '#ffffff',
+      primary: '#2563eb',
+      surface: '#f9fafb',
+      text: '#111827',
+    },
+    density: { mode: 'comfortable', scale: 1 },
+    motion: { easing: 'ease-out', fast: 150, normal: 250, slow: 400 },
+    radius: { full: 9999, large: 16, medium: 10, small: 6 },
+    shadow: {
+      large: '0 20px 40px rgb(15 23 42 / 0.14)',
+      medium: '0 8px 20px rgb(15 23 42 / 0.10)',
+      small: '0 2px 8px rgb(15 23 42 / 0.08)',
+    },
+    spacing: { controlHeight: 44, gap: 16, section: 64, unit: 4 },
+    typography: {
+      baseSize: 16,
+      bodyFamily: 'Inter, sans-serif',
+      headingFamily: 'Inter, sans-serif',
+      lineHeight: 1.5,
+      scaleRatio: 1.25,
+    },
+  },
+})
+
 function structureFromPackage(themePackage: ThemePackage): ProjectStructure | null {
-  const hasTrees = themePackage.contents.documents.length > 0 || themePackage.contents.globalComponents.length > 0
-  if (!hasTrees) return null
-  if (themePackage.contents.breakpoints.length === 0) return null
+  const hasTrees = themePackage.contents.documents.length > 0
+    || themePackage.contents.globalComponents.length > 0
+  if (!hasTrees || themePackage.contents.breakpoints.length === 0) return null
   return {
     breakpoints: structuredClone(themePackage.contents.breakpoints),
-    documents: Object.fromEntries(themePackage.contents.documents.map((document) => [document.id, structuredClone(document)])),
-    globalComponents: Object.fromEntries(themePackage.contents.globalComponents.map((component) => [component.id, structuredClone(component)])),
+    documents: Object.fromEntries(
+      themePackage.contents.documents.map((document) => [document.id, structuredClone(document)]),
+    ),
+    globalComponents: Object.fromEntries(
+      themePackage.contents.globalComponents.map((component) => [component.id, structuredClone(component)]),
+    ),
     themes: {
       backend: structuredClone(themePackage.contents.themes.backend ?? FALLBACK_PACKAGE_THEME),
       frontend: structuredClone(themePackage.contents.themes.frontend ?? FALLBACK_PACKAGE_THEME),
@@ -153,38 +233,47 @@ function structureFromPackage(themePackage: ThemePackage): ProjectStructure | nu
   }
 }
 
-const FALLBACK_PACKAGE_THEME: ProjectTheme = ProjectThemeSchema.parse({
-  name: 'Validación de paquete',
-  schemaVersion: 1,
-  tokens: {
-    color: { background: '#ffffff', border: '#d1d5db', danger: '#b91c1c', focus: '#2563eb', muted: '#4b5563', onPrimary: '#ffffff', primary: '#2563eb', surface: '#f9fafb', text: '#111827' },
-    density: { mode: 'comfortable', scale: 1 },
-    motion: { easing: 'ease-out', fast: 150, normal: 250, slow: 400 },
-    radius: { full: 9999, large: 16, medium: 10, small: 6 },
-    shadow: { large: '0 20px 40px rgb(15 23 42 / 0.14)', medium: '0 8px 20px rgb(15 23 42 / 0.10)', small: '0 2px 8px rgb(15 23 42 / 0.08)' },
-    spacing: { controlHeight: 44, gap: 16, section: 64, unit: 4 },
-    typography: { baseSize: 16, bodyFamily: 'Inter, sans-serif', headingFamily: 'Inter, sans-serif', lineHeight: 1.5, scaleRatio: 1.25 },
-  },
-})
-
-export function validateThemePackage(input: unknown): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
+export function validateThemePackage(
+  input: unknown,
+): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
   const parsed = ThemePackageSchema.safeParse(input)
   if (!parsed.success) {
-    return failure(parsed.error.issues.map((issue) => diagnostic('invalid-package', issue.message, issue.path.map((segment) => typeof segment === 'symbol' ? (segment.description ?? segment.toString()) : segment))))
+    return failure(parsed.error.issues.map((issue) => diagnostic(
+      'invalid-package',
+      issue.message,
+      normalizePath(issue.path),
+    )))
   }
   const themePackage = parsed.data
-  const hasTrees = themePackage.contents.documents.length > 0 || themePackage.contents.globalComponents.length > 0
-  if (hasTrees && themePackage.contents.breakpoints.length === 0) {
-    return failure([diagnostic('invalid-package', 'Los documentos o componentes del paquete requieren sus breakpoints canónicos.', ['contents', 'breakpoints'])])
+  if (packagePartCount(themePackage) === 0) {
+    return failure([diagnostic('invalid-package', 'El paquete no contiene ninguna parte importable.', ['contents'])])
   }
-  if (packageUsesComponents(themePackage.contents.documents) && themePackage.contents.globalComponents.length === 0) {
-    return failure([diagnostic('missing-component-dependency', 'Los documentos del paquete usan componentes globales que no fueron incluidos.', ['contents', 'globalComponents'])])
+  const hasTrees = themePackage.contents.documents.length > 0
+    || themePackage.contents.globalComponents.length > 0
+  if (hasTrees && themePackage.contents.breakpoints.length === 0) {
+    return failure([diagnostic(
+      'invalid-package',
+      'Los documentos o componentes del paquete requieren sus breakpoints canónicos.',
+      ['contents', 'breakpoints'],
+    )])
+  }
+  if (packageUsesComponents(themePackage.contents.documents)
+    && themePackage.contents.globalComponents.length === 0) {
+    return failure([diagnostic(
+      'missing-component-dependency',
+      'Los documentos del paquete usan componentes globales que no fueron incluidos.',
+      ['contents', 'globalComponents'],
+    )])
   }
   const candidate = structureFromPackage(themePackage)
   if (candidate) {
     const validated = validateProjectStructure(candidate)
     if (!validated.ok) {
-      return failure(validated.error.map((issue) => diagnostic('invalid-package', issue.message, issue.path)))
+      return failure(validated.error.map((issue) => diagnostic(
+        'invalid-package',
+        issue.message,
+        normalizePath(issue.path),
+      )))
     }
   }
   return success(themePackage)
@@ -197,10 +286,20 @@ export function createThemePackage(
   if (selectedPartCount(input.selection) === 0) {
     return failure([diagnostic('empty-selection', 'Selecciona al menos una parte para crear el paquete.')])
   }
-  const documents = input.selection.documents ? Object.values(structure.documents).map((document) => structuredClone(document)) : []
-  const globalComponents = input.selection.globalComponents ? Object.values(structure.globalComponents).map((component) => structuredClone(component)) : []
-  if (input.selection.documents && !input.selection.globalComponents && packageUsesComponents(documents)) {
-    return failure([diagnostic('missing-component-dependency', 'Los documentos seleccionados usan componentes globales. Incluye Componentes para crear un paquete autocontenido.', ['selection', 'globalComponents'])])
+  const documents = input.selection.documents
+    ? Object.values(structure.documents).map((document) => structuredClone(document))
+    : []
+  const globalComponents = input.selection.globalComponents
+    ? Object.values(structure.globalComponents).map((component) => structuredClone(component))
+    : []
+  if (input.selection.documents
+    && !input.selection.globalComponents
+    && packageUsesComponents(documents)) {
+    return failure([diagnostic(
+      'missing-component-dependency',
+      'Los documentos seleccionados usan componentes globales. Incluye Componentes para crear un paquete autocontenido.',
+      ['selection', 'globalComponents'],
+    )])
   }
   const hasTrees = documents.length > 0 || globalComponents.length > 0
   const created = ThemePackageSchema.safeParse({
@@ -222,27 +321,41 @@ export function createThemePackage(
     updatedAt: input.createdAt,
     version: input.version ?? '1.0.0',
   })
-  return created.success ? validateThemePackage(created.data) : failure(created.error.issues.map((issue) => diagnostic('invalid-package', issue.message, issue.path.map(String))))
+  if (!created.success) {
+    return failure(created.error.issues.map((issue) => diagnostic(
+      'invalid-package',
+      issue.message,
+      normalizePath(issue.path),
+    )))
+  }
+  return validateThemePackage(created.data)
 }
 
-export function serializeThemePackage(themePackage: ThemePackage): Result<string, readonly ThemePackageDiagnostic[]> {
+export function serializeThemePackage(
+  themePackage: ThemePackage,
+): Result<string, readonly ThemePackageDiagnostic[]> {
   const validated = validateThemePackage(themePackage)
   if (!validated.ok) return validated
   const serialized = serializeCanonical(ThemePackageSchema, validated.value)
-  return serialized.ok
-    ? success(serialized.value)
-    : failure(serialized.error.issues.map((issue) => diagnostic('invalid-package', issue.message, issue.path)))
+  return serialized.ok ? success(serialized.value) : failure(canonicalJsonDiagnostics(serialized.error))
 }
 
-export function deserializeThemePackage(serialized: string): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
+export function deserializeThemePackage(
+  serialized: string,
+): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
   const parsed = deserializeCanonical(ThemePackageSchema, serialized)
-  if (!parsed.ok) return failure(parsed.error.issues.map((issue) => diagnostic('invalid-package', issue.message, issue.path)))
+  if (!parsed.ok) return failure(canonicalJsonDiagnostics(parsed.error))
   return validateThemePackage(parsed.value)
 }
 
 export function updateThemePackageMetadata(
   themePackage: ThemePackage,
-  patch: { readonly description?: string; readonly name?: string; readonly updatedAt: string; readonly version?: string },
+  patch: {
+    readonly description?: string
+    readonly name?: string
+    readonly updatedAt: string
+    readonly version?: string
+  },
 ): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
   return validateThemePackage({
     ...themePackage,
@@ -255,7 +368,11 @@ export function updateThemePackageMetadata(
 
 export function duplicateThemePackage(
   themePackage: ThemePackage,
-  input: { readonly name?: string; readonly packageId: ThemePackageId; readonly timestamp: string },
+  input: {
+    readonly name?: string
+    readonly packageId: ThemePackageId
+    readonly timestamp: string
+  },
 ): Result<ThemePackage, readonly ThemePackageDiagnostic[]> {
   return validateThemePackage({
     ...structuredClone(themePackage),
@@ -297,24 +414,45 @@ function remapNode(
   componentIds: ReadonlyMap<GlobalComponentId, GlobalComponentId>,
 ): Result<Node, ThemePackageDiagnostic> {
   const mappedId = nodeIds.get(node.id)
-  if (!mappedId) return failure(diagnostic('invalid-package', `No existe remapeo para el nodo ${node.id}.`, ['nodes', node.id]))
+  if (!mappedId) {
+    return failure(diagnostic(
+      'invalid-package',
+      `No existe remapeo para el nodo ${node.id}.`,
+      ['nodes', node.id],
+    ))
+  }
   const bindings = Object.fromEntries(Object.entries(node.bindings).map(([key, source]) => {
     if (source.kind !== 'node-property') return [key, structuredClone(source)]
     const mappedSource = nodeIds.get(source.nodeId)
     return [key, mappedSource ? { ...structuredClone(source), nodeId: mappedSource } : structuredClone(source)]
   })) as Node['bindings']
-  const responsive = Object.fromEntries(Object.entries(node.responsive).map(([breakpointId, override]) => {
-    const mapped = breakpointIds.get(breakpointId as BreakpointId)
-    return [mapped ?? breakpointId, structuredClone(override)]
-  })) as Node['responsive']
+  const responsive = Object.fromEntries(
+    Object.entries(node.responsive).map(([breakpointId, override]) => {
+      const mapped = breakpointIds.get(breakpointId as BreakpointId)
+      return [mapped ?? breakpointId, structuredClone(override)]
+    }),
+  ) as Node['responsive']
   const slots = Object.fromEntries(Object.entries(node.slots).map(([slot, children]) => [
     slot,
     children.map((childId) => nodeIds.get(childId) ?? childId),
   ])) as Node['slots']
   if (node.kind === 'component-instance') {
     const mappedComponent = componentIds.get(node.componentId)
-    if (!mappedComponent) return failure(diagnostic('missing-component-dependency', `El componente ${node.componentId} no está seleccionado para importación.`, ['nodes', node.id, 'componentId']))
-    return success({ ...structuredClone(node), bindings, componentId: mappedComponent, id: mappedId, responsive, slots })
+    if (!mappedComponent) {
+      return failure(diagnostic(
+        'missing-component-dependency',
+        `El componente ${node.componentId} no está seleccionado para importación.`,
+        ['nodes', node.id, 'componentId'],
+      ))
+    }
+    return success({
+      ...structuredClone(node),
+      bindings,
+      componentId: mappedComponent,
+      id: mappedId,
+      responsive,
+      slots,
+    })
   }
   return success({ ...structuredClone(node), bindings, id: mappedId, responsive, slots })
 }
@@ -346,18 +484,64 @@ function nextRoute(route: string, occupied: Set<string>): string {
   return candidate
 }
 
+function unavailableSelectionDiagnostics(
+  themePackage: ThemePackage,
+  selection: ThemePackagePartSelection,
+): readonly ThemePackageDiagnostic[] {
+  const diagnostics: ThemePackageDiagnostic[] = []
+  if (selection.backendTheme && !themePackage.contents.themes.backend) {
+    diagnostics.push(diagnostic(
+      'unsupported-selection',
+      'El paquete no contiene tema de backend.',
+      ['selection', 'backendTheme'],
+    ))
+  }
+  if (selection.frontendTheme && !themePackage.contents.themes.frontend) {
+    diagnostics.push(diagnostic(
+      'unsupported-selection',
+      'El paquete no contiene tema de frontend.',
+      ['selection', 'frontendTheme'],
+    ))
+  }
+  if (selection.documents && themePackage.contents.documents.length === 0) {
+    diagnostics.push(diagnostic(
+      'unsupported-selection',
+      'El paquete no contiene documentos.',
+      ['selection', 'documents'],
+    ))
+  }
+  if (selection.globalComponents && themePackage.contents.globalComponents.length === 0) {
+    diagnostics.push(diagnostic(
+      'unsupported-selection',
+      'El paquete no contiene componentes globales.',
+      ['selection', 'globalComponents'],
+    ))
+  }
+  return diagnostics
+}
+
 export function applyThemePackage(
   structure: ProjectStructure,
   themePackageInput: unknown,
   selection: ThemePackagePartSelection,
   options: ThemePackageImportOptions,
 ): Result<ThemePackageImportResult, readonly ThemePackageDiagnostic[]> {
-  if (selectedPartCount(selection) === 0) return failure([diagnostic('empty-selection', 'Selecciona al menos una parte para importar.')])
+  if (selectedPartCount(selection) === 0) {
+    return failure([diagnostic('empty-selection', 'Selecciona al menos una parte para importar.')])
+  }
   const parsedPackage = validateThemePackage(themePackageInput)
   if (!parsedPackage.ok) return parsedPackage
   const themePackage = parsedPackage.value
-  if (selection.documents && packageUsesComponents(themePackage.contents.documents) && !selection.globalComponents) {
-    return failure([diagnostic('missing-component-dependency', 'Los documentos seleccionados requieren importar también Componentes.', ['selection', 'globalComponents'])])
+  const unavailable = unavailableSelectionDiagnostics(themePackage, selection)
+  if (unavailable.length > 0) return failure(unavailable)
+  if (selection.documents
+    && packageUsesComponents(themePackage.contents.documents)
+    && !selection.globalComponents) {
+    return failure([diagnostic(
+      'missing-component-dependency',
+      'Los documentos seleccionados requieren importar también Componentes.',
+      ['selection', 'globalComponents'],
+    )])
   }
 
   const candidate = structuredClone(structure)
@@ -369,12 +553,17 @@ export function applyThemePackage(
 
   if (importTrees) {
     for (const breakpoint of themePackage.contents.breakpoints) {
-      const existing = candidate.breakpoints.find((current) => current.id === breakpoint.id && JSON.stringify(current) === JSON.stringify(breakpoint))
+      const existing = candidate.breakpoints.find((current) => (
+        current.id === breakpoint.id && JSON.stringify(current) === JSON.stringify(breakpoint)
+      ))
       if (existing) {
         breakpointIds.set(breakpoint.id, existing.id)
         reusedBreakpoints += 1
       } else {
-        breakpointIds.set(breakpoint.id, allocateUnique(options.ids.breakpointId, usedBreakpointIds))
+        breakpointIds.set(
+          breakpoint.id,
+          allocateUnique(options.ids.breakpointId, usedBreakpointIds),
+        )
       }
     }
     for (const breakpoint of themePackage.contents.breakpoints) {
@@ -383,7 +572,9 @@ export function applyThemePackage(
       addedBreakpoints.push({
         ...structuredClone(breakpoint),
         id: mappedId,
-        inheritsFrom: breakpoint.inheritsFrom ? (breakpointIds.get(breakpoint.inheritsFrom) ?? null) : null,
+        inheritsFrom: breakpoint.inheritsFrom
+          ? (breakpointIds.get(breakpoint.inheritsFrom) ?? null)
+          : null,
       })
     }
     candidate.breakpoints.push(...addedBreakpoints)
@@ -393,46 +584,77 @@ export function applyThemePackage(
   const componentIds = new Map<GlobalComponentId, GlobalComponentId>()
   if (selection.globalComponents) {
     for (const component of themePackage.contents.globalComponents) {
-      componentIds.set(component.id, allocateUnique(options.ids.globalComponentId, usedComponentIds))
+      componentIds.set(
+        component.id,
+        allocateUnique(options.ids.globalComponentId, usedComponentIds),
+      )
     }
   }
 
   const selectedDocuments = selection.documents ? themePackage.contents.documents : []
-  const selectedComponents = selection.globalComponents ? themePackage.contents.globalComponents : []
+  const selectedComponents = selection.globalComponents
+    ? themePackage.contents.globalComponents
+    : []
   const usedNodeIds = new Set<string>([
     ...Object.values(candidate.documents).flatMap((document) => Object.keys(document.nodes)),
     ...Object.values(candidate.globalComponents).flatMap((component) => Object.keys(component.nodes)),
   ])
   const nodeIds = new Map<NodeId, NodeId>()
-  for (const node of [...selectedDocuments.flatMap((document) => Object.values(document.nodes)), ...selectedComponents.flatMap((component) => Object.values(component.nodes))]) {
+  const selectedNodes = [
+    ...selectedDocuments.flatMap((document) => Object.values(document.nodes)),
+    ...selectedComponents.flatMap((component) => Object.values(component.nodes)),
+  ]
+  for (const node of selectedNodes) {
     nodeIds.set(node.id, allocateUnique(options.ids.nodeId, usedNodeIds))
   }
 
   for (const component of selectedComponents) {
     const mappedComponentId = componentIds.get(component.id)
-    if (!mappedComponentId) return failure([diagnostic('invalid-package', `No se pudo asignar un ID al componente ${component.id}.`, ['globalComponents', component.id])])
-    const remappedNodes = remapTreeNodes(component.nodes, nodeIds, breakpointIds, componentIds)
+    if (!mappedComponentId) {
+      return failure([diagnostic(
+        'invalid-package',
+        `No se pudo asignar un ID al componente ${component.id}.`,
+        ['globalComponents', component.id],
+      )])
+    }
+    const remappedNodes = remapTreeNodes(
+      component.nodes,
+      nodeIds,
+      breakpointIds,
+      componentIds,
+    )
     if (!remappedNodes.ok) return failure([remappedNodes.error])
     candidate.globalComponents[mappedComponentId] = {
       ...structuredClone(component),
       id: mappedComponentId,
-      nodes: remappedNodes.value as GlobalComponent['nodes'],
+      nodes: remappedNodes.value,
       rootNodeIds: component.rootNodeIds.map((nodeId) => nodeIds.get(nodeId) ?? nodeId),
     }
   }
 
   const usedDocumentIds = new Set(Object.keys(candidate.documents))
-  const occupiedRoutes = new Set(Object.values(candidate.documents).flatMap((document) => document.kind === 'page' && document.routePath ? [document.routePath] : []))
+  const occupiedRoutes = new Set(Object.values(candidate.documents).flatMap((document) => (
+    document.kind === 'page' && document.routePath ? [document.routePath] : []
+  )))
   const renamedRoutes: { from: string; to: string }[] = []
   let importedDocuments = 0
   for (const document of selectedDocuments) {
-    const remappedNodes = remapTreeNodes(document.nodes, nodeIds, breakpointIds, componentIds)
+    const remappedNodes = remapTreeNodes(
+      document.nodes,
+      nodeIds,
+      breakpointIds,
+      componentIds,
+    )
     if (!remappedNodes.ok) return failure([remappedNodes.error])
     const documentId = allocateUnique(options.ids.documentId, usedDocumentIds)
     let routePath = document.routePath
     if (document.kind === 'page' && routePath && occupiedRoutes.has(routePath)) {
       if (options.routeConflict === 'abort') {
-        return failure([diagnostic('route-conflict', `La ruta ${routePath} ya existe en el proyecto.`, ['documents', document.id, 'routePath'])])
+        return failure([diagnostic(
+          'route-conflict',
+          `La ruta ${routePath} ya existe en el proyecto.`,
+          ['documents', document.id, 'routePath'],
+        )])
       }
       const renamed = nextRoute(routePath, occupiedRoutes)
       renamedRoutes.push({ from: routePath, to: renamed })
@@ -442,7 +664,7 @@ export function applyThemePackage(
     candidate.documents[documentId] = {
       ...structuredClone(document),
       id: documentId,
-      nodes: remappedNodes.value as Document['nodes'],
+      nodes: remappedNodes.value,
       rootNodeIds: document.rootNodeIds.map((nodeId) => nodeIds.get(nodeId) ?? nodeId),
       routePath,
     }
@@ -460,7 +682,13 @@ export function applyThemePackage(
   }
 
   const validated = validateProjectStructure(candidate)
-  if (!validated.ok) return failure(validated.error.map((issue) => diagnostic('invalid-package', issue.message, issue.path)))
+  if (!validated.ok) {
+    return failure(validated.error.map((issue) => diagnostic(
+      'invalid-package',
+      issue.message,
+      normalizePath(issue.path),
+    )))
+  }
   return success({
     report: {
       addedBreakpoints: addedBreakpoints.length,
