@@ -12,13 +12,14 @@ const uiThemeLabels: Record<UiTheme, string> = {
 }
 
 interface TopBarProps {
+  readonly activeSectionLabel: string
   readonly darkMode: boolean
   readonly onToggleTheme: () => void
   readonly uiTheme: UiTheme
   readonly onUiThemeChange: (theme: UiTheme) => void
 }
 
-export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
+export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const settingsButtonRef = useRef<HTMLButtonElement>(null)
   const settingsPanelRef = useRef<HTMLDivElement>(null)
@@ -77,7 +78,7 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
 
   return (
     <header className="app-topbar relative z-20 col-span-full flex h-11 min-h-11 items-center border-b border-border bg-surface px-1 md:h-10 md:min-h-10">
-      <a className="skip-link" href="#editor-canvas">Saltar al canvas</a>
+      <a className="skip-link" href={activeSectionLabel === 'Editor' ? '#editor-canvas' : '#product-demo'}>Saltar al contenido</a>
 
       <div className="builder-brand flex h-full min-w-0 items-center gap-1 border-r border-border pr-1.5 md:w-[13.5rem]">
         <div className="grid size-7 shrink-0 place-items-center rounded bg-primary text-on-primary" aria-hidden="true"><Icon name="sparkles" size={14} /></div>
@@ -85,7 +86,7 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
           <p className="truncate text-xs font-bold">ElectroCMS</p>
           <p className="hidden truncate text-[0.625rem] text-muted-foreground sm:block">Visual Builder</p>
         </div>
-        <span className="ml-auto hidden rounded border border-primary/20 bg-primary-soft px-1 py-0.5 text-[0.5625rem] font-bold text-primary-strong md:inline">FF-v10</span>
+        <span className="ml-auto hidden rounded border border-primary/20 bg-primary-soft px-1 py-0.5 text-[0.5625rem] font-bold text-primary-strong md:inline">DEMO</span>
       </div>
 
       <div className="builder-project-context ml-1 hidden min-w-0 items-center sm:flex">
@@ -96,8 +97,8 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
         </button>
       </div>
 
-      <div className="builder-page-context ml-1 hidden min-w-0 items-center gap-1 border-l border-border pl-2 text-xs text-muted-foreground lg:flex" aria-label="Página actual">
-        <span className="truncate">Inicio</span><span aria-hidden="true">/</span><strong className="truncate font-semibold text-foreground">Editor</strong>
+      <div className="builder-page-context ml-1 hidden min-w-0 items-center gap-1 border-l border-border pl-2 text-xs text-muted-foreground lg:flex" aria-label="Sección actual">
+        <span className="truncate">Producto</span><span aria-hidden="true">/</span><strong className="truncate font-semibold text-foreground">{activeSectionLabel}</strong>
       </div>
 
       <div className="builder-topbar-actions ml-auto flex min-w-0 items-center gap-0.5" role="toolbar" aria-label="Acciones del proyecto">
