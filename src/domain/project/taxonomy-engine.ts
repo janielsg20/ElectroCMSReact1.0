@@ -468,6 +468,29 @@ export function updateTaxonomyTerm(
   return validateCandidate(structure, cms)
 }
 
+function jsonValueContainsTermId(value: unknown, termId: TaxonomyTermId): boolean {
+  if (value === termId) return true
+  if (Array.isArray(value)) return value.some((item) => jsonValueContainsTermId(item, termId))
+  if (value && typeof value === 'object') {
+    return Object.values(value).some((item) => jsonValueContainsTermId(item, termId))
+  }
+  return false
+}
+
+function queryUsesTaxonomyTerm(
+  cms: CmsBackend,
+  taxonomyId: TaxonomyId,
+  termId: TaxonomyTermId,
+): boolean {
+  return Object.values(cms.queries).some((query) => query.groups.some((group) => (
+    group.predicates.some((predicate) => (
+      predicate.source === 'taxonomy'
+      && predicate.taxonomyId === taxonomyId
+      && jsonValueContainsTermId(predicate.value, termId)
+    ))
+  )))
+}
+
 export function deleteTaxonomyTerm(
   structure: ProjectStructure,
   termId: TaxonomyTermId,
@@ -483,7 +506,7 @@ export function deleteTaxonomyTerm(
   if (Object.values(cms.records).some((record) => record.taxonomyTermIds.includes(termId))) {
     return failure([diagnostic('term-in-use', 'No se puede eliminar un término usado por registros.', ['cms', 'taxonomyTerms', termId])])
   }
-  if (Object.values(cms.queries).some((query) => query.taxonomyTermIds.includes(termId))) {
+  if (queryUsesTaxonomyTerm(cms, current.taxonomyId, termId)) {
     return failure([diagnostic('term-in-use', 'No se puede eliminar un término usado por consultas.', ['cms', 'taxonomyTerms', termId])])
   }
   delete cms.taxonomyTerms[termId]
