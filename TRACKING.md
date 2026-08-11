@@ -5,12 +5,13 @@ Actualizado: 2026-08-10.
 ## Estado global
 
 - Fase actual: `F04 — Application shell, navegación y workspaces responsive`.
-- Microfase actual: `M04.4 — Navegación, rutas y shortcuts`.
+- Microfase actual: `M04.5 — Temas del editor`.
 - Estado: `EN_CURSO`.
 - F00–F03: `COMPLETADA`.
 - `M04.1 — Shell desktop`: `COMPLETADA`.
 - `M04.2 — Shell tablet`: `COMPLETADA`.
 - `M04.3 — Shell móvil`: `COMPLETADA`.
+- `M04.4 — Navegación, rutas y shortcuts`: `COMPLETADA`.
 - F05–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
 - La incorporación del Addendum no cambia ni adelanta el orden real de fases.
@@ -33,7 +34,7 @@ Actualizado: 2026-08-10.
 | F01 | COMPLETADA | Plataforma React/Tailwind/PWA |
 | F02 | COMPLETADA | Modelo canónico y migraciones |
 | F03 | COMPLETADA | Persistencia local-first, proyectos, autosave, recuperación y Command Bus/History |
-| F04 | EN_CURSO | M04.1 desktop, M04.2 tablet y M04.3 móvil completadas; M04.4 navegación/rutas activa |
+| F04 | EN_CURSO | M04.1–M04.4 completadas; M04.5 temas activa |
 | F05–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
@@ -95,27 +96,41 @@ Actualizado: 2026-08-10.
 - El primer run detectó dos queries ambiguas de Testing Library; se corrigieron sin cambiar la lógica de producto y se eliminó además un warning `act(...)` del setup/cleanup de viewport.
 - Puerta técnica PR #9 / run `31454024650`: lint, typecheck, 28 archivos de test / 112 pruebas verdes y build Vite 7.3.6 correcto, sin warnings React del nuevo test móvil.
 
+## Cierre M04.4 — Navegación, rutas y shortcuts
+
+- Añadido contrato `navigation-routing.ts` con rutas profundas canónicas `#/sección`, compatibles con hosting estático/PWA y sin dependencia de un router externo.
+- `activeSection` del shell sigue siendo la única selección visual; `ResponsiveEditorShell` sincroniza la URL observando el `aria-current` semántico de `AppNavigation`, evitando una segunda fuente de verdad.
+- URLs inválidas o vacías caen de forma segura en `#/editor`; el contrato de historial usa estado versionado `schemaVersion: 1`.
+- `popstate` restaura la sección desde URL y conserva la misma instancia del shell/workspace; una prueba verifica que el rail redimensionado sobrevive a la navegación.
+- El contexto visible `Producto / sección` existente actúa como breadcrumb del shell y se actualiza con la ruta activa.
+- Añadida `CommandPalette` con launcher visible, búsqueda de módulos, listbox accesible, flechas, Enter, Escape, focus trap/restauración de foco y atajos documentados.
+- Atajos globales implementados: `Ctrl/⌘+K` para paleta, `Alt+Shift+E` Editor, `Alt+Shift+H` Inicio y `Alt+Shift+P` Páginas; los atajos directos se ignoran dentro de campos editables.
+- La navegación desde rail, módulos móviles, paleta y shortcuts converge en el mismo `onSectionChange` existente y en el mismo contrato URL.
+- El primer CI detectó reglas estrictas de lint sobre estado derivable e historial sin tipos; se corrigieron sin desactivar reglas. El segundo gate detectó una inferencia `Promise<unknown>` en test; se tipó explícitamente.
+- Un run funcional verde reveló warnings `act(...)` al simular `popstate`; el test se corrigió con `act` y el run final quedó sin warnings React del nuevo flujo.
+- Puerta técnica PR #10 / run `31454811218`: lint, typecheck, 30 archivos de test / 120 pruebas verdes y build Vite 7.3.6 correcto.
+
 ## Entregas UI anticipadas que continúan pendientes de su fase propietaria
 
 - Biblioteca/árbol, canvas, inspector y themes existen visualmente y con interacciones parciales.
 - `src/ui-integrity-v11.css` sigue como guardrail cross-theme para tamaño, selección, foco y overflow.
-- M04.1–M04.3 formalizan shell desktop/tablet/móvil; no cierran rutas/shortcuts, themes, F05–F07 ni F19.
+- M04.1–M04.4 formalizan shell responsive y navegación; no cierran themes, F05–F07 ni F19.
 - La consolidación de CSS/primitives continúa de forma segura al entrar cada microfase propietaria.
 
 ## Próximo paso exacto
 
-`M04.4 — Navegación, rutas y shortcuts`:
+`M04.5 — Temas del editor`:
 
-- implementar URLs profundas y restauración desde URL;
-- asegurar comportamiento predecible de back/forward;
-- añadir breadcrumbs donde aporten contexto;
-- formalizar command palette y atajos documentados sin ocultar controles visibles;
-- preservar el estado relevante al navegar;
-- probar teclado, semántica accesible y navegación histórica antes de avanzar a M04.5.
+- separar modo de color `claro / oscuro / automático` del preset visual del editor;
+- consolidar Studio, Bento Motion y Flow Builder sobre tokens semánticos, sin valores dispersos nuevos;
+- persistir preferencias de apariencia de UI sin contaminar el modelo canónico del proyecto;
+- reaccionar a cambios de `prefers-color-scheme` cuando el modo sea automático;
+- verificar contraste, densidad, selección/foco y responsive por preset;
+- cerrar F04 únicamente después de lint, typecheck, tests y build reproducibles.
 
 ## Bloqueos
 
-- Ninguno para M04.4.
+- Ninguno para M04.5.
 - F19–F31 están deliberadamente pendientes de sus dependencias, no bloqueadas.
 
 ## Criterio para cambiar de microfase
@@ -131,6 +146,7 @@ No avanzar hasta cerrar la microfase activa con evidencia reproducible. La docum
 - M04.1: run `31451142252`, 102/102 pruebas, lint/typecheck/build verdes.
 - M04.2: run `31453249710`, 107/107 pruebas, lint/typecheck/build verdes; pruebas específicas 768/1023 y transición a 1024.
 - M04.3: run `31454024650`, 112/112 pruebas, lint/typecheck/build verdes; pruebas específicas 320/375 y transición a 768.
+- M04.4: run `31454811218`, 120/120 pruebas, lint/typecheck/build verdes; deep links, history/popstate, paleta y shortcuts cubiertos.
 - Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
 ## Documentos de control
