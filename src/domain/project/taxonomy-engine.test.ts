@@ -50,15 +50,19 @@ function contentType(id: typeof contentTypeId, slug: string, pluralName: string)
   }
 }
 
-function taxonomy(id = taxonomyId, slug = 'category'): Taxonomy {
+function taxonomy(
+  id = taxonomyId,
+  slug = 'category',
+  archiveTemplateId: Taxonomy['archiveTemplateId'] = null,
+): Taxonomy {
   return {
+    archiveTemplateId,
     contentTypeIds: [contentTypeId],
+    description: 'Clasificación editorial',
     fieldIds: [],
     hierarchical: true,
     id,
-    order: 10,
     pluralName: 'Categorías',
-    public: true,
     singularName: 'Categoría',
     slug,
   }
@@ -71,6 +75,7 @@ function term(
   parentId: TaxonomyTerm['parentId'] = null,
 ): TaxonomyTerm {
   return {
+    description: '',
     id,
     name,
     parentId,
@@ -112,56 +117,46 @@ function structure(): ProjectStructure {
 }
 
 describe('M09.2 taxonomy engine', () => {
-  it('crea una taxonomía, sincroniza asociaciones y enlaza archive mediante condiciones canónicas', () => {
-    const created = createTaxonomy(structure(), {
-      archiveTemplateId: archiveDocumentId,
-      taxonomy: taxonomy(),
-    })
+  it('crea una taxonomía, sincroniza asociaciones y conserva archive canónico', () => {
+    const created = createTaxonomy(structure(), taxonomy(taxonomyId, 'category', archiveDocumentId))
     expect(created.ok).toBe(true)
     if (!created.ok) return
 
     expect(created.value.cms?.contentTypes[contentTypeId]?.taxonomyIds).toContain(taxonomyId)
-    expect(created.value.documents[archiveDocumentId]?.conditions).toContainEqual({
-      contentType: `taxonomy:${taxonomyId}`,
-      priority: 0,
-      target: 'archive',
-    })
+    expect(created.value.cms?.taxonomies[taxonomyId]?.archiveTemplateId).toBe(archiveDocumentId)
     expect(listTaxonomies(created.value)[0]?.archiveTemplateId).toBe(archiveDocumentId)
   })
 
   it('rechaza slug duplicado, CPT inexistente y documentos archive incompatibles', () => {
-    const first = createTaxonomy(structure(), { taxonomy: taxonomy() })
+    const first = createTaxonomy(structure(), taxonomy())
     expect(first.ok).toBe(true)
     if (!first.ok) return
 
-    const duplicate = createTaxonomy(first.value, { taxonomy: taxonomy(secondTaxonomyId, 'category') })
+    const duplicate = createTaxonomy(first.value, taxonomy(secondTaxonomyId, 'category'))
     expect(duplicate.ok).toBe(false)
     if (!duplicate.ok) expect(duplicate.error[0]?.code).toBe('taxonomy-slug-conflict')
 
     const missingCpt = createTaxonomy(first.value, {
-      taxonomy: {
-        ...taxonomy(secondTaxonomyId, 'tag'),
-        contentTypeIds: [parseContentTypeId('99999999-9999-4999-8999-999999999999')],
-      },
+      ...taxonomy(secondTaxonomyId, 'tag'),
+      contentTypeIds: [parseContentTypeId('99999999-9999-4999-8999-999999999999')],
     })
     expect(missingCpt.ok).toBe(false)
     if (!missingCpt.ok) expect(missingCpt.error[0]?.code).toBe('missing-content-type')
 
     const invalidArchive = updateTaxonomy(first.value, taxonomyId, {
       archiveTemplateId: pageDocumentId,
-      patch: {},
     })
     expect(invalidArchive.ok).toBe(false)
     if (!invalidArchive.ok) expect(invalidArchive.error[0]?.code).toBe('invalid-archive-template')
   })
 
   it('actualiza asociaciones múltiples de forma bidireccional', () => {
-    const created = createTaxonomy(structure(), { taxonomy: taxonomy() })
+    const created = createTaxonomy(structure(), taxonomy())
     expect(created.ok).toBe(true)
     if (!created.ok) return
 
     const updated = updateTaxonomy(created.value, taxonomyId, {
-      patch: { contentTypeIds: [secondContentTypeId] },
+      contentTypeIds: [secondContentTypeId],
     })
     expect(updated.ok).toBe(true)
     if (!updated.ok) return
@@ -170,7 +165,7 @@ describe('M09.2 taxonomy engine', () => {
   })
 
   it('gestiona términos jerárquicos, evita ciclos y bloquea cambio a no jerárquica mientras existan padres', () => {
-    const createdTaxonomy = createTaxonomy(structure(), { taxonomy: taxonomy() })
+    const createdTaxonomy = createTaxonomy(structure(), taxonomy())
     expect(createdTaxonomy.ok).toBe(true)
     if (!createdTaxonomy.ok) return
 
@@ -186,14 +181,14 @@ describe('M09.2 taxonomy engine', () => {
     expect(cycle.ok).toBe(false)
     if (!cycle.ok) expect(cycle.error[0]?.code).toBe('term-cycle')
 
-    const flat = updateTaxonomy(child.value, taxonomyId, { patch: { hierarchical: false } })
+    const flat = updateTaxonomy(child.value, taxonomyId, { hierarchical: false })
     expect(flat.ok).toBe(false)
     if (!flat.ok) expect(flat.error[0]?.code).toBe('term-parent-forbidden')
   })
 
   it('rechaza padres en taxonomía plana y protege borrados con dependencias', () => {
     const flatTaxonomy = { ...taxonomy(), hierarchical: false }
-    const createdTaxonomy = createTaxonomy(structure(), { taxonomy: flatTaxonomy })
+    const createdTaxonomy = createTaxonomy(structure(), flatTaxonomy)
     expect(createdTaxonomy.ok).toBe(true)
     if (!createdTaxonomy.ok) return
 
@@ -213,6 +208,9 @@ describe('M09.2 taxonomy engine', () => {
     if (!removedTerm.ok) return
     const removedTaxonomy = deleteTaxonomy(removedTerm.value, taxonomyId)
     expect(removedTaxonomy.ok).toBe(true)
-    if (removedTaxonomy.ok) expect(removedTaxonomy.value.cms?.taxonomies[taxonomyId]).toBeUndefined()
+    if (removedTaxonomy.ok) {
+      expect(removedTaxonomy.value.cms?.taxonomies[taxonomyId]).toBeUndefined()
+      expect(removedTaxonomy.value.cms?.contentTypes[contentTypeId]?.taxonomyIds).not.toContain(taxonomyId)
+    }
   })
 })
