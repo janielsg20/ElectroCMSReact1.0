@@ -78,7 +78,9 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
     const rotate = screen.getByRole('button', { name: 'Cambiar orientación del dispositivo' })
     fireEvent.click(rotate)
     expect(rotate).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText(/Horizontal · 90%/)).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Viewport del documento' })).toContainElement(rotate)
+    expect(screen.getByLabelText('Zoom del canvas: 90 por ciento')).toBeInTheDocument()
+    expect(screen.queryByText(/Horizontal · 90%/)).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Herramienta de desplazamiento' }))
     const region = screen.getByRole('region', { name: 'Viewport interactivo del canvas' })

@@ -2,11 +2,19 @@
 
 Actualizado: 2026-08-11.
 
+- Auditoría actual M04.1: corregida la colisión de las cuatro pestañas de Biblioteca en el panel estrecho. El componente responde a su propio ancho, mantiene etiquetas accesibles completas y presenta `Docs` en vez de recortar o juntar `Documentos`. Verificado visualmente a 1440, 768 y 375 px; typecheck y 17 pruebas focalizadas verdes.
+
 ## Estado global
 
-- Fase actual: `F08 — Temas, plantillas y paquetes`.
-- Microfase actual: `M08.4 — Paquetes theme`.
-- Estado: `EN_CURSO`.
+- Fase actual: `F04 — Application shell, navegación y workspaces responsive`.
+- Microfase actual: `M04.1 — Shell desktop`.
+- Estado: `EN_CURSO — auditoría solicitada`.
+- Auditoría actual M04.1: en curso la reorganización del chrome del canvas y de la información global/proyecto; se elimina información redundante del lienzo y se separan apariencia local, documentos y temas exportables.
+- Auditoría actual M04.1: completada la pasada de canvas y navegación local. La barra se distribuye en tres regiones sin solapamiento y adapta sus controles por contenedor; se retiró el estado inferior duplicado. Apariencia queda local en TopBar; temas Frontend/Backend se movieron a Diseño, y Plantillas se renombró Documentos. Verificación visual en 1440, 1024, 768 y 375 px.
+- `F04` se reabre exclusivamente para auditoría y corrección; su evidencia de cierre histórica se conserva. `M08.4` queda en pausa.
+- Auditoría M04.1: corregida cancelación reversible de interacciones de ventana y normalización de coordenadas de puntero; prueba de persistencia desktop 3/3 y typecheck verdes.
+- Auditoría visual M04.1: el popover de Apariencia ya no hereda controles compactos de la barra superior, conserva tarjetas legibles en móvil y se limita por encima del dock; en tableta el disparador se reduce a icono con nombre accesible para no quedar recortado. Verificación manual en 1440, 1024, 768, 375 y 812 px sin overflow horizontal; pruebas de apariencia, tema y workspace 13/13 verdes.
+- Auditoría F08 en curso: dependencias restauradas desde el lockfile y primer hallazgo UI corregido (target táctil del nombre de tema); falta completar la revisión y la puerta global.
 - F00–F04: `COMPLETADA`.
 - `M05.1 — Operaciones del árbol`: `COMPLETADA`.
 - `M05.2 — Canvas y renderer`: `COMPLETADA`.

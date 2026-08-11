@@ -220,12 +220,12 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
 
   return (
     <main className="canvas-workspace relative row-start-2 min-h-0 min-w-0 overflow-hidden bg-editor-grid md:col-start-2 lg:col-start-3" id="editor-canvas" tabIndex={-1}>
-      <div className="canvas-toolbar absolute inset-x-0 top-0 z-10 flex min-h-12 items-center justify-between gap-1 border-b border-border bg-surface/95 px-1.5 backdrop-blur lg:min-h-10 lg:px-1">
+      <div className="canvas-toolbar absolute inset-x-0 top-0 z-10 grid min-h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b border-border bg-surface/95 px-1.5 backdrop-blur lg:min-h-10 lg:px-1">
         <div className="flex min-w-0 items-center gap-1" role="toolbar" aria-label="Herramientas del canvas">
           <span className="hidden md:block" data-tooltip="Páginas y capas"><Button aria-label="Alternar páginas y capas" className={libraryOpen ? 'bg-primary-soft text-primary-strong' : ''} onClick={onToggleLibrary} size="icon" variant="ghost"><Icon name="panel-left" /></Button></span>
           <span data-tooltip="Seleccionar"><Button aria-label="Herramienta de selección" aria-pressed={canvasWorkspace.tool === 'select'} className={canvasWorkspace.tool === 'select' ? 'bg-primary-soft text-primary-strong' : ''} onClick={() => commitCanvasWorkspace({ ...canvasWorkspace, tool: 'select' })} size="icon" variant="ghost"><Icon name="cursor" /></Button></span>
           <span data-tooltip="Desplazar"><Button aria-label="Herramienta de desplazamiento" aria-pressed={canvasWorkspace.tool === 'pan'} className={canvasWorkspace.tool === 'pan' ? 'bg-primary-soft text-primary-strong' : ''} onClick={() => commitCanvasWorkspace({ ...canvasWorkspace, tool: 'pan' })} size="icon" variant="ghost"><Icon name="move" /></Button></span>
-          <nav aria-label="Ruta de selección" className="canvas-breadcrumb ml-1 hidden min-w-0 xl:flex">
+          <nav aria-label="Ruta de selección" className="canvas-breadcrumb ml-1 hidden min-w-0 overflow-hidden xl:flex">
             <ol className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
               {breadcrumbs.map((breadcrumb, index) => {
                 const current = index === breadcrumbs.length - 1
@@ -242,7 +242,7 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
           </nav>
         </div>
 
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center rounded-lg border border-border bg-canvas p-0.5 shadow-sm" role="group" aria-label="Viewport del documento">
+        <div className="flex items-center rounded-lg border border-border bg-canvas p-0.5 shadow-sm" role="group" aria-label="Viewport del documento">
           {(['mobile', 'tablet', 'desktop'] as const).map((mode) => (
             <button aria-label={viewportLabels[mode]} aria-pressed={viewport === mode} className={`grid size-11 cursor-pointer place-items-center rounded-md transition-colors lg:size-8 ${viewport === mode ? 'bg-primary text-on-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`} data-tooltip={viewportLabels[mode]} key={mode} onClick={() => changeViewport(mode)} type="button"><Icon name={mode} size={14} /></button>
           ))}
@@ -250,7 +250,7 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
           <button aria-label="Cambiar orientación del dispositivo" aria-pressed={canvasWorkspace.orientation === 'landscape'} className="grid size-11 cursor-pointer place-items-center rounded-md text-muted-foreground hover:bg-muted lg:size-8" data-tooltip="Rotar dispositivo" disabled={!isDevice} onClick={() => commitCanvasWorkspace({ ...canvasWorkspace, orientation: canvasWorkspace.orientation === 'portrait' ? 'landscape' : 'portrait', panX: 0, panY: 0 })} type="button"><Icon name="resize" size={14} /></button>
         </div>
 
-        <div className="flex min-w-0 items-center gap-1">
+        <div className="flex min-w-0 justify-self-end items-center gap-1">
           <div className="canvas-zoom-status hidden items-center rounded-md border border-border bg-surface sm:flex" role="group" aria-label="Zoom del canvas">
             <button aria-label="Alejar canvas" className="grid size-8 place-items-center rounded-l hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus" onClick={() => commitCanvasWorkspace({ ...canvasWorkspace, zoom: stepCanvasZoom(canvasWorkspace.zoom, -1) })} type="button">−</button>
             <output aria-label={`Zoom del canvas: ${canvasWorkspace.zoom} por ciento`} className="min-w-11 text-center font-heading text-[0.625rem] tabular-nums text-muted-foreground">{canvasWorkspace.zoom}%</output>
@@ -298,7 +298,6 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
           </div>
           </div>
         </div>
-        <div aria-live="polite" className="sticky bottom-0 mx-auto mt-1.5 flex w-fit items-center justify-center gap-1.5 rounded bg-canvas/90 px-2 py-0.5 text-center font-heading text-[0.625rem] text-muted-foreground"><span className="size-1.5 rounded-full bg-success" />{activeBreakpoint.name} · {activeBreakpoint.width}px · {canvasWorkspace.orientation === 'landscape' ? 'Horizontal' : 'Vertical'} · {canvasWorkspace.zoom}%</div>
       </div>
       {contextMenu ? (
         <DirectManipulationMenu

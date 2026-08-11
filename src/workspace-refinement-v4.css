@@ -46,16 +46,17 @@
   gap: 0.125rem;
 }
 
-.app-topbar [role="toolbar"] button:not(:disabled):not([class*="bg-primary"]) {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:not(:disabled):not([class*="bg-primary"]) {
   color: var(--color-muted-foreground);
 }
 
-.app-topbar [role="toolbar"] button:not(:disabled):hover {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:not(:disabled):hover,
+.app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger:not(:disabled):hover {
   color: var(--color-foreground);
 }
 
 .app-topbar [role="toolbar"] .text-primary,
-.app-topbar [role="toolbar"] button[class*="text-primary"] {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button[class*="text-primary"] {
   color: var(--color-primary-strong);
 }
 

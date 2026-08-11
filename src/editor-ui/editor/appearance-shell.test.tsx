@@ -73,16 +73,24 @@ describe('M04.5 temas del editor', () => {
     expect(within(colors).getByRole('radio', { name: 'Automático' })).toHaveAttribute('aria-checked', 'false')
   })
 
-  it('separa visualmente editor, frontend y backend sin mezclar su persistencia', () => {
+  it('mantiene la apariencia local del editor fuera de los temas exportables del proyecto', () => {
     render(<App />)
     const appearance = openAppearance()
-    const scope = within(appearance).getByRole('group', { name: 'Ámbito de tema' })
-    expect(within(scope).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(within(scope).getByRole('button', { name: 'Frontend' }))
-    expect(within(appearance).getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
-    expect(within(appearance).getByRole('textbox', { name: /tokens semánticos/i })).toBeInTheDocument()
-    expect(within(appearance).queryByRole('radiogroup', { name: 'Preset visual' })).not.toBeInTheDocument()
+
+    expect(within(appearance).getByRole('heading', { name: 'Apariencia del editor' })).toBeInTheDocument()
+    expect(within(appearance).queryByRole('group', { name: 'Ámbito de tema' })).not.toBeInTheDocument()
+    expect(within(appearance).getByRole('radiogroup', { name: 'Preset visual' })).toBeInTheDocument()
     expect(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY)).toBeNull()
+  })
+
+  it('ubica los temas frontend y backend en Diseño, junto a los recursos del proyecto', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Diseño' }))
+
+    expect(screen.getByRole('heading', { name: 'Temas de proyecto' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Frontend' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
   })
 
   it('cambia color por teclado, preserva el preset y persiste appearance.v1', async () => {

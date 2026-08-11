@@ -10,9 +10,7 @@ import {
   type ColorMode,
   type UiTheme,
 } from './appearance-preferences'
-import { useEditorProject, useEditorProjectStructure } from './editor-project-context'
-import { ProjectThemeControl } from './ProjectThemeControl'
-import type { ThemeScope } from '../../domain'
+import { useEditorProject } from './editor-project-context'
 import { EDITOR_THEME_PRESETS, isEditorThemePresetId } from '../theme/editor-presets'
 
 export type { UiTheme } from './appearance-preferences'
@@ -34,9 +32,7 @@ interface TopBarProps {
 
 export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
   const session = useEditorProject()
-  const structure = useEditorProjectStructure()
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [themeScope, setThemeScope] = useState<ThemeScope>('editor')
   const [appearance, setAppearance] = useState<AppearancePreferences>(() => readInitialAppearance())
   const [systemDark, setSystemDark] = useState(() => systemPrefersDark())
   const [historyPending, setHistoryPending] = useState(false)
@@ -209,23 +205,17 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
             {settingsOpen ? (
               <div
                 aria-label="Apariencia de la interfaz"
-                className="theme-settings-popover fixed left-1/2 top-12 z-50 max-h-[calc(100dvh-3.5rem)] w-[min(42rem,calc(100vw-0.75rem))] -translate-x-1/2 overflow-y-auto rounded-lg border border-border bg-surface p-2 shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+0.35rem)] sm:translate-x-0"
+                className="theme-settings-popover fixed left-1/2 top-12 z-50 max-h-[calc(100dvh-7.75rem)] w-[min(42rem,calc(100vw-0.75rem))] -translate-x-1/2 overflow-y-auto rounded-lg border border-border bg-surface p-2 shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+0.35rem)] sm:max-h-[calc(100dvh-3.5rem)] sm:translate-x-0"
                 onKeyDown={handleSettingsKeyDown}
                 ref={settingsPanelRef}
                 role="dialog"
               >
                 <div className="mb-2 flex items-start gap-2 px-1">
                   <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="palette" size={15} /></span>
-                  <div><h2 className="text-xs font-bold">Ámbitos de tema</h2><p className="text-xs leading-4 text-muted-foreground">Editor, frontend y backend se configuran de forma independiente.</p></div>
+                  <div><h2 className="text-xs font-bold">Apariencia del editor</h2><p className="text-xs leading-4 text-muted-foreground">Estos ajustes solo cambian la interfaz local de ElectroCMS.</p></div>
                 </div>
 
-                <div aria-label="Ámbito de tema" className="mb-2 grid grid-cols-3 gap-1 rounded-md border border-border bg-muted/30 p-1" role="group">
-                  {(['editor', 'frontend', 'backend'] as const).map((scope) => (
-                    <button aria-pressed={themeScope === scope} className={`min-h-9 rounded px-2 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-focus ${themeScope === scope ? 'bg-surface text-primary shadow-sm' : 'text-muted-foreground hover:bg-surface/70 hover:text-foreground'}`} key={scope} onClick={() => setThemeScope(scope)} type="button">{scope === 'editor' ? 'Editor' : scope === 'frontend' ? 'Frontend' : 'Backend'}</button>
-                  ))}
-                </div>
-
-                {themeScope === 'editor' ? <><div className="mb-2 rounded-md border border-primary/20 bg-primary-soft p-2 text-xs leading-4 text-primary-strong">Este ámbito vive en <code>appearance.v1</code> y nunca se exporta con el proyecto.</div><fieldset className="min-w-0 border-0 p-0">
+                <div className="mb-2 rounded-md border border-primary/20 bg-primary-soft p-2 text-xs leading-4 text-primary-strong">La apariencia se guarda en <code>appearance.v1</code> y nunca se exporta con el proyecto.</div><fieldset className="min-w-0 border-0 p-0">
                   <legend className="mb-1 px-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Preset visual</legend>
                   <div aria-label="Preset visual" className="grid grid-cols-1 gap-1.5 sm:grid-cols-3" role="radiogroup">
                     {EDITOR_THEME_PRESETS.map((preset) => (
@@ -255,7 +245,7 @@ export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: To
                     <button aria-checked={appearance.colorMode === 'system'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-md border px-1.5 text-xs font-semibold transition-colors ${appearance.colorMode === 'system' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-muted/30 text-foreground hover:bg-muted'}`} data-color-choice="system" onClick={() => selectColorMode('system')} role="radio" type="button"><Icon name="desktop" size={14} /><span>Automático</span></button>
                   </div>
                   <p className="mt-1 px-1 text-[0.625rem] leading-4 text-muted-foreground">Automático sigue <code>prefers-color-scheme</code> del sistema y cambia sin recargar.</p>
-                </fieldset></> : <ProjectThemeControl key={`${themeScope}-${JSON.stringify(structure.themes[themeScope])}`} scope={themeScope} theme={structure.themes[themeScope]} />}
+                </fieldset>
               </div>
             ) : null}
           </div>

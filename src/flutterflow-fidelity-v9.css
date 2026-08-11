@@ -92,15 +92,17 @@
   min-width: 0;
 }
 
-.app-topbar [role="toolbar"] button {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button,
+.app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger {
   box-shadow: none !important;
 }
 
-.app-topbar [role="toolbar"] button:not(:disabled):hover {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:not(:disabled):hover,
+.app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger:not(:disabled):hover {
   background: var(--ff-hover);
 }
 
-.app-topbar [role="toolbar"] button:disabled {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:disabled {
   opacity: 0.42;
 }
 
@@ -473,7 +475,8 @@
     gap: 0.0625rem;
   }
 
-  .app-topbar [role="toolbar"] button {
+  .app-topbar > [role="toolbar"] > .builder-toolgroup > button,
+  .app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger {
     width: 2.25rem;
     min-width: 2.25rem;
     height: 2.25rem;

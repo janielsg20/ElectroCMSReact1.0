@@ -2,6 +2,8 @@
 
 Actualizado: 2026-08-11.
 
+> Auditoría visual F04/M04.1 (tercera pasada): las cuatro pestañas de Biblioteca se adaptan a su ancho real. Bajo 240 px se ocultan los iconos redundantes y `Documentos` se muestra como `Docs`, mientras su nombre accesible completo no cambia. Revisado en escritorio, tableta y móvil; el desplazamiento que queda para un device frame mayor que la pantalla es interno al viewport del canvas, no de la página.
+
 ## Objetivo
 
 Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual y exportadores Local, React, LAMP y WordPress.
@@ -17,8 +19,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F07 completadas.
-- Fase activa: `F08 — Temas, plantillas y paquetes`.
-- `M08.1–M08.3` completadas; `M08.4 — Paquetes theme` `EN_CURSO`.
+- Fase activa: `F04 — Application shell, navegación y workspaces responsive` (auditoría solicitada).
+- `M04.1 — Shell desktop` reabierta para auditoría; `M08.4 — Paquetes theme` queda en pausa.
 - F09–F18 y F19–F31 permanecen `NO_INICIADA`.
 - Puerta más reciente: lint/typecheck, 59 archivos y 271/271 pruebas, build Vite 7.3.6 y `git diff --check` verdes.
 
@@ -40,6 +42,10 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - La navegación expone solo Editor; se retiraron dashboard, módulos, rutas, IA, preview/run y controles aspiracionales.
 - Presets de editor: Studio, Bento Motion y Flow Builder; color Claro/Oscuro/Automático en `appearance.v1`.
 - Canvas mantiene selección compartida, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco entre regiones.
+- Auditoría F08: el campo Nombre de tema usa 44 px en touch y 36 px desde escritorio; prueba de regresión específica verde.
+- Auditoría F04/M04.1: un `pointercancel` restaura la geometría previa y las coordenadas de puntero inválidas no producen estilos `NaN`; pruebas de persistencia del workspace 3/3 verdes.
+- Auditoría visual F04/M04.1: se aisló el estilo de los controles de la barra superior para que no comprima las opciones del popover de Apariencia. En móvil el popover queda por encima del dock y en tableta el disparador usa un icono de 44 px con etiqueta accesible; sin overflow horizontal en 1440, 1024, 768, 375 y 812 px.
+- Auditoría visual F04/M04.1 (segunda pasada): canvas usa una grilla de tres regiones para herramientas, viewport/breakpoint y acciones; el breadcrumb y el foco/zoom secundario se ocultan según el ancho real del lienzo, sin solapamientos. Se retiró el indicador sticky que duplicaba breakpoint, tamaño, orientación y zoom. TopBar solo configura appearance.v1; temas frontend/backend viven en Biblioteca > Diseño. La pestaña Plantillas se llama Documentos porque agrupa páginas y plantillas canónicas; no se simula aún un editor de componentes.
 
 ## F05 — motor canónico completado
 
