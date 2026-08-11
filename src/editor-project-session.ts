@@ -36,6 +36,8 @@ import {
   type ContentTypeId,
   type Document,
   type DocumentId,
+  type FieldDefinition,
+  type FieldDefinitionId,
   type JsonValue,
   type Node,
   type NodeDataSettings,
@@ -66,6 +68,12 @@ import {
   updateContentType as updateContentTypeInStructure,
   type ContentTypeEditablePatch,
 } from './domain/project/content-type-engine'
+import {
+  createCustomField as createCustomFieldInStructure,
+  deleteCustomField as deleteCustomFieldInStructure,
+  updateCustomField as updateCustomFieldInStructure,
+  type FieldDefinitionEditablePatch,
+} from './domain/project/custom-field-engine'
 import {
   createTaxonomy as createTaxonomyInStructure,
   createTaxonomyTerm as createTaxonomyTermInStructure,
@@ -203,10 +211,18 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       `Crear tipo ${contentType.pluralName}`,
       (structure) => {
         const created = createContentTypeInStructure(structure, contentType)
-        return created.ok ? success(created.value) : failure({
-          code: 'invalid-tree' as const,
-          message: created.error[0]?.message ?? 'El tipo de contenido no es válido.',
-        })
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El tipo de contenido no es válido.' })
+      },
+    ))
+  }
+
+  async createCustomField(field: FieldDefinition): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-custom-field',
+      `Crear campo ${field.label}`,
+      (structure) => {
+        const created = createCustomFieldInStructure(structure, field)
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El campo personalizado no es válido.' })
       },
     ))
   }
@@ -228,10 +244,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       `Crear taxonomía ${taxonomy.pluralName}`,
       (structure) => {
         const created = createTaxonomyInStructure(structure, taxonomy)
-        return created.ok ? success(created.value) : failure({
-          code: 'invalid-tree' as const,
-          message: created.error[0]?.message ?? 'La taxonomía no es válida.',
-        })
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'La taxonomía no es válida.' })
       },
     ))
   }
@@ -242,10 +255,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       `Crear término ${term.name}`,
       (structure) => {
         const created = createTaxonomyTermInStructure(structure, term)
-        return created.ok ? success(created.value) : failure({
-          code: 'invalid-tree' as const,
-          message: created.error[0]?.message ?? 'El término no es válido.',
-        })
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El término no es válido.' })
       },
     ))
   }
@@ -256,10 +266,18 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       'Eliminar tipo de contenido',
       (structure) => {
         const deleted = deleteContentTypeInStructure(structure, contentTypeId)
-        return deleted.ok ? success(deleted.value) : failure({
-          code: 'invalid-tree' as const,
-          message: deleted.error[0]?.message ?? 'El tipo de contenido no se puede eliminar.',
-        })
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El tipo de contenido no se puede eliminar.' })
+      },
+    ))
+  }
+
+  async deleteCustomField(fieldId: FieldDefinitionId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-custom-field',
+      'Eliminar campo personalizado',
+      (structure) => {
+        const deleted = deleteCustomFieldInStructure(structure, fieldId)
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El campo personalizado no se puede eliminar.' })
       },
     ))
   }
@@ -270,10 +288,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       'Eliminar taxonomía',
       (structure) => {
         const deleted = deleteTaxonomyInStructure(structure, taxonomyId)
-        return deleted.ok ? success(deleted.value) : failure({
-          code: 'invalid-tree' as const,
-          message: deleted.error[0]?.message ?? 'La taxonomía no se puede eliminar.',
-        })
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'La taxonomía no se puede eliminar.' })
       },
     ))
   }
@@ -284,10 +299,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       'Eliminar término de taxonomía',
       (structure) => {
         const deleted = deleteTaxonomyTermInStructure(structure, termId)
-        return deleted.ok ? success(deleted.value) : failure({
-          code: 'invalid-tree' as const,
-          message: deleted.error[0]?.message ?? 'El término no se puede eliminar.',
-        })
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El término no se puede eliminar.' })
       },
     ))
   }
@@ -310,29 +322,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
 
     const nodeId = parseNodeId(crypto.randomUUID())
     const node: Node = {
-      bindings: {},
-      conditions: [],
-      hidden: false,
-      id: nodeId,
-      kind: 'widget',
-      locked: false,
+      bindings: {}, conditions: [], hidden: false, id: nodeId, kind: 'widget', locked: false,
       name: template.name?.trim() || definition.label,
       properties: validatedProperties.data,
       responsive: structuredClone(template.responsive ?? {}),
-      slots: {},
-      styles: structuredClone(template.styles ?? {}),
-      widgetType,
+      slots: {}, styles: structuredClone(template.styles ?? {}), widgetType,
     }
     const placement = this.#insertionPlacement(anchorNodeId ?? null)
     const inserted = await this.#execute(new ProjectStructureCommand(
       'tree.insert-widget',
       `Insertar ${definition.label}`,
-      (structure) => insertNode(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        node,
-        placement,
-      ),
+      (structure) => insertNode(structure, { documentId: this.documentId, kind: 'document' }, node, placement),
     ))
     return inserted.ok ? success({ nodeId, structure: inserted.value }) : inserted
   }
@@ -346,14 +346,8 @@ class BrowserEditorProjectSession implements EditorProjectSession {
 
   async moveNodes(nodeIds: readonly NodeId[], placement: NodePlacement): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'tree.move',
-      nodeIds.length === 1 ? 'Mover capa' : 'Mover capas',
-      (structure) => moveNodes(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        nodeIds,
-        placement,
-      ),
+      'tree.move', nodeIds.length === 1 ? 'Mover capa' : 'Mover capas',
+      (structure) => moveNodes(structure, { documentId: this.documentId, kind: 'document' }, nodeIds, placement),
     ))
   }
 
@@ -365,23 +359,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   }
 
   async reorderBreakpoint(breakpointId: BreakpointId, targetIndex: number): Promise<Result<ProjectStructure, string>> {
-    return this.#execute(new ProjectStructureCommand(
-      'responsive.reorder-breakpoint',
-      'Reordenar breakpoint',
-      (structure) => reorderBreakpoint(structure, breakpointId, targetIndex),
-    ))
+    return this.#execute(new ProjectStructureCommand('responsive.reorder-breakpoint', 'Reordenar breakpoint', (structure) => reorderBreakpoint(structure, breakpointId, targetIndex)))
   }
 
   async resetNodeBreakpointOverride(nodeId: NodeId, breakpointId: BreakpointId): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'responsive.reset-node-override',
-      'Restablecer override responsive',
-      (structure) => resetNodeBreakpointOverride(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        nodeId,
-        breakpointId,
-      ),
+      'responsive.reset-node-override', 'Restablecer override responsive',
+      (structure) => resetNodeBreakpointOverride(structure, { documentId: this.documentId, kind: 'document' }, nodeId, breakpointId),
     ))
   }
 
@@ -399,31 +383,18 @@ class BrowserEditorProjectSession implements EditorProjectSession {
 
   async resetProjectTheme(scope: ProjectThemeScope): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      `theme.reset-${scope}`,
-      `Restablecer tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
+      `theme.reset-${scope}`, `Restablecer tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
       (structure) => {
         const reset = resetProjectTheme(structure, scope)
-        return reset.ok ? reset : failure({
-          code: 'invalid-theme' as const,
-          message: reset.error[0]?.message ?? 'El tema no es válido.',
-        })
+        return reset.ok ? reset : failure({ code: 'invalid-theme' as const, message: reset.error[0]?.message ?? 'El tema no es válido.' })
       },
     ))
   }
 
-  async resizeNode(
-    nodeId: NodeId,
-    size: NodeSize,
-    breakpointId?: BreakpointId,
-  ): Promise<Result<ProjectStructure, string>> {
+  async resizeNode(nodeId: NodeId, size: NodeSize, breakpointId?: BreakpointId): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'canvas.resize',
-      'Redimensionar nodo',
-      (structure) => resizeNode(structure, {
-        breakpointId,
-        nodeId,
-        owner: { documentId: this.documentId, kind: 'document' },
-      }, size),
+      'canvas.resize', 'Redimensionar nodo',
+      (structure) => resizeNode(structure, { breakpointId, nodeId, owner: { documentId: this.documentId, kind: 'document' } }, size),
     ))
   }
 
@@ -434,136 +405,85 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return saved.ok ? success(undefined) : failure(saved.error.message)
   }
 
-  async updateContentType(
-    contentTypeId: ContentTypeId,
-    patch: ContentTypeEditablePatch,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateContentType(contentTypeId: ContentTypeId, patch: ContentTypeEditablePatch): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'cms.update-content-type',
-      'Editar tipo de contenido',
+      'cms.update-content-type', 'Editar tipo de contenido',
       (structure) => {
         const updated = updateContentTypeInStructure(structure, contentTypeId, patch)
-        return updated.ok ? success(updated.value) : failure({
-          code: 'invalid-tree' as const,
-          message: updated.error[0]?.message ?? 'El tipo de contenido no es válido.',
-        })
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El tipo de contenido no es válido.' })
       },
     ))
   }
 
-  async updateTaxonomy(
-    taxonomyId: TaxonomyId,
-    patch: TaxonomyEditablePatch,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateCustomField(fieldId: FieldDefinitionId, patch: FieldDefinitionEditablePatch): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'cms.update-taxonomy',
-      'Editar taxonomía',
+      'cms.update-custom-field', 'Editar campo personalizado',
+      (structure) => {
+        const updated = updateCustomFieldInStructure(structure, fieldId, patch)
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El campo personalizado no es válido.' })
+      },
+    ))
+  }
+
+  async updateTaxonomy(taxonomyId: TaxonomyId, patch: TaxonomyEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-taxonomy', 'Editar taxonomía',
       (structure) => {
         const updated = updateTaxonomyInStructure(structure, taxonomyId, patch)
-        return updated.ok ? success(updated.value) : failure({
-          code: 'invalid-tree' as const,
-          message: updated.error[0]?.message ?? 'La taxonomía no es válida.',
-        })
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'La taxonomía no es válida.' })
       },
     ))
   }
 
-  async updateTaxonomyTerm(
-    termId: TaxonomyTermId,
-    patch: TaxonomyTermEditablePatch,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateTaxonomyTerm(termId: TaxonomyTermId, patch: TaxonomyTermEditablePatch): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'cms.update-taxonomy-term',
-      'Editar término de taxonomía',
+      'cms.update-taxonomy-term', 'Editar término de taxonomía',
       (structure) => {
         const updated = updateTaxonomyTermInStructure(structure, termId, patch)
-        return updated.ok ? success(updated.value) : failure({
-          code: 'invalid-tree' as const,
-          message: updated.error[0]?.message ?? 'El término no es válido.',
-        })
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El término no es válido.' })
       },
     ))
   }
 
-  async updateWidgetProperty(
-    nodeId: NodeId,
-    key: string,
-    value: JsonValue,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateWidgetProperty(nodeId: NodeId, key: string, value: JsonValue): Promise<Result<ProjectStructure, string>> {
     return this.#mutateWidgetProperty(nodeId, key, value, false)
   }
 
-  async updateNodeVisualStyles(
-    nodeId: NodeId,
-    styles: Readonly<Record<string, JsonValue>>,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateNodeVisualStyles(nodeId: NodeId, styles: Readonly<Record<string, JsonValue>>): Promise<Result<ProjectStructure, string>> {
     return this.#mutateNodeVisualStyles(nodeId, styles)
   }
 
-  async updateNodeSpacing(
-    nodeId: NodeId,
-    spacing: NodeSpacing,
-    breakpointId?: BreakpointId,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateNodeSpacing(nodeId: NodeId, spacing: NodeSpacing, breakpointId?: BreakpointId): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'canvas.spacing',
-      'Editar espaciado',
-      (structure) => updateNodeSpacing(structure, {
-        breakpointId,
-        nodeId,
-        owner: { documentId: this.documentId, kind: 'document' },
-      }, spacing),
+      'canvas.spacing', 'Editar espaciado',
+      (structure) => updateNodeSpacing(structure, { breakpointId, nodeId, owner: { documentId: this.documentId, kind: 'document' } }, spacing),
     ))
   }
 
-  async updateNodeDataSettings(
-    nodeId: NodeId,
-    settings: NodeDataSettings,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings): Promise<Result<ProjectStructure, string>> {
     return this.#mutateNodeDataSettings(nodeId, settings, false)
   }
 
-  async updateProjectTheme(
-    scope: ProjectThemeScope,
-    theme: ProjectTheme,
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateProjectTheme(scope: ProjectThemeScope, theme: ProjectTheme): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      `theme.update-${scope}`,
-      `Editar tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
+      `theme.update-${scope}`, `Editar tema de ${scope === 'frontend' ? 'frontend' : 'backend'}`,
       (structure) => {
         const updated = setProjectTheme(structure, scope, theme)
-        return updated.ok ? updated : failure({
-          code: 'invalid-theme' as const,
-          message: updated.error[0]?.message ?? 'El tema no es válido.',
-        })
+        return updated.ok ? updated : failure({ code: 'invalid-theme' as const, message: updated.error[0]?.message ?? 'El tema no es válido.' })
       },
     ))
   }
 
-  async updateBreakpoint(
-    breakpointId: BreakpointId,
-    patch: BreakpointPatch,
-  ): Promise<Result<ProjectStructure, string>> {
-    return this.#execute(new ProjectStructureCommand(
-      'responsive.update-breakpoint',
-      'Editar breakpoint',
-      (structure) => updateBreakpoint(structure, breakpointId, patch),
-    ))
+  async updateBreakpoint(breakpointId: BreakpointId, patch: BreakpointPatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('responsive.update-breakpoint', 'Editar breakpoint', (structure) => updateBreakpoint(structure, breakpointId, patch)))
   }
 
-  async updateDocumentConditions(
-    documentId: DocumentId,
-    conditions: readonly TemplateCondition[],
-  ): Promise<Result<ProjectStructure, string>> {
+  async updateDocumentConditions(documentId: DocumentId, conditions: readonly TemplateCondition[]): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
-      'template.update-conditions',
-      'Editar condiciones de plantilla',
+      'template.update-conditions', 'Editar condiciones de plantilla',
       (structure) => {
         const updated = updateDocumentConditions(structure, documentId, conditions)
-        return updated.ok ? updated : failure({
-          code: 'invalid-tree' as const,
-          message: updated.error.message,
-        })
+        return updated.ok ? updated : failure({ code: 'invalid-tree' as const, message: updated.error.message })
       },
     ))
   }
@@ -592,9 +512,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       return saved.ok ? success(undefined) : failure(saved.error.message)
     }
     const replaced = this.store.replaceStructure(loaded.value.project.payload)
-    return replaced.ok
-      ? success(undefined)
-      : failure('El proyecto local persistido no es estructuralmente válido.')
+    return replaced.ok ? success(undefined) : failure('El proyecto local persistido no es estructuralmente válido.')
   }
 
   async #publishPersistedStructure(): Promise<Result<ProjectStructure, string>> {
@@ -602,9 +520,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (!loaded.ok) return failure(loaded.error.message)
     if (!loaded.value) return failure('El proyecto local desapareció después del comando.')
     const replaced = this.store.replaceStructure(loaded.value.project.payload)
-    return replaced.ok
-      ? success(replaced.value)
-      : failure('El comando persistido no pudo publicarse en el renderer.')
+    return replaced.ok ? success(replaced.value) : failure('El comando persistido no pudo publicarse en el renderer.')
   }
 
   #insertionPlacement(anchorNodeId: NodeId | null): NodePlacement {
@@ -629,12 +545,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return { index: document.rootNodeIds.length, parentId: null, slot: null }
   }
 
-  async #mutateWidgetProperty(
-    nodeId: NodeId,
-    key: string,
-    value: JsonValue | undefined,
-    reset: boolean,
-  ): Promise<Result<ProjectStructure, string>> {
+  async #mutateWidgetProperty(nodeId: NodeId, key: string, value: JsonValue | undefined, reset: boolean): Promise<Result<ProjectStructure, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
     const document = this.store.structure.documents[this.documentId]
@@ -643,35 +554,23 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (node.locked) return failure('El nodo está bloqueado.')
     const definition = widgetRegistry.get(node.widgetType)
     if (!definition) return failure(`El widget ${node.widgetType} no está registrado.`)
-    if (!definition.inspector.some((field) => field.key === key)) {
-      return failure(`La propiedad ${key} no está declarada en el inspector.`)
-    }
+    if (!definition.inspector.some((field) => field.key === key)) return failure(`La propiedad ${key} no está declarada en el inspector.`)
     const properties = structuredClone(node.properties)
     if (reset) delete properties[key]
     else if (value !== undefined) properties[key] = value
     const effective = { ...structuredClone(definition.defaults), ...properties }
     const validated = definition.propertySchema.safeParse(effective)
     if (!validated.success) {
-      const issue = validated.error.issues.find((candidate) => candidate.path[0] === key)
-        ?? validated.error.issues[0]
+      const issue = validated.error.issues.find((candidate) => candidate.path[0] === key) ?? validated.error.issues[0]
       return failure(issue?.message ?? `La propiedad ${key} no es válida.`)
     }
     return this.#execute(new ProjectStructureCommand(
-      reset ? 'inspector.reset-property' : 'inspector.update-property',
-      reset ? `Restablecer ${key}` : `Editar ${key}`,
-      (structure) => setNodeProperties(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        nodeId,
-        properties,
-      ),
+      reset ? 'inspector.reset-property' : 'inspector.update-property', reset ? `Restablecer ${key}` : `Editar ${key}`,
+      (structure) => setNodeProperties(structure, { documentId: this.documentId, kind: 'document' }, nodeId, properties),
     ))
   }
 
-  async #mutateNodeVisualStyles(
-    nodeId: NodeId,
-    styles: Readonly<Record<string, JsonValue>>,
-  ): Promise<Result<ProjectStructure, string>> {
+  async #mutateNodeVisualStyles(nodeId: NodeId, styles: Readonly<Record<string, JsonValue>>): Promise<Result<ProjectStructure, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
     const document = this.store.structure.documents[this.documentId]
@@ -681,22 +580,12 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     const merged = mergeEditableVisualStyles(node.styles, styles)
     const reset = Object.keys(editableVisualStyles(merged)).length === 0
     return this.#execute(new ProjectStructureCommand(
-      reset ? 'inspector.reset-styles' : 'inspector.update-styles',
-      reset ? 'Restablecer estilos visuales' : 'Editar estilos visuales',
-      (structure) => setNodeStyles(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        nodeId,
-        merged,
-      ),
+      reset ? 'inspector.reset-styles' : 'inspector.update-styles', reset ? 'Restablecer estilos visuales' : 'Editar estilos visuales',
+      (structure) => setNodeStyles(structure, { documentId: this.documentId, kind: 'document' }, nodeId, merged),
     ))
   }
 
-  async #mutateNodeDataSettings(
-    nodeId: NodeId,
-    settings: NodeDataSettings,
-    reset: boolean,
-  ): Promise<Result<ProjectStructure, string>> {
+  async #mutateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings, reset: boolean): Promise<Result<ProjectStructure, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
     const node = this.store.structure.documents[this.documentId]?.nodes[nodeId]
@@ -706,37 +595,19 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       const definition = widgetRegistry.get(node.widgetType)
       const declaredKeys = new Set(definition?.inspector.map((field) => field.key) ?? [])
       const unknownBinding = Object.keys(settings.bindings).find((key) => !declaredKeys.has(key))
-      if (unknownBinding) {
-        return failure(`El binding ${unknownBinding} no corresponde a una propiedad declarada del widget.`)
-      }
+      if (unknownBinding) return failure(`El binding ${unknownBinding} no corresponde a una propiedad declarada del widget.`)
       if (definition) {
-        const prospectiveNode = {
-          ...node,
-          accessibility: settings.accessibility,
-          bindings: settings.bindings,
-          conditions: settings.conditions,
-        }
+        const prospectiveNode = { ...node, accessibility: settings.accessibility, bindings: settings.bindings, conditions: settings.conditions }
         const resolved = resolveNodeDataState(this.store.structure, prospectiveNode, node.properties)
         if (resolved.diagnostics.length === 0) {
-          const properties = definition.propertySchema.safeParse({
-            ...definition.defaults,
-            ...resolved.properties,
-          })
-          if (!properties.success) {
-            return failure(properties.error.issues[0]?.message ?? 'Los bindings no producen propiedades válidas.')
-          }
+          const properties = definition.propertySchema.safeParse({ ...definition.defaults, ...resolved.properties })
+          if (!properties.success) return failure(properties.error.issues[0]?.message ?? 'Los bindings no producen propiedades válidas.')
         }
       }
     }
     return this.#execute(new ProjectStructureCommand(
-      reset ? 'inspector.reset-data-settings' : 'inspector.update-data-settings',
-      reset ? 'Restablecer datos y accesibilidad' : 'Editar datos y accesibilidad',
-      (structure) => setNodeDataSettings(
-        structure,
-        { documentId: this.documentId, kind: 'document' },
-        nodeId,
-        settings,
-      ),
+      reset ? 'inspector.reset-data-settings' : 'inspector.update-data-settings', reset ? 'Restablecer datos y accesibilidad' : 'Editar datos y accesibilidad',
+      (structure) => setNodeDataSettings(structure, { documentId: this.documentId, kind: 'document' }, nodeId, settings),
     ))
   }
 
@@ -749,8 +620,6 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   }
 }
 
-export function createBrowserEditorProjectSession(
-  databaseName = EDITOR_DATABASE_NAME,
-): EditorProjectSession {
+export function createBrowserEditorProjectSession(databaseName = EDITOR_DATABASE_NAME): EditorProjectSession {
   return new BrowserEditorProjectSession(databaseName)
 }
