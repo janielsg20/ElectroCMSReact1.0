@@ -2,29 +2,30 @@ import 'fake-indexeddb/auto'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { createBrowserEditorProjectSession } from '../../editor-project-session'
-import { EditorProjectContext } from './editor-project-context'
+import { EditorProjectContext, requireThemePackageSession } from './editor-project-context'
 import { ThemePackageManager } from './ThemePackageManager'
 
 function renderManager() {
   const session = createBrowserEditorProjectSession(`electrocms-theme-package-ui-${crypto.randomUUID()}`)
+  const themePackages = requireThemePackageSession(session)
   render(
     <EditorProjectContext value={session}>
       <ThemePackageManager />
     </EditorProjectContext>,
   )
-  return session
+  return { session, themePackages }
 }
 
 describe('M08.4 gestor de paquetes', () => {
   it('crea, versiona y elimina paquetes locales sin modificar el proyecto al guardarlos', async () => {
-    const session = renderManager()
+    const { session, themePackages } = renderManager()
     const structureBefore = structuredClone(session.store.structure)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Kit editorial' } })
     fireEvent.click(screen.getByRole('button', { name: /guardar paquete/i }))
 
     await waitFor(async () => {
-      const listed = await session.listThemePackages()
+      const listed = await themePackages.listThemePackages()
       expect(listed.ok).toBe(true)
       if (listed.ok) expect(listed.value).toHaveLength(1)
     })
@@ -40,7 +41,7 @@ describe('M08.4 gestor de paquetes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
     await screen.findByText(/paquete local eliminado/i)
     await waitFor(async () => {
-      const listed = await session.listThemePackages()
+      const listed = await themePackages.listThemePackages()
       expect(listed.ok).toBe(true)
       if (listed.ok) expect(listed.value).toHaveLength(0)
     })
