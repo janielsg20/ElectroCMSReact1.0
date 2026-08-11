@@ -6,6 +6,7 @@ import { LibraryPanel, type LibraryTab } from './LibraryPanel'
 import { MobileDock, type MobilePanel } from './MobileDock'
 import { PanelWindow, type DockSide, type PanelBounds, type WorkspacePanel } from './PanelWindow'
 import { ProductDemoView } from './ProductDemoView'
+import { TabletWorkspacePanel } from './TabletWorkspacePanel'
 import { TopBar, type UiTheme } from './TopBar'
 import { navigationItems, type NavigationSectionId } from './editor-data'
 import {
@@ -113,6 +114,7 @@ export function EditorShell() {
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('style')
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
+  const [tabletOverlayPanel, setTabletOverlayPanel] = useState<WorkspacePanel | null>(null)
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace)
   const [libraryWidth, setLibraryWidth] = useState(216)
   const [inspectorWidth, setInspectorWidth] = useState(288)
@@ -307,6 +309,7 @@ export function EditorShell() {
   function navigateSection(section: NavigationSectionId): void {
     setActiveSection(section)
     setMobilePanel(null)
+    setTabletOverlayPanel(null)
     setDockPreview(null)
     setDraggingPanel(null)
   }
@@ -314,6 +317,7 @@ export function EditorShell() {
   function changeMobilePanel(panel: MobilePanel): void {
     if (panel) previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     if (panel === 'widgets' || panel === 'layers' || panel === 'inspector') setActiveSection('editor')
+    setTabletOverlayPanel(null)
     setMobilePanel(panel)
     if (panel === 'widgets' || panel === 'layers') setLibraryTab(panel)
   }
@@ -327,15 +331,34 @@ export function EditorShell() {
     return window.matchMedia?.('(min-width: 64rem)').matches ?? false
   }
 
+  function isTabletWorkspace(): boolean {
+    return window.matchMedia?.('(min-width: 48rem) and (max-width: 63.999rem)').matches ?? false
+  }
+
+  function openTabletSecondary(panel: WorkspacePanel): void {
+    if (panel === activePanel) return
+    setMobilePanel(null)
+    setTabletOverlayPanel((current) => current === panel ? null : panel)
+  }
+
+  function promoteTabletPanel(panel: WorkspacePanel): void {
+    activatePanel(panel)
+    setTabletOverlayPanel(null)
+  }
+
   function togglePanel(panel: WorkspacePanel): void {
-    if (!isDesktopWorkspace()) {
-      changeMobilePanel(panel === 'library' ? 'layers' : 'inspector')
+    if (isDesktopWorkspace()) {
+      activatePanel(panel)
+      setWorkspace((current) => current[panel].mode === 'minimized'
+        ? dockWorkspace(current, panel, current[panel].dockSide)
+        : { ...current, [panel]: { ...current[panel], mode: 'minimized', restoreMode: current[panel].mode === 'floating' ? 'floating' : 'docked', pinned: false } })
       return
     }
-    activatePanel(panel)
-    setWorkspace((current) => current[panel].mode === 'minimized'
-      ? dockWorkspace(current, panel, current[panel].dockSide)
-      : { ...current, [panel]: { ...current[panel], mode: 'minimized', restoreMode: current[panel].mode === 'floating' ? 'floating' : 'docked', pinned: false } })
+    if (isTabletWorkspace()) {
+      openTabletSecondary(panel)
+      return
+    }
+    changeMobilePanel(panel === 'library' ? 'layers' : 'inspector')
   }
 
   function setPanelWidth(panel: WorkspacePanel, width: number): void {
@@ -509,9 +532,13 @@ export function EditorShell() {
     )
   }
 
+  const tabletOverlayContent = tabletOverlayPanel
+    ? <PanelContent inspectorTab={inspectorTab} libraryTab={libraryTab} onInspectorTabChange={setInspectorTab} onLibraryTabChange={setLibraryTab} panel={tabletOverlayPanel} />
+    : null
+
   return (
     <div
-      className="editor-shell h-dvh overflow-hidden bg-canvas text-foreground"
+      className={`editor-shell h-dvh overflow-hidden bg-canvas text-foreground ${editorActive ? 'editor-shell--editor' : ''}`}
       style={{ '--rail-width': `${railWidth}px`, '--left-panel-width': `${leftDockWidth}px`, '--right-panel-width': `${rightDockWidth}px` } as CSSProperties}
     >
       <TopBar activeSectionLabel={activeNavigationItem.label} darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
@@ -527,6 +554,16 @@ export function EditorShell() {
           ) : null}
 
           <CanvasPreview inspectorOpen={inspectorVisible} libraryOpen={libraryVisible} onToggleInspector={() => togglePanel('inspector')} onToggleLibrary={() => togglePanel('library')} onViewportChange={setViewport} viewport={viewport} />
+
+          <TabletWorkspacePanel
+            onCloseOverlay={() => setTabletOverlayPanel(null)}
+            onOpenSecondary={openTabletSecondary}
+            onPromoteOverlay={promoteTabletPanel}
+            overlayContent={tabletOverlayContent}
+            overlayPanel={tabletOverlayPanel}
+            primaryContent={<PanelContent inspectorTab={inspectorTab} libraryTab={libraryTab} onInspectorTabChange={setInspectorTab} onLibraryTabChange={setLibraryTab} panel={activePanel} />}
+            primaryPanel={activePanel}
+          />
 
           {rightDockPanel ? (
             <div className="relative col-start-4 row-start-2 hidden min-h-0 lg:block">
@@ -555,7 +592,7 @@ export function EditorShell() {
       <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
         <span>Producto / {activeNavigationItem.label}</span>
-        <span className="ml-auto">{editorActive ? 'Workspace persistente · M04.1' : 'Superficie final · Activación progresiva por fases'}</span>
+        <span className="ml-auto">{editorActive ? 'Workspace responsive · F04' : 'Superficie final · Activación progresiva por fases'}</span>
         <span className="font-heading">{editorActive ? '390 × 844 · 90%' : activeNavigationItem.phase}</span>
       </footer>
 
