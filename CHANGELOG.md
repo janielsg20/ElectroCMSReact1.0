@@ -2,6 +2,11 @@
 
 ## 2026-08-10
 
+- Cerrada `M04.1 — Shell desktop`: formalizado el shell existente y añadida persistencia versionada `workspace.v1` para rail, anchuras, dock/float/minimize, bounds, pin, visibilidad y orden de paneles.
+- Añadido `WorkspacePreferencesStore` con adapter `BrowserWorkspacePreferencesStore`, schema Zod estricto, fallback seguro ante JSON corrupto/versiones desconocidas y clamping de geometría al viewport actual.
+- Añadidas pruebas de round-trip, corrupción/versionado, limpieza y restauración real del workspace después de desmontar/remontar el editor; `localStorage` se aísla entre tests.
+- Corregida la hidratación del workspace para cumplir `react-hooks/set-state-in-effect` y eliminar renders/avisos `act(...)` redundantes.
+- PR #6 / GitHub Actions `31451142252`: lint, typecheck, 26 archivos de test con 102/102 pruebas y build Vite 7.3.6 correctos. F04 continúa en `M04.2 — Shell tablet`.
 - Cerrada `M03.4 — Command bus e historial`: añadido `ProjectCommandBus` con execute/undo/redo, `CompositeProjectCommand`, branching después de undo, límites configurables y detección de conflictos sin sobrescritura.
 - Añadido `ProjectHistoryState` schema v1 con entradas reversibles `before`/`after`, cursor y operación pendiente recuperable; undo/redo conserva revisiones monotónicas creando siempre `revision = current + 1`.
 - Persistido el historial en IndexedDB mediante namespace `project-history`; una prueba de integración cierra y reabre la base y confirma que el cursor persiste y undo continúa funcionando.
