@@ -26,16 +26,16 @@ describe('M09.1 gestor de tipos de contenido', () => {
 
     expect(await screen.findByText(/artículos creado y guardado/i)).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /artículos/i })).toBeInTheDocument()
-    const createdId = Object.keys(session.store.structure.cms?.contentTypes ?? {})[0]
-    expect(createdId).toBeTruthy()
+    expect(Object.values(session.store.structure.cms?.contentTypes ?? {})).toHaveLength(1)
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'Público' }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Plural' }), { target: { value: 'Publicaciones' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     await waitFor(() => {
-      expect(session.store.structure.cms?.contentTypes[createdId ?? '']?.public).toBe(false)
-      expect(session.store.structure.cms?.contentTypes[createdId ?? '']?.pluralName).toBe('Publicaciones')
+      const current = Object.values(session.store.structure.cms?.contentTypes ?? {})[0]
+      expect(current?.public).toBe(false)
+      expect(current?.pluralName).toBe('Publicaciones')
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
@@ -43,7 +43,7 @@ describe('M09.1 gestor de tipos de contenido', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
 
     expect(await screen.findByText(/publicaciones eliminado/i)).toBeInTheDocument()
-    expect(Object.keys(session.store.structure.cms?.contentTypes ?? {})).toHaveLength(0)
+    expect(Object.values(session.store.structure.cms?.contentTypes ?? {})).toHaveLength(0)
   })
 
   it('mantiene densidad responsive, soporte accesible y no expone fases futuras', () => {
