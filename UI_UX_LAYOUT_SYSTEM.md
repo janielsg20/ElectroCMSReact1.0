@@ -6,6 +6,8 @@ Estado de implementación: `F04 — Application shell, navegación y workspaces 
 
 ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarquía funcional se conserva en todos los tamaños; solo cambia el contenedor que la presenta.
 
+`UI_INTERNAL_COMPONENT_POLICY.md` es parte normativa de este sistema: las interacciones de producto deben permanecer dentro del lenguaje visual de ElectroCMS y no delegar menús, selectores, pickers, tooltips, context menus o confirmaciones al chrome nativo del sistema operativo/navegador salvo frontera de plataforma explícitamente autorizada.
+
 ## Layout por capacidad disponible
 
 ### Desktop/laptop horizontal — desde 1024 px
@@ -80,6 +82,49 @@ Estado: `M04.5` `COMPLETADA`.
 - Gate WCAG AA automatizado para seis combinaciones: tres presets × dos colores resueltos.
 - `theme-color` HTML y manifest están alineados al azul de marca `#2563EB`.
 
+## Componentes de interacción internos — no native chrome
+
+Estado normativo: `OBLIGATORIO` desde la incorporación de `UI_INTERNAL_COMPONENT_POLICY.md`.
+
+- Si un control estilizado abre al activarse un menú/picker propio de Android, Windows, macOS, iOS o del navegador, **no se considera un componente final válido de ElectroCMS** salvo excepción de plataforma autorizada.
+- No usar `<select>` nativo como selector final de propiedades, filtros, acciones o configuración. Implementar `Listbox`/`Combobox` interno.
+- No usar `<datalist>` como autocomplete final. Implementar Combobox interno con filtrado/typeahead.
+- No usar `input[type="color"]` como experiencia principal. Implementar ColorPicker interno.
+- No usar date/time/datetime pickers nativos como experiencia principal. Implementar DatePicker/TimePicker internos adaptativos.
+- No usar `window.alert`, `window.confirm` o `window.prompt`. Implementar Dialog/AlertDialog interno.
+- No depender del menú contextual nativo para acciones del Canvas, Tree, tablas o registros. Implementar ContextMenu interno y alternativa visible por botón/teclado.
+- No usar `title` como única implementación de tooltip. Implementar Tooltip interno accesible.
+- Assets ya importados se eligen con MediaPicker/Biblioteca Multimedia interna; el selector de archivos del OS solo se abre explícitamente desde “Importar desde dispositivo”.
+
+### Presentación adaptativa de la misma función
+
+- Desktop: dropdown, listbox, combobox, context menu o popover compacto.
+- Tablet: popover amplio, contextual overlay o drawer según espacio disponible.
+- Móvil: bottom sheet o full-screen picker interno, con safe areas y targets táctiles.
+- Cambiar de plataforma o breakpoint puede cambiar el contenedor visual, **no la identidad del componente ni delegar la experiencia a un picker nativo**.
+
+### Contrato de calidad de primitives
+
+Los primitives internos `Select/Listbox`, `Combobox`, `DropdownMenu`, `ContextMenu`, `Popover`, `Tooltip`, `Dialog/AlertDialog`, `BottomSheet`, `ColorPicker`, `DatePicker`, `TimePicker`, `MediaPicker`, `IconPicker`, `TokenPicker` y equivalentes deben:
+
+- utilizar tokens semánticos del preset y color mode activos;
+- compartir tipografía, radios, bordes, sombras, iconos, spacing y estados;
+- usar portal cuando sea necesario para evitar clipping;
+- aplicar collision detection y reposicionamiento al borde del viewport;
+- respetar la escala z-index oficial;
+- soportar loading, empty, error, disabled, selected y no-results;
+- soportar keyboard, touch y screen reader;
+- cerrar con Escape cuando el patrón lo requiera;
+- restaurar foco al trigger;
+- implementar `aria-expanded`, `aria-controls`, `aria-selected`, `aria-activedescendant` u otros estados cuando correspondan;
+- soportar flechas, Home/End y typeahead donde corresponda;
+- mantener targets touch de 44 × 44 CSS px;
+- respetar `prefers-reduced-motion`.
+
+### Excepciones nativas autorizadas
+
+Solo se permite UI nativa cuando representa una frontera de plataforma/seguridad que la aplicación no debe emular: archivos/carpetas, permisos de cámara/micrófono/ubicación/notificaciones, biometría, share sheet, impresión, instalación PWA u otra superficie protegida por sandbox. Estas excepciones deben invocarse desde una acción interna clara de ElectroCMS y devolver al usuario al mismo contexto/foco cuando la plataforma lo permita.
+
 ## Responsive basado en contenedor
 
 - Los breakpoints globales gobiernan el shell.
@@ -96,6 +141,7 @@ Estado: `M04.5` `COMPLETADA`.
 - La paleta usa `dialog`, `combobox`, `listbox` y `option` con selección activa semántica.
 - Los atajos no reemplazan controles visibles.
 - El estado activo se comunica mediante texto/semántica además de color.
+- Sustituir UI nativa obliga a preservar o mejorar su accesibilidad; un componente custom sin patrón ARIA/keyboard correcto no cumple la política.
 
 ## Tokens Tailwind obligatorios
 
@@ -117,6 +163,8 @@ Estado: `M04.5` `COMPLETADA`.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
 - Las preferencias del workspace/apariencia nunca deben impedir abrir el editor; corrupción o versiones futuras recuperan defaults seguros.
 - Back/forward debe restaurar navegación sin perder estado del workspace.
+- Ningún control crítico de producto abre UI nativa no autorizada en Android/Windows/macOS/iOS/navegador.
+- Menús/pickers internos conservan tema, focus, collision handling y responsive al cambiar de plataforma/breakpoint.
 
 ## Implementación vigente
 
@@ -133,6 +181,7 @@ Estado: `M04.5` `COMPLETADA`.
 - Evidencia M04.5: PR #11 / run `31455514122`, 32 archivos / 132 pruebas, lint/typecheck/build verdes y contraste AA de seis variantes.
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito.
 - Acciones de fases posteriores que aún no tienen motor funcional permanecen deshabilitadas o identificadas como planificadas.
+- La política no-native entra en vigor inmediatamente, pero primitives todavía existentes que usen controles nativos deben registrarse como deuda y sustituirse en la microfase propietaria correspondiente; no se marcan como conformes por estar estilizados.
 
 ## Fuentes
 
