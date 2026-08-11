@@ -120,7 +120,7 @@ export function EditorShell() {
   const dockTargetRef = useRef<DockTarget>(null)
 
   const editorActive = activeSection === 'editor'
-  const activeNavigationItem = navigationItems.find((item) => item.id === activeSection) ?? navigationItems[1]!
+  const activeNavigationItem = navigationItems.find((item) => item.id === activeSection) ?? navigationItems[1]
   const leftDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'left')
   const rightDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'right')
   const leftDockWidth = leftDockPanel === 'library' ? libraryWidth : leftDockPanel === 'inspector' ? inspectorWidth : 0
@@ -486,7 +486,7 @@ export function EditorShell() {
 
           {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
         </>
-      ) : <ProductDemoView activeSection={activeSection} onSectionChange={navigateSection} />}
+      ) : <ProductDemoView activeSection={activeSection} key={activeSection} onSectionChange={navigateSection} />}
 
       <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
