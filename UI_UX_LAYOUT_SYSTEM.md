@@ -1,6 +1,6 @@
 # Sistema de layout UI/UX — ElectroCMS
 
-Estado de implementación: `M04.1 — Shell desktop` completada. El shell desktop de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio y conserva el prototipo anticipado como base. Tablet, móvil, rutas y temas del editor continúan en M04.2–M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
+Estado de implementación: `M04.1 — Shell desktop` y `M04.2 — Shell tablet` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio y tablet, conservando el prototipo anticipado como base. Móvil, rutas y temas del editor continúan en M04.3–M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
 
 ## Decisión de producto
 
@@ -26,19 +26,22 @@ ElectroCMS usa un application shell adaptativo y orientado a tareas. La jerarqu�
 
 ### Tablet — 768 a 1023 px
 
-Estado: objetivo de `M04.2`, actualmente `EN_CURSO`.
+Estado: `M04.2` `COMPLETADA`.
 
-- Navegación en rail contraído.
-- Canvas como región principal.
-- Solo un panel contextual persistente a la vez.
-- Inspector y biblioteca aparecen como panel lateral superpuesto, resizable y descartable cuando actúan como panel secundario.
-- La toolbar agrupa acciones secundarias en overflow sin ocultarlas.
-- El overlay secundario debe cerrar con `Escape`, retener foco mientras esté abierto y restaurarlo al disparador al cerrar.
-- Se verifican por separado landscape y portrait sin convertir geometría efímera del overlay en preferencias desktop persistentes.
+- `ResponsiveEditorShell` adapta el shell existente; no duplica navegación, canvas, Biblioteca, Inspector ni el contrato `workspace.v1`.
+- Navegación presentada en rail contraído de 44 px, incluso si la preferencia desktop guardó el rail expandido; esa preferencia no se modifica.
+- Canvas como región principal y prioritaria.
+- Solo un panel contextual persistente a la vez; Biblioteca e Inspector se intercambian mediante controles explícitos.
+- El panel secundario aparece como dialog lateral superpuesto, resizable y descartable, y puede promoverse a panel persistente.
+- El resize del secundario admite puntero y teclado: flechas en pasos de 16 px, `Home`/`End` y valores ARIA.
+- El overlay secundario cierra con `Escape`, retiene foco mientras está abierto y restaura el foco al disparador al cerrar.
+- Portrait 768 y landscape 1023 están cubiertos por pruebas; al entrar en 1024 se desmonta la adaptación tablet y recupera el layout desktop.
+- La geometría efímera del overlay vive solo en estado React y no se serializa en `workspace.v1`; existe una prueba que verifica que el payload persistido no cambia por redimensionar el overlay.
+- Las acciones del header se mantienen mediante el responsive existente; M04.2 no crea una toolbar paralela.
 
 ### Móvil/tablet vertical — 320 a 767 px
 
-Estado: objetivo de `M04.3`; la UI existente sigue siendo una entrega anticipada hasta esa microfase.
+Estado: objetivo de `M04.3`, actualmente `EN_CURSO`; la UI existente sigue siendo una entrega anticipada hasta cerrar esa microfase.
 
 - Header compacto y canvas prioritario.
 - Navegación superior o inferior con un máximo de cinco destinos de primer nivel; el resto vive en “Más”.
@@ -88,7 +91,9 @@ Estado: objetivo de `M04.3`; la UI existente sigue siendo una entrega anticipada
 - Desktop desde 1024 px: header/toolbar de 40 px, rail redimensionable, páginas/capas, canvas, inspector y barra de estado de 24 px simultáneos.
 - Paneles desktop: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, orden de apilado y restauración por puntero o teclado dentro de límites explícitos.
 - Persistencia M04.1: `src/editor-ui/editor/workspace-preferences.ts` + `workspace.v1`, con pruebas de round-trip, corrupción/versionado y remontaje real del shell.
-- Tablet/laptop y móvil conservan por ahora las superficies anticipadas; M04.2/M04.3 deben formalizarlas y volver a validar sus breakpoints.
+- Tablet 768–1023: `ResponsiveEditorShell`, rail visualmente contraído, canvas + un panel persistente, overlay lateral secundario accesible/redimensionable y geometría efímera aislada de `workspace.v1`.
+- Evidencia M04.2: PR #8 / run `31453249710`, 27 archivos de test y 107/107 pruebas, incluyendo 5 pruebas específicas tablet, más lint/typecheck/build verdes.
+- Móvil conserva por ahora las superficies anticipadas; M04.3 debe formalizarlas y volver a validar 320/375 px.
 - Interacciones anticipadas habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito.
 - Acciones de fases posteriores que aún no tienen motor funcional permanecen deshabilitadas o identificadas como planificadas.
