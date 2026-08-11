@@ -20,92 +20,97 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Fase activa: `F09 — Contenido dinámico, CPT, taxonomías y campos`.
 - M09.1 CPT: `COMPLETADA`.
 - M09.2 Taxonomías: `COMPLETADA`.
-- Microfase activa: `M09.3 — Campos personalizados`.
-- M09.4–M09.5, F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- M09.3 Campos personalizados: `COMPLETADA`.
+- Microfase activa: `M09.4 — Registros y relaciones`.
+- M09.5, F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - Puerta M09.1: run `31544864623`, lint/typecheck/suite/build verdes.
-- Puerta M09.2: run `31546741841`, lint/typecheck, 304/304 pruebas y build verdes.
+- Puerta M09.2: run `31546741841`, 304/304 pruebas y build verde.
+- Puerta M09.3: run `31548253008`, 73 archivos / 312 pruebas, lint/typecheck/build verdes.
 - Producción no se despliega desde este PR draft.
 
 ## Decisiones vigentes
 
-- `ProjectStructure` es la única fuente de verdad de proyecto; `ProjectStructure.cms` contiene el backend CMS.
+- `ProjectStructure` es la única fuente de verdad; `ProjectStructure.cms` contiene el backend CMS.
 - Dominio/modelo independientes de React, Tailwind, almacenamiento y exportadores.
-- Toda mutación persistente usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro history.
-- Undo/redo crea revisiones monotónicas nuevas y persiste en IndexedDB.
+- Toda mutación persistente usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro history global.
+- Undo/redo crea revisiones monotónicas del proyecto y persiste en IndexedDB.
 - Árbol, renderer, temas, documentos y CMS convergen en el mismo `ProjectStructure`.
-- Capacidades específicas del editor se segregan (`ThemePackageSession`, `ContentTypeSession`, `TaxonomySession`) para no ensanchar el contrato base.
-- `workspace.v1`, `appearance.v1`, `library.v1` y `theme-packages.v1` son estado local de producto/preferencias, no una segunda copia del proyecto.
+- Capacidades específicas se segregan: `ThemePackageSession`, `ContentTypeSession`, `TaxonomySession`, `CustomFieldSession`.
+- Estado local de UI/preferencias no duplica proyecto: `workspace.v1`, `appearance.v1`, `library.v1`, `theme-packages.v1`.
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
 - Funciones futuras no se muestran como activas.
 
 ## UI/UX vigente
 
 - Dirección: High Density + Minimal Clean + builder/IDE profesional.
-- Targets aproximados: 44 px en touch y 36 px en escritorio denso.
-- Desktop usa paneles dock/float/minimize; tablet/móvil conservan las funciones construidas mediante paneles adaptados.
-- Biblioteca tiene cinco áreas funcionales: Capas, Widgets, Documentos, Datos y Diseño; responde al ancho real mediante container queries.
-- `Datos` usa tabs secundarios y solo expone superficies ya construidas.
-- Actualmente `Datos → Tipos | Taxonomías`.
-- Los tabpanels inactivos usan el atributo HTML `hidden`, no solo ocultación visual CSS.
-- Apariencia del editor permanece local en TopBar; temas/paquetes viven en Diseño.
-- Canvas mantiene selección, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco entre regiones.
+- Targets aproximados: 44 px touch / 36 px escritorio denso.
+- Biblioteca: Capas, Widgets, Documentos, Datos y Diseño; responde al ancho real con container queries.
+- `Datos` solo expone superficies construidas y actualmente contiene `Tipos | Taxonomías | Campos`.
+- Tabpanels inactivos usan el atributo HTML `hidden`.
+- Apariencia local permanece en TopBar; temas/paquetes en Diseño.
+- Canvas mantiene selección, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco.
 
 ## F05–F08 resumidas
 
-- F05: árbol canónico, renderer granular, DnD accesible, manipulación directa, selección y viewport.
-- F06: catálogo único de 115 widgets, adapters y biblioteca con favoritos/recientes/presets/DnD.
-- F07: inspector generado, controles tipados, motor de estilos seguro, breakpoints, bindings, condiciones y ARIA.
-- F08: tres ámbitos de tema, presets, motor de documentos/plantillas y paquetes theme versionados/importables.
+- F05: árbol canónico, renderer granular, DnD accesible, direct manipulation, selección y viewport.
+- F06: 115 widgets, adapters y biblioteca con búsqueda/filtros/favoritos/recientes/presets/DnD.
+- F07: inspector generado, controles tipados, estilos seguros, breakpoints, bindings, condiciones y ARIA.
+- F08: tres ámbitos de tema, presets, documentos/plantillas y paquetes theme versionados/importables.
 
 ## M09.1 completada — CPT
 
-- `content-type-engine.ts`: list/create/update/delete con ID/slug únicos e integridad.
-- Campos reales: singular/plural, descripción, icono, capacidades, soportes, público, menú, orden, Single y Archive.
-- Soportes: title/editor/author/thumbnail/excerpt/revisions/custom-fields.
-- Single solo acepta `single|template`; Archive solo `archive|template`.
-- Borrado bloquea dependencias de campos, taxonomías, registros, relaciones, queries, forms, backend screens y roles.
-- `ContentTypeSession` usa Command Bus/IndexedDB/undo/redo.
+- CRUD canónico con ID/slug únicos, capacidades, soportes, visibilidad, orden y Single/Archive compatibles.
+- Integridad al borrar.
+- `ContentTypeSession` + Command Bus/IndexedDB/undo/redo.
 - UI: `Datos → Tipos`.
 - Documento: `CONTENT_TYPE_SYSTEM.md`.
 
 ## M09.2 completada — Taxonomías
 
-- `taxonomy-engine.ts` reutiliza `TaxonomySchema` y `TaxonomyTermSchema` sin inventar propiedades paralelas.
-- Taxonomías: ID/slug únicos, singular/plural, descripción, jerárquica/plana, asociaciones múltiples CPT, `fieldIds` preservados y Archive opcional.
-- `Taxonomy.contentTypeIds` y `ContentType.taxonomyIds` se sincronizan bidireccionalmente.
-- Archive solo acepta `archive|template`.
-- Términos: slug único por taxonomía, descripción y padre opcional.
-- Plana no admite padres; padre debe ser de la misma taxonomía; ciclos se rechazan.
-- No se convierte a plana con hijos existentes.
-- Borrado de taxonomía bloqueado por términos/campos/queries; borrado de términos bloqueado por hijos/registros/queries.
-- `TaxonomySession` usa Command Bus/IndexedDB/undo/redo real.
-- UI: `Datos → Taxonomías`, con CPT múltiples, Archive y términos.
+- CRUD taxonomías/términos sobre schemas existentes.
+- Asociaciones CPT↔taxonomía bidireccionales, Archive compatible, jerarquía sin ciclos.
+- Borrado protegido por dependencias.
+- `TaxonomySession` + Command Bus/IndexedDB/undo/redo.
+- UI: `Datos → Taxonomías`.
 - Documento: `TAXONOMY_SYSTEM.md`.
 
-## M09.3 activa — Campos personalizados
+## M09.3 completada — Campos personalizados
 
-Usar el contrato anticipado `FieldDefinitionSchema` como fuente canónica y formalizarlo mediante:
+- `custom-field-engine.ts` usa `FieldDefinitionSchema` como única fuente.
+- CRUD para propietarios CPT/taxonomía; key única por propietario.
+- 27 tipos: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
+- Defaults, options, conditions, childFieldIds, relationId, taxonomyId, allowedRoleIds, calculatedExpression, group/order y validaciones reforzadas.
+- group/repeater no cruzan propietarios; relation/taxonomy/calculated requieren referencias/configuración reales.
+- Cambio de tipo bloqueado con valores almacenados; delete bloqueado por datos, composición, condiciones, queries, forms o permisos.
+- `ContentType.fieldIds` / `Taxonomy.fieldIds` sincronizados.
+- `CustomFieldSession` + comandos `cms.*` + IndexedDB + undo/redo.
+- UI: `Datos → Campos`, estructurada por tipo; no crea relaciones/roles ficticios.
+- Documento: `CUSTOM_FIELD_SYSTEM.md`.
 
-- CRUD de campos para propietarios CPT y taxonomía.
-- Todos los tipos exigidos: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
-- default, placeholder, descripción, required, validation, options y conditions.
-- childFieldIds para group/repeater sin ciclos.
-- relationId, taxonomyId, allowedRoleIds, calculatedExpression, group y order.
-- Sincronización con `ContentType.fieldIds` / `Taxonomy.fieldIds`.
-- Integridad al modificar/eliminar.
-- Persistencia/historial canónicos.
-- UI funcional en Datos sin adelantar M09.4/M09.5.
-- No avanzar hasta gate completo verde.
+## M09.4 activa — Registros y relaciones
+
+Debe formalizar `ContentRecordSchema`, `RelationSchema` y `RelationEntrySchema` con:
+
+- CRUD de registros y estados draft/pending/published/private/archived.
+- Validación de valores contra FieldDefinition y required.
+- Términos compatibles con taxonomías del CPT.
+- Autor existente y cronología consistente.
+- Revisión explícita del requisito de revisiones de contenido; no asumir que ProjectCommandBus history sustituye automáticamente snapshots/revisiones de registros.
+- CRUD de relaciones y entries con slug/endpoints/cardinalidad íntegros.
+- Protección de borrado y referencias.
+- Persistencia/historial de comandos.
+- UI real en Datos sin adelantar bindings M09.5.
+- Tests de dominio, IndexedDB/undo/redo y UI antes de avanzar.
 
 ## Riesgos y límites
 
-- Schemas CMS anticipados no cuentan como implementación hasta tener motor, integridad, persistencia, UI y tests.
-- M09.3 debe reutilizar `validateCmsBackend`; no duplicar validadores ni defaults.
-- Relaciones completas pertenecen M09.4; en M09.3 un campo `relation` puede referenciar únicamente una `Relation` canónica existente, nunca simular crearla.
-- Roles se formalizan funcionalmente en F12; `allowedRoleIds` solo puede usar roles canónicos existentes y no debe inventar permisos.
-- Collaboration, IA e integraciones remotas nunca degradan el modo offline/local.
+- Los schemas anticipados no cuentan como implementación formal hasta tener motor, persistencia, UI y tests.
+- M09.4 debe reutilizar `validateCmsBackend`; no duplicar integridad existente.
+- Si se necesitan revisiones de contenido separadas, deben distinguirse semánticamente del historial global y añadirse retrocompatiblemente.
+- F12 sigue siendo propietaria de gestión real de roles/usuarios.
+- Collaboration, IA e integraciones remotas nunca degradan offline/local.
 - Secrets no aparecen en frontend, logs, exports ni bundles.
 
 ## Próximo paso exacto
 
-Implementar `M09.3 — Campos personalizados` desde el dominio: CRUD, validación específica por tipo, sincronización con propietarios, integridad y tests; luego Command Bus, UI `Datos → Campos`, suite completa y build antes de M09.4.
+Implementar `M09.4 — Registros y relaciones`: revisar primero validadores y requisito de revisiones; después CRUD/integridad, Command Bus, UI `Datos`, pruebas completas y build antes de M09.5.
