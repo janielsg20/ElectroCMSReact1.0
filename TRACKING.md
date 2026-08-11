@@ -5,7 +5,7 @@ Actualizado: 2026-08-11.
 ## Estado global
 
 - Fase actual: `F08 — Temas, plantillas y paquetes`.
-- Microfase actual: `M08.3 — Motor de plantillas`.
+- Microfase actual: `M08.4 — Paquetes theme`.
 - Estado: `EN_CURSO`.
 - F00–F04: `COMPLETADA`.
 - `M05.1 — Operaciones del árbol`: `COMPLETADA`.
@@ -28,7 +28,8 @@ Actualizado: 2026-08-11.
 - F07: `COMPLETADA`.
 - `M08.1 — Tres ámbitos de tema`: `COMPLETADA`.
 - `M08.2 — Presets visuales`: `COMPLETADA`.
-- F08: `EN_CURSO` en M08.3.
+- `M08.3 — Motor de plantillas`: `COMPLETADA`.
+- F08: `EN_CURSO` en M08.4.
 - F09–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
 
@@ -44,7 +45,7 @@ Actualizado: 2026-08-11.
 | F05 | COMPLETADA | Árbol, renderer, DnD, manipulación directa, selección simple y viewport |
 | F06 | COMPLETADA | Registro versionado, 115 widgets, adapters y biblioteca funcional |
 | F07 | COMPLETADA | Inspector, controles, estilos, responsive, bindings, condiciones y ARIA |
-| F08 | EN_CURSO | M08.1–M08.2 completadas; M08.3 motor de plantillas activa |
+| F08 | EN_CURSO | M08.1–M08.3 completadas; M08.4 paquetes theme activa |
 | F09–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
@@ -252,13 +253,23 @@ Actualizado: 2026-08-11.
 - Pruebas automáticas validan contraste AA en 20 variantes de editor y 11 temas de proyecto, catálogo completo, migración, aplicación, persistencia y undo.
 - Puerta local: lint, typecheck, **59 archivos / 271 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 396.37 kB y catálogo 153.40 kB.
 
+## Cierre M08.3 — Motor de plantillas
+
+- `Document` formaliza página, template, header, footer, single, archive y 404 dentro de `ProjectStructure`; las páginas admiten ruta directa y las rutas duplicadas se rechazan.
+- Condiciones tipadas resuelven target, prefijo de ruta, tipo de contenido y prioridad. La composición selecciona main/header/footer por prioridad, especificidad e ID estable.
+- Crear documento y actualizar condiciones pasan por `ProjectStructureCommand`, Command Bus, IndexedDB y undo/redo; no se crea un árbol paralelo.
+- La pestaña Plantillas permite crear los siete tipos y editar condiciones con JSON validado y mensajes de estado honestos.
+- `TEMPLATE_SYSTEM.md` documenta contrato, límites y compatibilidad con proyectos existentes.
+- Puerta local: lint, typecheck, **60 archivos / 276 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 404.80 kB y catálogo 153.40 kB.
+- `M08.4 — Paquetes theme` pasa a `EN_CURSO`.
+
 ## Próximo paso exacto
 
-`M08.3 — Motor de plantillas`: formalizar páginas, headers, footers, single, archive, 404, componentes globales y condiciones sobre el árbol canónico.
+`M08.4 — Paquetes theme`: empaquetado, importación/exportación, versiones y conflictos sin alterar datos no compatibles.
 
 ## Bloqueos
 
-- Ninguno para M08.3.
+- Ninguno para M08.4.
 - F19–F31 siguen deliberadamente pendientes de sus dependencias.
 
 ## Criterio para cambiar de microfase

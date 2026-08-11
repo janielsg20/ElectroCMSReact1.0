@@ -49,6 +49,7 @@ export const STARTER_PROJECT_STRUCTURE = ProjectStructureSchema.parse({
       id: STARTER_DOCUMENT_ID,
       kind: 'page',
       name: 'Página inicial',
+      routePath: '/',
       nodes: {
         [ids.section]: widgetNode(ids.section, 'Sección', 'layout.section', { label: 'Sección principal' }, { content: [ids.container] }),
         [ids.container]: widgetNode(ids.container, 'Contenedor', 'layout.container', { maxWidth: 1200 }, { content: [ids.heading, ids.paragraph] }),

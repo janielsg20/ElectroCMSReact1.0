@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-11 — M08.3 Motor de plantillas
+
+- Formalizados documentos de página, template, header, footer, single, archive y 404 sobre el árbol canónico, con rutas de página únicas y condiciones tipadas.
+- Añadida resolución determinista de main/header/footer por prioridad, especificidad y desempate estable, sin duplicación de documentos o árboles.
+- La pestaña Plantillas crea documentos y edita condiciones mediante Command Bus, persistencia local e historial reversible.
+- Añadido `TEMPLATE_SYSTEM.md` y cobertura para composición, validación, persistencia y undo.
+- Puerta local: lint, typecheck, **60 archivos / 276 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 404.80 kB y catálogo 153.40 kB.
+- Activada `M08.4 — Paquetes theme`.
+
 ## 2026-08-11
 
 - Cerrada `M08.2 — Presets visuales`: catálogo canónico de 9 presets para el editor y 11 presets independientes para frontend/backend.

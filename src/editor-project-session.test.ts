@@ -1,10 +1,33 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { createBrowserEditorProjectSession } from './editor-project-session'
-import { DEFAULT_BREAKPOINTS } from './domain'
+import { DEFAULT_BREAKPOINTS, parseDocumentId, type Document } from './domain'
 import { STARTER_SELECTED_NODE_ID } from './editor-ui/editor/starter-project-structure'
 
 describe('M06.5 sesión canónica de inserción', () => {
+  it('persiste una plantilla y sus condiciones por el Command Bus', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-template-engine-test-${crypto.randomUUID()}`)
+    const document: Document = {
+      conditions: [{ priority: 0, target: 'single' }],
+      id: parseDocumentId('aaaaaaaa-1111-4111-8111-111111111111'),
+      kind: 'single',
+      name: 'Entrada predeterminada',
+      nodes: {},
+      rootNodeIds: [],
+    }
+    const created = await session.createDocument?.(document)
+    expect(created?.ok).toBe(true)
+    const updated = await session.updateDocumentConditions?.(document.id, [{ pathPrefix: '/blog', priority: 5, target: 'single' }])
+    expect(updated?.ok).toBe(true)
+    if (!updated?.ok) return
+    expect(updated.value.documents[document.id]?.conditions[0]).toMatchObject({ pathPrefix: '/blog', priority: 5 })
+
+    const undone = await session.undo()
+    expect(undone.ok).toBe(true)
+    if (!undone.ok) return
+    expect(undone.value.documents[document.id]?.conditions[0]).toMatchObject({ priority: 0, target: 'single' })
+  })
+
   it('inserta dentro del contenedor seleccionado y deshace por el mismo Command Bus', async () => {
     const session = createBrowserEditorProjectSession(`electrocms-widget-library-test-${crypto.randomUUID()}`)
     const before = session.store.structure.documents[session.documentId]?.nodes[STARTER_SELECTED_NODE_ID]?.slots.content ?? []

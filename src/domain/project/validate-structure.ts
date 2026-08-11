@@ -15,6 +15,7 @@ export type StructureDiagnosticCode =
   | 'missing-breakpoint-parent'
   | 'breakpoint-cycle'
   | 'document-key-mismatch'
+  | 'duplicate-page-route'
   | 'component-key-mismatch'
   | 'node-key-mismatch'
   | 'duplicate-node-id'
@@ -286,6 +287,7 @@ export function validateProjectStructure(
   const diagnostics: StructureDiagnostic[] = []
   const breakpoints = validateBreakpointGraph(structure, diagnostics)
   const globalNodeOwners = new Map<string, string>()
+  const pageRoutes = new Map<string, string>()
 
   for (const [documentKey, document] of Object.entries(structure.documents)) {
     if (document.id !== documentKey) {
@@ -294,6 +296,18 @@ export function validateProjectStructure(
         message: `La clave ${documentKey} no coincide con el ID ${document.id}.`,
         path: ['documents', documentKey, 'id'],
       })
+    }
+    if (document.kind === 'page' && document.routePath) {
+      const existing = pageRoutes.get(document.routePath)
+      if (existing) {
+        diagnostics.push({
+          code: 'duplicate-page-route',
+          message: `Las páginas ${existing} y ${document.id} comparten la ruta ${document.routePath}.`,
+          path: ['documents', documentKey, 'routePath'],
+        })
+      } else {
+        pageRoutes.set(document.routePath, document.id)
+      }
     }
     validateNodeTree(
       document,
