@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import { createCompleteWidgetRegistry, type WidgetCategory, type WidgetDefinition } from '../../domain'
 import { Icon } from '../primitives'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
-import { ContentTypeManager } from './ContentTypeManager'
+import { ProjectDataPanel } from './ProjectDataPanel'
 import { ProjectDesignPanel } from './ProjectDesignPanel'
 import { TemplateManager } from './TemplateManager'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
@@ -218,7 +218,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
       ) : activeTab === 'templates' ? (
         <div aria-labelledby="library-tab-templates" className="min-h-0 flex-1" id="library-panel-templates" role="tabpanel"><TemplateManager /></div>
       ) : activeTab === 'content' ? (
-        <div aria-labelledby="library-tab-content" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" id="library-panel-content" role="tabpanel"><ContentTypeManager /></div>
+        <div aria-labelledby="library-tab-content" className="min-h-0 flex-1" id="library-panel-content" role="tabpanel"><ProjectDataPanel /></div>
       ) : (
         <div aria-labelledby="library-tab-themes" className="min-h-0 flex-1" id="library-panel-themes" role="tabpanel"><ProjectDesignPanel /></div>
       )}
