@@ -5,9 +5,10 @@ Actualizado: 2026-08-10.
 ## Estado global
 
 - Fase actual: `F04 — Application shell, navegación y workspaces responsive`.
-- Microfase actual: `M04.1 — Shell desktop`.
+- Microfase actual: `M04.2 — Shell tablet`.
 - Estado: `EN_CURSO`.
 - F00–F03: `COMPLETADA`.
+- `M04.1 — Shell desktop`: `COMPLETADA`.
 - F05–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
 - La incorporación del Addendum no cambia ni adelanta el orden real de fases.
@@ -19,8 +20,8 @@ Actualizado: 2026-08-10.
 - `DETAILED_EXECUTION_PHASES.md` ampliado con microfases M19.1–M31.8.
 - `REQUIREMENTS.md` actualizado con trazabilidad de cada área del Addendum.
 - `RULES.md`, `AGENTS.md`, `README.md` y `MEMORY.md` actualizados para preservar continuidad y evitar ejecución prematura.
-- Nueva regla: capacidades faltantes se registran como `PARITY_GAP` y no se presentan como implementadas.
-- Nueva regla: no crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
+- Capacidades faltantes se registran como `PARITY_GAP` y no se presentan como implementadas.
+- No se crean implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
 
 ## Roadmap ampliado
 
@@ -30,7 +31,7 @@ Actualizado: 2026-08-10.
 | F01 | COMPLETADA | Plataforma React/Tailwind/PWA |
 | F02 | COMPLETADA | Modelo canónico y migraciones |
 | F03 | COMPLETADA | Persistencia local-first, proyectos, autosave, recuperación y Command Bus/History |
-| F04 | EN_CURSO | Application shell responsive; M04.1 activa |
+| F04 | EN_CURSO | M04.1 desktop completada; M04.2 tablet activa |
 | F05–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
@@ -48,39 +49,45 @@ Actualizado: 2026-08-10.
 
 ## Cierre F03 / M03.4
 
-- Implementado `ProjectHistoryState` schema v1 con entradas `before`/`after`, cursor, operación pendiente recuperable e invariantes de proyecto/cursor/operación.
-- Implementado `ProjectCommandBus` con execute, undo y redo; todos conservan revisiones monotónicas al restaurar estados lógicos anteriores.
-- Implementado `CompositeProjectCommand`: varios comandos se evalúan como una sola transacción lógica; un fallo intermedio no persiste parciales.
-- Implementadas ramas nuevas: ejecutar después de undo corta la cola de redo antes de registrar el nuevo paso.
-- Implementado límite `maxEntries` conservando la ventana reversible más reciente.
-- Persistencia IndexedDB añadida mediante namespace `project-history`; cursor e historial sobreviven cierre/reapertura.
-- Protocolo preparar→guardar proyecto→confirmar historial; `recover()` reaplica una operación pendiente o reconcilia cursor si el proyecto ya alcanzó el target.
-- Cambios externos incompatibles producen `history-conflict`; no se sobrescriben silenciosamente.
-- Puerta técnica PR #5 / run `31449931973`: `npm run lint`, `npm run typecheck`, `npm run test` y `npm run build` correctos; 24 archivos de test y 97/97 pruebas verdes, Vite 7.3.6.
+- `ProjectCommandBus` implementa execute, undo y redo con revisiones monotónicas.
+- `CompositeProjectCommand` agrupa mutaciones como una sola transacción lógica.
+- `ProjectHistoryState` v1 persiste entries before/after, cursor y operación pendiente recuperable.
+- Branching tras undo, límites configurables, conflictos sin sobrescritura y recuperación están probados.
+- IndexedDB usa namespace `project-history` y conserva cursor/historial tras reapertura.
 
-## Entregas UI anticipadas
+## Cierre M04.1 — Shell desktop
 
-- Existe un shell high-density con navegación, Page/Widget Tree, canvas, inspector y status bar.
-- Biblioteca e Inspector admiten dock, float, minimize, pin, restore y resize con alternativas de teclado.
-- Móvil usa navegación de builder y tool sheets.
-- Auditoría correctiva 2026-08-10: se reforzó el estado activo del sidebar, se aumentaron filas/targets compactos, Páginas y Árbol de widgets cambian selección real, y los falsos dropdowns del Inspector se sustituyeron por selects accesibles.
-- La matriz de alineación y el vínculo de padding expresan y modifican estado; controles futuros del topbar, biblioteca, inspector y canvas se muestran deshabilitados/planificados en vez de simular interacción.
-- `src/ui-integrity-v11.css` estabiliza tamaños, selected/focus states, overflow y legibilidad entre Studio, Bento Motion y Flow Builder.
-- Estas entregas anticipadas no cierran por sí solas M04.1 ni F05–F07/F19.
-- Ahora que F04 está activa, M04.1 debe consolidar el shell existente y eliminar overrides redundantes de forma segura, no crear una segunda UI.
+- Se formalizó el shell desktop existente; no se creó una segunda implementación.
+- Añadido contrato `workspace.v1` en `src/editor-ui/editor/workspace-preferences.ts` con schema Zod estricto y `WorkspacePreferencesStore`.
+- Persistencia local de rail, anchuras de Biblioteca/Inspector, modo docked/floating/minimized, lado de dock, bounds, pin y orden de apilado.
+- Activar un panel actualiza su orden; los paneles flotantes y la barra de minimizados respetan ese orden persistente.
+- La restauración limita rail/anchuras y reubica ventanas flotantes dentro del viewport actual; preferencias corruptas o de versión desconocida se ignoran de forma segura.
+- `localStorage` se usa solo como adapter de preferencias de UI; estos datos no contaminan el modelo canónico del proyecto.
+- Añadidas pruebas de round-trip, corrupción/versionado, limpieza, persistencia real tras remontaje y fallback seguro.
+- Se corrigió la hidratación para evitar `setState` síncrono dentro de effects y renders redundantes; el log final no contiene avisos `act(...)` del workspace.
+- Puerta técnica final PR #6 / run `31451142252`: lint, typecheck, 26 archivos de test / 102 pruebas y build Vite 7.3.6 correctos.
+
+## Entregas UI anticipadas que continúan pendientes de su fase propietaria
+
+- Biblioteca/árbol, canvas, inspector, dock móvil y themes existen visualmente y con interacciones parciales.
+- `src/ui-integrity-v11.css` sigue como guardrail cross-theme para tamaño, selección, foco y overflow.
+- M04.1 formaliza únicamente el shell desktop y su workspace; no cierra tablet/móvil, rutas, themes, F05–F07 ni F19.
+- La consolidación de CSS/primitives continúa de forma segura al entrar cada microfase propietaria.
 
 ## Próximo paso exacto
 
-`M04.1 — Shell desktop`:
+`M04.2 — Shell tablet`:
 
-- formalizar header, navegación, panel izquierdo, canvas, inspector y status bar redimensionables;
-- persistir posición, orden, visibilidad y anchuras del workspace;
-- reutilizar el shell anticipado existente y consolidar tokens/primitives/CSS donde corresponda;
-- probar restauración del workspace y no avanzar a M04.2 hasta cerrar la salida de M04.1.
+- mantener rail contraído y canvas como región prioritaria;
+- permitir un solo panel contextual persistente a la vez;
+- presentar el panel secundario como overlay accesible y descartable;
+- comprobar landscape y portrait;
+- retener/restaurar foco y soportar `Escape`;
+- reutilizar `workspace.v1` sin persistir geometría efímera del overlay como layout desktop.
 
 ## Bloqueos
 
-- Ninguno para M04.1.
+- Ninguno para M04.2.
 - F19–F31 están deliberadamente pendientes de sus dependencias, no bloqueadas.
 
 ## Criterio para cambiar de microfase
@@ -93,7 +100,8 @@ No avanzar hasta cerrar la microfase activa con evidencia reproducible. La docum
 - PWA offline, manifest y Service Worker implementados.
 - Modelo canónico v1, Zod, migraciones, breakpoints, CMS models y relaciones probados.
 - Dexie/IndexedDB, ciclo de proyecto, import/export, recovery journal y project-history probados.
-- UI high-density responsive fue verificada previamente en 320/375/768/1024/1440/812×375; cambios futuros de F04 requieren nueva validación antes de afirmarlos como verificados.
+- M04.1: run `31451142252`, 102/102 pruebas, lint/typecheck/build verdes.
+- Evidencia responsive histórica existe para 320/375/768/1024/1440/812×375; M04.2 debe volver a validar específicamente tablet antes de cerrar.
 - Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
 ## Documentos de control
