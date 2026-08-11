@@ -51,6 +51,7 @@ export function AppNavigation({ activeSection, expanded, width, onSectionChange,
                         aria-label={`${item.label} · ${status}`}
                         className={`nav-option group relative flex min-h-11 w-full cursor-pointer items-center rounded-md px-1 text-xs transition-[background-color,color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${expanded ? 'justify-start gap-1.5' : 'justify-center'} ${current ? 'bg-primary-soft text-primary-strong' : 'text-foreground hover:bg-muted/80'}`}
                         data-active={current ? 'true' : 'false'}
+                        data-navigation-section={item.id}
                         data-tooltip={!expanded ? `${item.label} · ${status}` : undefined}
                         onClick={(event) => {
                           event.currentTarget.focus()
