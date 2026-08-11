@@ -3,6 +3,8 @@ import type {
   BreakpointId,
   BreakpointInput,
   BreakpointPatch,
+  ContentType,
+  ContentTypeId,
   Document,
   DocumentId,
   JsonValue,
@@ -23,6 +25,7 @@ import type {
   ThemePackagePartSelection,
   ThemePackageRouteConflictPolicy,
 } from '../../domain'
+import type { ContentTypeEditablePatch } from '../../domain/project/content-type-engine'
 import type { ProjectStructureRenderStore } from '../../renderers'
 
 export interface WidgetInsertionTemplate {
@@ -79,6 +82,12 @@ export interface ThemePackageSession {
   saveThemePackage(themePackage: ThemePackage): Promise<Result<void, string>>
 }
 
+export interface ContentTypeSession {
+  createContentType(contentType: ContentType): Promise<Result<ProjectStructure, string>>
+  deleteContentType(contentTypeId: ContentTypeId): Promise<Result<ProjectStructure, string>>
+  updateContentType(contentTypeId: ContentTypeId, patch: ContentTypeEditablePatch): Promise<Result<ProjectStructure, string>>
+}
+
 export interface EditorSelection {
   readonly getSelectedNodeId: () => NodeId | null
   readonly selectNode: (nodeId: NodeId) => void
@@ -109,6 +118,22 @@ export function requireThemePackageSession(session: EditorProjectSession): Edito
 
 export function useThemePackageSession(): ThemePackageSession {
   return requireThemePackageSession(useEditorProject())
+}
+
+export function requireContentTypeSession(session: EditorProjectSession): EditorProjectSession & ContentTypeSession {
+  const candidate = session as EditorProjectSession & Partial<ContentTypeSession>
+  if (
+    typeof candidate.createContentType !== 'function'
+    || typeof candidate.updateContentType !== 'function'
+    || typeof candidate.deleteContentType !== 'function'
+  ) {
+    throw new Error('La sesión actual no ofrece la capacidad de tipos de contenido.')
+  }
+  return candidate as EditorProjectSession & ContentTypeSession
+}
+
+export function useContentTypeSession(): ContentTypeSession {
+  return requireContentTypeSession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {
