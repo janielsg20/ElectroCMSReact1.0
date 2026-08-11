@@ -1,12 +1,9 @@
 import 'fake-indexeddb/auto'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { parseContentTypeId, type ContentType } from '../../domain'
 import { createBrowserEditorProjectSession } from '../../editor-project-session'
-import {
-  EditorProjectContext,
-  requireContentTypeSession,
-} from './editor-project-context'
+import { parseContentTypeId, type ContentType } from '../../domain'
+import { EditorProjectContext, requireContentTypeSession } from './editor-project-context'
 import { ProjectDataPanel } from './ProjectDataPanel'
 
 const contentTypeId = parseContentTypeId('81818181-8181-4818-8818-818181818181')
@@ -26,7 +23,7 @@ function articleType(): ContentType {
     singleTemplateId: null,
     singularName: 'Artículo',
     slug: 'articles',
-    supports: ['title'],
+    supports: ['title', 'custom-fields'],
     taxonomyIds: [],
   }
 }
@@ -86,14 +83,16 @@ describe('M09.2 gestor de taxonomías', () => {
     await waitFor(() => expect(Object.values(session.store.structure.cms?.taxonomyTerms ?? {})).toHaveLength(0))
   })
 
-  it('mantiene tabs secundarios accesibles, targets touch/desktop y límites honestos de fase', async () => {
+  it('mantiene tabs secundarios accesibles y el aislamiento entre superficies', async () => {
     await renderDataPanel()
 
-    const tab = screen.getByRole('tab', { name: 'Taxonomías' })
-    expect(tab).toHaveClass('min-h-11', 'lg:min-h-9')
+    const taxonomyTab = screen.getByRole('tab', { name: 'Taxonomías' })
+    expect(taxonomyTab).toHaveClass('min-h-11', 'lg:min-h-9')
+    expect(taxonomyTab).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('checkbox', { name: /Artículos/i })).toHaveClass('size-4')
-    expect(screen.getByText(/Campos personalizados de taxonomía se implementan en M09\.3/i)).toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: 'Campos' })).not.toBeInTheDocument()
+
+    const fieldsTab = screen.getByRole('tab', { name: 'Campos' })
+    expect(fieldsTab).toHaveAttribute('aria-selected', 'false')
     expect(screen.queryByRole('button', { name: /crear campo/i })).not.toBeInTheDocument()
   })
 })
