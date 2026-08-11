@@ -1,6 +1,6 @@
 # Sistema de layout UI/UX — ElectroCMS
 
-Estado de implementación: `M04.1 — Shell desktop` y `M04.2 — Shell tablet` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio y tablet, conservando el prototipo anticipado como base. Móvil, rutas y temas del editor continúan en M04.3–M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
+Estado de implementación: `M04.1 — Shell desktop`, `M04.2 — Shell tablet` y `M04.3 — Shell móvil` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio, tablet y móvil, conservando una sola jerarquía funcional. Rutas/shortcuts y temas del editor continúan en M04.4–M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
 
 ## Decisión de producto
 
@@ -41,14 +41,18 @@ Estado: `M04.2` `COMPLETADA`.
 
 ### Móvil/tablet vertical — 320 a 767 px
 
-Estado: objetivo de `M04.3`, actualmente `EN_CURSO`; la UI existente sigue siendo una entrega anticipada hasta cerrar esa microfase.
+Estado: `M04.3` `COMPLETADA`.
 
-- Header compacto y canvas prioritario.
-- Navegación superior o inferior con un máximo de cinco destinos de primer nivel; el resto vive en “Más”.
-- Elementos, capas e inspector se abren como bottom sheet o pantalla completa.
-- Las propiedades se editan por secciones con progressive disclosure.
-- Acciones de selección, mover arriba/abajo, duplicar y eliminar permanecen visibles sin depender de drag.
-- El canvas puede ser una región bidimensional contenida; el resto de la página debe reflow sin scroll horizontal.
+- `ResponsiveEditorShell` delimita el scope móvil mediante `data-mobile-shell` sin crear otra instancia de Editor, Biblioteca, Inspector ni navegación.
+- Header compacto y canvas prioritario; el canvas reserva el espacio del bottom dock y las safe areas.
+- Bottom navigation de cinco destinos: `Widgets / Páginas / Canvas / Props / Más`; los demás módulos permanecen en `Más`.
+- Widgets, Páginas e Inspector se abren como bottom sheet accesible; las superficies temporales se cierran con `Escape`, retienen/restauran foco y tienen control explícito de cierre.
+- Los targets del dock y acciones críticas mantienen al menos 44 px y `touch-action: manipulation`.
+- `Canvas` fuera del módulo Editor no es una acción muerta: abre la navegación compacta desde la que se puede volver explícitamente al Editor.
+- `max-width: 100vw`, containment de overscroll y safe areas evitan que el chrome móvil cree scroll horizontal de página.
+- Al cruzar a 768 px una sheet móvil abierta se cierra a través del mismo flujo de interacción y M04.2 pasa a controlar el layout, sin trasladar estado geométrico temporal.
+- `prefers-reduced-motion` elimina transiciones no esenciales del dock.
+- 320 y 375 px están cubiertos por pruebas funcionales específicas, además de la transición móvil→tablet.
 
 ## Responsive basado en contenedor
 
@@ -92,9 +96,10 @@ Estado: objetivo de `M04.3`, actualmente `EN_CURSO`; la UI existente sigue siend
 - Paneles desktop: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, orden de apilado y restauración por puntero o teclado dentro de límites explícitos.
 - Persistencia M04.1: `src/editor-ui/editor/workspace-preferences.ts` + `workspace.v1`, con pruebas de round-trip, corrupción/versionado y remontaje real del shell.
 - Tablet 768–1023: `ResponsiveEditorShell`, rail visualmente contraído, canvas + un panel persistente, overlay lateral secundario accesible/redimensionable y geometría efímera aislada de `workspace.v1`.
+- Móvil 320–767: canvas prioritario, bottom dock de cinco destinos, sheets accesibles, safe areas, guardrails de overflow y transición explícita a tablet.
 - Evidencia M04.2: PR #8 / run `31453249710`, 27 archivos de test y 107/107 pruebas, incluyendo 5 pruebas específicas tablet, más lint/typecheck/build verdes.
-- Móvil conserva por ahora las superficies anticipadas; M04.3 debe formalizarlas y volver a validar 320/375 px.
-- Interacciones anticipadas habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
+- Evidencia M04.3: PR #9 / run `31454024650`, 28 archivos de test y 112/112 pruebas, incluyendo 5 pruebas específicas móvil, más lint/typecheck/build verdes.
+- Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, tema y sheets con `Escape` y restauración de foco.
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito.
 - Acciones de fases posteriores que aún no tienen motor funcional permanecen deshabilitadas o identificadas como planificadas.
 - Tema alternativo seleccionable `Bento Motion`: base neutral, azul de marca, paneles/secciones modulares, Lottie local diferido y movimiento adaptativo. Especificación en `design-system/electrocms/pages/bento-motion.md`.
