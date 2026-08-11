@@ -22,6 +22,7 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
     if (!normalized) return navigationItems
     return navigationItems.filter((item) => `${item.label} ${item.description} ${item.group}`.toLocaleLowerCase('es').includes(normalized))
   }, [query])
+  const safeActiveIndex = Math.min(activeIndex, Math.max(0, results.length - 1))
 
   function close(restoreFocus = true): void {
     setOpen(false)
@@ -34,11 +35,6 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
     onNavigate(section)
     close(false)
   }
-
-  useEffect(() => {
-    if (!open) return
-    setActiveIndex((current) => Math.min(current, Math.max(0, results.length - 1)))
-  }, [open, results.length])
 
   useEffect(() => {
     if (!open) return
@@ -75,11 +71,14 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
       if (results.length === 0) return
       event.preventDefault()
       const direction = event.key === 'ArrowDown' ? 1 : -1
-      setActiveIndex((current) => (current + direction + results.length) % results.length)
+      setActiveIndex((current) => {
+        const bounded = Math.min(current, results.length - 1)
+        return (bounded + direction + results.length) % results.length
+      })
       return
     }
     if (event.key === 'Enter' && document.activeElement === inputRef.current) {
-      const item = results[activeIndex]
+      const item = results[safeActiveIndex]
       if (!item) return
       event.preventDefault()
       choose(item.id)
@@ -122,7 +121,7 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
             <div className="flex items-center gap-2 border-b border-border p-2">
               <Icon className="shrink-0 text-primary" name="search" size={16} />
               <input
-                aria-activedescendant={results[activeIndex] ? `command-${results[activeIndex]?.id}` : undefined}
+                aria-activedescendant={results[safeActiveIndex] ? `command-${results[safeActiveIndex]?.id}` : undefined}
                 aria-autocomplete="list"
                 aria-controls="command-palette-results"
                 aria-label="Buscar comando"
@@ -139,8 +138,8 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
             <div className="max-h-[min(60vh,28rem)] overflow-y-auto p-1.5" id="command-palette-results" role="listbox">
               {results.length > 0 ? results.map((item, index) => (
                 <button
-                  aria-selected={index === activeIndex}
-                  className={`flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-left ${index === activeIndex ? 'bg-primary-soft text-primary-strong' : 'text-foreground hover:bg-muted'}`}
+                  aria-selected={index === safeActiveIndex}
+                  className={`flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-left ${index === safeActiveIndex ? 'bg-primary-soft text-primary-strong' : 'text-foreground hover:bg-muted'}`}
                   id={`command-${item.id}`}
                   key={item.id}
                   onClick={() => choose(item.id)}
