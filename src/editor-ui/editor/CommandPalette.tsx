@@ -55,7 +55,7 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
       }
       if (isEditableTarget(event.target)) return
       if (!event.altKey || !event.shiftKey) return
-      const shortcutSection = key === 'e' ? 'editor' : key === 'h' ? 'dashboard' : key === 'p' ? 'pages' : null
+      const shortcutSection: NavigationSectionId | null = key === 'e' ? 'editor' : key === 'h' ? 'dashboard' : key === 'p' ? 'pages' : null
       if (!shortcutSection) return
       event.preventDefault()
       onNavigate(shortcutSection)
@@ -102,20 +102,19 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
 
   return (
     <>
-      <Button
+      <button
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label="Abrir paleta de comandos"
-        className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] right-2 z-30 shadow-md md:bottom-8"
+        className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] right-2 z-30 inline-flex min-h-11 cursor-pointer touch-manipulation items-center justify-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-md transition-colors hover:border-primary/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:bottom-8 lg:min-h-8 lg:px-1.5 lg:py-0.5"
         onClick={() => setOpen(true)}
         ref={triggerRef}
-        size="small"
-        variant="secondary"
+        type="button"
       >
         <Icon name="search" size={14} />
         <span>Comandos</span>
         <kbd className="hidden rounded border border-border bg-canvas px-1 text-[0.5625rem] text-muted-foreground sm:inline">Ctrl/⌘ K</kbd>
-      </Button>
+      </button>
 
       {open ? (
         <div className="fixed inset-0 z-[70] grid place-items-start bg-slate-950/45 px-2 pt-[max(4rem,12vh)] backdrop-blur-[2px]" onMouseDown={(event) => { if (event.target === event.currentTarget) close() }}>
