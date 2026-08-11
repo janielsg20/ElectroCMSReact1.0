@@ -5,7 +5,9 @@ import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
 import { MobileDock, type MobilePanel } from './MobileDock'
 import { PanelWindow, type DockSide, type PanelBounds, type PanelMode, type WorkspacePanel } from './PanelWindow'
+import { ProductDemoView } from './ProductDemoView'
 import { TopBar, type UiTheme } from './TopBar'
+import { navigationItems, type NavigationSectionId } from './editor-data'
 import { Button, Icon } from '../primitives'
 
 type RestorableMode = 'docked' | 'floating'
@@ -100,6 +102,7 @@ function PanelContent({ panel, libraryTab, inspectorTab, onLibraryTabChange, onI
 export function EditorShell() {
   const [darkMode, setDarkMode] = useState(false)
   const [uiTheme, setUiTheme] = useState<UiTheme>('studio')
+  const [activeSection, setActiveSection] = useState<NavigationSectionId>('editor')
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('layers')
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('style')
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
@@ -116,6 +119,8 @@ export function EditorShell() {
   const interactionRef = useRef<PointerInteraction | null>(null)
   const dockTargetRef = useRef<DockTarget>(null)
 
+  const editorActive = activeSection === 'editor'
+  const activeNavigationItem = navigationItems.find((item) => item.id === activeSection) ?? navigationItems[1]!
   const leftDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'left')
   const rightDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'right')
   const leftDockWidth = leftDockPanel === 'library' ? libraryWidth : leftDockPanel === 'inspector' ? inspectorWidth : 0
@@ -232,8 +237,16 @@ export function EditorShell() {
     setWorkspace((current) => ({ ...current, [panel]: update(current[panel]) }))
   }
 
+  function navigateSection(section: NavigationSectionId): void {
+    setActiveSection(section)
+    setMobilePanel(null)
+    setDockPreview(null)
+    setDraggingPanel(null)
+  }
+
   function changeMobilePanel(panel: MobilePanel): void {
     if (panel) previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    if (panel === 'widgets' || panel === 'layers' || panel === 'inspector') setActiveSection('editor')
     setMobilePanel(panel)
     if (panel === 'widgets' || panel === 'layers') setLibraryTab(panel)
   }
@@ -438,53 +451,68 @@ export function EditorShell() {
       className="editor-shell h-dvh overflow-hidden bg-canvas text-foreground"
       style={{ '--rail-width': `${railWidth}px`, '--left-panel-width': `${leftDockWidth}px`, '--right-panel-width': `${rightDockWidth}px` } as CSSProperties}
     >
-      <TopBar darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
-      <AppNavigation expanded={railWidth >= 96} onResizeKeyDown={resizeRailWithKeyboard} onResizePointerDown={startRailResize} onToggleExpanded={() => setRailWidth((current) => current >= 96 ? 44 : 144)} width={railWidth} />
+      <TopBar activeSectionLabel={activeNavigationItem.label} darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
+      <AppNavigation activeSection={activeSection} expanded={railWidth >= 96} onResizeKeyDown={resizeRailWithKeyboard} onResizePointerDown={startRailResize} onSectionChange={navigateSection} onToggleExpanded={() => setRailWidth((current) => current >= 96 ? 44 : 144)} width={railWidth} />
 
-      {leftDockPanel ? (
-        <div className="relative col-start-2 row-start-2 hidden min-h-0 lg:block">
-          {renderPanelWindow(leftDockPanel, 'docked')}
-          <button aria-label={`Redimensionar ${leftDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[leftDockPanel].max} aria-valuemin={panelLimits[leftDockPanel].min} aria-valuenow={leftDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -right-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(leftDockPanel, 'left', event)} onPointerDown={(event) => startDockResize(leftDockPanel, 'left', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary" /></button>
-        </div>
-      ) : null}
+      {editorActive ? (
+        <>
+          {leftDockPanel ? (
+            <div className="relative col-start-2 row-start-2 hidden min-h-0 lg:block">
+              {renderPanelWindow(leftDockPanel, 'docked')}
+              <button aria-label={`Redimensionar ${leftDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[leftDockPanel].max} aria-valuemin={panelLimits[leftDockPanel].min} aria-valuenow={leftDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -right-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(leftDockPanel, 'left', event)} onPointerDown={(event) => startDockResize(leftDockPanel, 'left', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary" /></button>
+            </div>
+          ) : null}
 
-      <CanvasPreview inspectorOpen={inspectorVisible} libraryOpen={libraryVisible} onToggleInspector={() => togglePanel('inspector')} onToggleLibrary={() => togglePanel('library')} onViewportChange={setViewport} viewport={viewport} />
+          <CanvasPreview inspectorOpen={inspectorVisible} libraryOpen={libraryVisible} onToggleInspector={() => togglePanel('inspector')} onToggleLibrary={() => togglePanel('library')} onViewportChange={setViewport} viewport={viewport} />
 
-      {rightDockPanel ? (
-        <div className="relative col-start-4 row-start-2 hidden min-h-0 lg:block">
-          {renderPanelWindow(rightDockPanel, 'docked')}
-          <button aria-label={`Redimensionar ${rightDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[rightDockPanel].max} aria-valuemin={panelLimits[rightDockPanel].min} aria-valuenow={rightDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -left-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(rightDockPanel, 'right', event)} onPointerDown={(event) => startDockResize(rightDockPanel, 'right', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary" /></button>
-        </div>
-      ) : null}
+          {rightDockPanel ? (
+            <div className="relative col-start-4 row-start-2 hidden min-h-0 lg:block">
+              {renderPanelWindow(rightDockPanel, 'docked')}
+              <button aria-label={`Redimensionar ${rightDockPanel === 'library' ? 'panel de páginas y capas' : 'inspector'}`} aria-orientation="vertical" aria-valuemax={panelLimits[rightDockPanel].max} aria-valuemin={panelLimits[rightDockPanel].min} aria-valuenow={rightDockPanel === 'library' ? libraryWidth : inspectorWidth} className="group absolute -left-3 inset-y-0 z-20 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={(event) => resizeDockWithKeyboard(rightDockPanel, 'right', event)} onPointerDown={(event) => startDockResize(rightDockPanel, 'right', event)} role="separator" title="Arrastrar o usar las flechas" type="button"><span className="h-full w-px bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary" /></button>
+            </div>
+          ) : null}
 
-      <div className="hidden lg:contents">
-        {(['library', 'inspector'] as const).map((panel) => {
-          const mode = workspace[panel].mode
-          return mode === 'floating' ? <div className="contents" key={panel}>{renderPanelWindow(panel, mode)}</div> : null
-        })}
-      </div>
+          <div className="hidden lg:contents">
+            {(['library', 'inspector'] as const).map((panel) => {
+              const mode = workspace[panel].mode
+              return mode === 'floating' ? <div className="contents" key={panel}>{renderPanelWindow(panel, mode)}</div> : null
+            })}
+          </div>
 
-      {workspace.library.mode === 'minimized' || workspace.inspector.mode === 'minimized' ? <div aria-label="Paneles minimizados" className="panel-minimized-shelf fixed bottom-6 right-0 top-10 z-40 hidden w-8 flex-col border-l border-border bg-surface shadow-lg lg:flex" role="toolbar">
-        {workspace.library.mode === 'minimized' ? <button aria-label="Restaurar Páginas y capas" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-primary/30 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('library')} title="Restaurar Páginas y capas" type="button"><Icon name="layers" size={13} /><span>Páginas y capas</span></button> : null}
-        {workspace.inspector.mode === 'minimized' ? <button aria-label="Restaurar Inspector" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('inspector')} title="Restaurar Inspector" type="button"><Icon name="settings" size={13} /><span>Inspector</span></button> : null}
-      </div> : null}
+          {workspace.library.mode === 'minimized' || workspace.inspector.mode === 'minimized' ? <div aria-label="Paneles minimizados" className="panel-minimized-shelf fixed bottom-6 right-0 top-10 z-40 hidden w-8 flex-col border-l border-border bg-surface shadow-lg lg:flex" role="toolbar">
+            {workspace.library.mode === 'minimized' ? <button aria-label="Restaurar Páginas y capas" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 border-b border-primary/30 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('library')} title="Restaurar Páginas y capas" type="button"><Icon name="layers" size={13} /><span>Páginas y capas</span></button> : null}
+            {workspace.inspector.mode === 'minimized' ? <button aria-label="Restaurar Inspector" className="panel-edge-tab flex min-h-0 flex-1 cursor-pointer items-center justify-center gap-1 bg-primary-soft py-1 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary hover:text-on-primary" onClick={() => restorePanel('inspector')} title="Restaurar Inspector" type="button"><Icon name="settings" size={13} /><span>Inspector</span></button> : null}
+          </div> : null}
 
-      {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
+          {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
+        </>
+      ) : <ProductDemoView activeSection={activeSection} onSectionChange={navigateSection} />}
 
       <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
-        <span>Inicio / Hero / Encabezado</span>
-        <span className="ml-auto">Ventanas personalizables · Sin errores</span>
-        <span className="font-heading">390 × 844 · 90%</span>
+        <span>Producto / {activeNavigationItem.label}</span>
+        <span className="ml-auto">{editorActive ? 'Ventanas personalizables · Demo estable' : 'Superficie final · Activación progresiva por fases'}</span>
+        <span className="font-heading">{editorActive ? '390 × 844 · 90%' : activeNavigationItem.phase}</span>
       </footer>
 
-      <MobileDock activePanel={mobilePanel} onPanelChange={changeMobilePanel} />
+      <MobileDock activePanel={mobilePanel} editorActive={editorActive} onPanelChange={changeMobilePanel} />
       {mobilePanel ? (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'modules' ? 'Módulos del producto' : mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Ocultar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="mobile-sheet absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
-            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-10 rounded-full bg-primary/35" aria-hidden="true" /><h2 className="mt-1 text-xs font-bold text-primary-strong">{mobilePanel === 'inspector' ? 'Inspector' : mobilePanel === 'widgets' ? 'Componentes' : 'Páginas y capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
-            <div className="min-h-0 max-h-[calc(82dvh-3rem)] overflow-hidden">{mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-full border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={mobilePanel} className="h-full border-0" onTabChange={setLibraryTab} />}</div>
+            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-10 rounded-full bg-primary/35" aria-hidden="true" /><h2 className="mt-1 text-xs font-bold text-primary-strong">{mobilePanel === 'modules' ? 'Módulos del producto' : mobilePanel === 'inspector' ? 'Inspector' : mobilePanel === 'widgets' ? 'Componentes' : 'Páginas y capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
+            <div className="min-h-0 max-h-[calc(82dvh-3rem)] overflow-y-auto">
+              {mobilePanel === 'modules' ? (
+                <div className="grid gap-1.5 p-2 sm:grid-cols-2">
+                  {navigationItems.map((item) => (
+                    <button className={`flex min-h-16 cursor-pointer items-start gap-2 rounded-lg border p-2 text-left ${item.id === activeSection ? 'border-primary bg-primary-soft' : 'border-border bg-surface hover:bg-muted'}`} key={item.id} onClick={() => navigateSection(item.id)} type="button">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-canvas text-primary"><Icon name={item.icon} size={14} /></span>
+                      <span className="min-w-0 flex-1"><span className="flex items-center justify-between gap-1"><strong className="truncate text-xs">{item.label}</strong><span className={`size-2 shrink-0 rounded-full ${item.state === 'active' ? 'bg-success' : item.state === 'development' ? 'bg-warning' : 'bg-muted-foreground/45'}`} /></span><span className="mt-0.5 line-clamp-2 text-[0.625rem] leading-4 text-muted-foreground">{item.description}</span></span>
+                    </button>
+                  ))}
+                </div>
+              ) : mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-full border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={mobilePanel} className="h-full border-0" onTabChange={setLibraryTab} />}
+            </div>
           </div>
         </div>
       ) : null}
