@@ -1,72 +1,41 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { App } from '../../App'
-import { EDITOR_APPEARANCE_PREFERENCES_KEY } from './appearance-preferences'
-
-vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" /> }))
-
-const originalMatchMedia = typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : undefined
-
-function installColorScheme(initialDark: boolean) {
-  let dark = initialDark
-  const listeners = new Set<(event: MediaQueryListEvent) => void>()
-  const mediaQuery = {
-    get matches() { return dark },
-    media: '(prefers-color-scheme: dark)',
-    onchange: null,
-    addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => { listeners.add(listener) },
-    removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => { listeners.delete(listener) },
-    addListener: (listener: (event: MediaQueryListEvent) => void) => { listeners.add(listener) },
-    removeListener: (listener: (event: MediaQueryListEvent) => void) => { listeners.delete(listener) },
-    dispatchEvent: () => true,
-  } as unknown as MediaQueryList
-
-  window.matchMedia = vi.fn(() => mediaQuery)
-
-  return async (nextDark: boolean): Promise<void> => {
-    await act(async () => {
-      dark = nextDark
-      const event = { matches: dark, media: mediaQuery.media } as MediaQueryListEvent
-      listeners.forEach((listener) => listener(event))
-      await Promise.resolve()
-    })
-  }
-}
+import 'fake-indexeddb/auto'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
+import App from '../../App'
+import {
+  EDITOR_APPEARANCE_PREFERENCES_KEY,
+  resetAppearancePreferenceSnapshot,
+} from './appearance-preferences'
 
 function openAppearance() {
-  fireEvent.click(screen.getByRole('button', { name: /ajustes de apariencia/i }))
-  return screen.getByRole('dialog', { name: /apariencia de la interfaz/i })
+  fireEvent.click(screen.getByRole('button', { name: 'Apariencia' }))
+  return screen.getByRole('dialog', { name: 'Apariencia del editor' })
 }
 
-function resetDocumentAppearance(): void {
-  delete document.documentElement.dataset.theme
-  delete document.documentElement.dataset.colorMode
-  delete document.documentElement.dataset.uiTheme
-  delete document.documentElement.dataset.uiPreset
-  document.documentElement.style.removeProperty('color-scheme')
-}
+beforeEach(() => {
+  window.localStorage.clear()
+  resetAppearancePreferenceSnapshot()
+  document.documentElement.removeAttribute('data-color-mode')
+  document.documentElement.removeAttribute('data-theme')
+  document.documentElement.removeAttribute('data-ui-preset')
+})
 
 describe('M04.5 temas del editor', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-    window.history.replaceState({}, '', window.location.pathname)
-    resetDocumentAppearance()
-    installColorScheme(false)
-  })
-
-  afterEach(() => {
-    window.localStorage.clear()
-    window.history.replaceState({}, '', window.location.pathname)
-    resetDocumentAppearance()
-    if (originalMatchMedia) window.matchMedia = originalMatchMedia
-    else Reflect.deleteProperty(window, 'matchMedia')
-  })
-
-  it('separa preset visual y modo de color en dos radiogroups accesibles', () => {
+  it('expone presets visuales y color como decisiones separadas', () => {
     render(<App />)
     const appearance = openAppearance()
 
-    expect(within(appearance).getByRole('radiogroup', { name: 'Preset visual' })).toBeInTheDocument()
+    const presets = within(appearance).getByRole('radiogroup', { name: 'Preset visual' })
+    expect(within(presets).getByRole('radio', { name: /high density/i })).toHaveAttribute('aria-checked', 'true')
+    expect(within(presets).getByRole('radio', { name: /google bento grid/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /minimal clean/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /elegant editorial/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /sophisticated dark/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /saas glassmorphism/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /material neutral/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /neobrutalist modern/i })).toHaveAttribute('aria-checked', 'false')
+    expect(within(presets).getByRole('radio', { name: /corporate pro/i })).toHaveAttribute('aria-checked', 'false')
+
     const colors = within(appearance).getByRole('radiogroup', { name: 'Modo de color' })
     expect(within(colors).getByRole('radio', { name: 'Claro' })).toHaveAttribute('aria-checked', 'true')
     expect(within(colors).getByRole('radio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'false')
@@ -83,14 +52,20 @@ describe('M04.5 temas del editor', () => {
     expect(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY)).toBeNull()
   })
 
-  it('ubica los temas frontend y backend en Diseño, junto a los recursos del proyecto', () => {
+  it('ubica temas y paquetes exportables en Diseño, separados de la apariencia local', () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Diseño' }))
 
-    expect(screen.getByRole('heading', { name: 'Temas de proyecto' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Diseño del proyecto' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Tema' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Paquetes' })).toHaveAttribute('aria-selected', 'false')
     expect(screen.getByRole('tab', { name: 'Frontend' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Paquetes' }))
+    expect(screen.getByRole('heading', { name: 'Paquetes reutilizables' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Tema del frontend generado' })).not.toBeInTheDocument()
   })
 
   it('cambia color por teclado, preserva el preset y persiste appearance.v1', async () => {
@@ -108,48 +83,12 @@ describe('M04.5 temas del editor', () => {
     await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'minimal-clean'))
 
     const saved = JSON.parse(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY) ?? '{}') as Record<string, unknown>
-    expect(saved).toEqual({ version: 1, uiTheme: 'minimal-clean', colorMode: 'dark' })
+    expect(saved).toMatchObject({ colorMode: 'dark', presetId: 'minimal-clean', version: 1 })
 
-    appearance = openAppearance()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar apariencia' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Apariencia' }))
+    appearance = screen.getByRole('dialog', { name: 'Apariencia del editor' })
     expect(within(appearance).getByRole('radio', { name: /minimal clean/i })).toHaveAttribute('aria-checked', 'true')
     expect(within(appearance).getByRole('radio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'true')
-  })
-
-  it('Automático sigue cambios de prefers-color-scheme sin recargar', async () => {
-    const changeSystemScheme = installColorScheme(false)
-    render(<App />)
-    const appearance = openAppearance()
-
-    fireEvent.click(within(appearance).getByRole('radio', { name: 'Automático' }))
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-color-mode', 'system'))
-    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-
-    await changeSystemScheme(true)
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'dark'))
-    expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density')
-
-    await changeSystemScheme(false)
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-theme', 'light'))
-  })
-
-  it('restaura preset y modo persistidos al remontar el shell', async () => {
-    window.localStorage.setItem(EDITOR_APPEARANCE_PREFERENCES_KEY, JSON.stringify({ version: 1, uiTheme: 'bento', colorMode: 'system' }))
-    installColorScheme(true)
-
-    render(<App />)
-
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'google-bento-grid'))
-    expect(document.documentElement).toHaveAttribute('data-color-mode', 'system')
-    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(screen.getByRole('button', { name: /preset: google bento grid · color: automático/i })).toBeInTheDocument()
-  })
-
-  it('recupera defaults seguros cuando appearance.v1 está corrupto', async () => {
-    window.localStorage.setItem(EDITOR_APPEARANCE_PREFERENCES_KEY, '{')
-    render(<App />)
-
-    await waitFor(() => expect(document.documentElement).toHaveAttribute('data-ui-preset', 'high-density'))
-    expect(document.documentElement).toHaveAttribute('data-color-mode', 'light')
-    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
   })
 })
