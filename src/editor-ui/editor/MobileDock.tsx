@@ -26,14 +26,15 @@ export function MobileDock({ activePanel, editorActive, onPanelChange }: MobileD
           const isCanvas = item.id === null && activePanel === null && editorActive
           const isModules = item.id === 'modules' && !editorActive && activePanel === null
           const active = selected || isCanvas || isModules
+          const nextPanel: MobilePanel = item.id === null && !editorActive ? 'modules' : selected ? null : item.id
           return (
             <li className="min-w-0" key={item.label}>
               <button
                 aria-current={active ? 'page' : undefined}
                 aria-label={item.label}
                 className={`mobile-dock-option relative flex h-full w-full cursor-pointer flex-col items-center justify-center gap-0.5 px-0.5 text-[0.625rem] font-medium transition-colors ${active ? 'mobile-dock-option--active text-primary-strong' : 'text-muted-foreground'}`}
-                onClick={() => onPanelChange(selected ? null : item.id)}
-                title={item.id === 'modules' ? 'Más módulos y áreas del producto' : item.label}
+                onClick={() => onPanelChange(nextPanel)}
+                title={item.id === 'modules' ? 'Más módulos y áreas del producto' : item.id === null && !editorActive ? 'Abrir navegación para volver al Editor' : item.label}
                 type="button"
               >
                 <span aria-hidden="true" className={`absolute inset-x-[28%] top-0 h-0.5 rounded-b-full ${active ? 'bg-primary' : 'bg-transparent'}`} />
