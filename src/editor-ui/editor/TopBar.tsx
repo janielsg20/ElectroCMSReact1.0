@@ -90,7 +90,7 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
       </div>
 
       <div className="builder-project-context ml-1 hidden min-w-0 items-center sm:flex">
-        <button className="project-switcher flex h-8 min-w-0 cursor-pointer items-center gap-1 rounded border border-transparent bg-transparent px-1.5 text-left hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus" data-tooltip="Cambiar proyecto" type="button">
+        <button aria-label="Cambiar proyecto, planificado" className="project-switcher flex h-8 min-w-0 cursor-not-allowed items-center gap-1 rounded border border-transparent bg-transparent px-1.5 text-left opacity-60" data-tooltip="Cambiar proyecto · planificado" disabled type="button">
           <Icon className="shrink-0 text-muted-foreground" name="editor" size={13} />
           <span className="min-w-0 truncate text-xs font-semibold text-foreground">Revista Horizonte</span>
           <Icon className="shrink-0 text-muted-foreground" name="chevron-down" size={11} />

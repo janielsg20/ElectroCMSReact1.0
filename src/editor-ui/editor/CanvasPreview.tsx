@@ -53,7 +53,7 @@ export function CanvasPreview({ viewport, onViewportChange, onToggleLibrary, onT
           <span className="hidden xl:block" data-tooltip="Generador IA · planificado"><Button aria-label="Generador IA, planificado" disabled size="small"><Icon name="sparkles" size={16} />Generador IA</Button></span>
           <span aria-label="Zoom del canvas: 90 por ciento" className="canvas-zoom-status hidden rounded-md bg-muted px-2 py-1 font-heading text-xs tabular-nums text-muted-foreground sm:inline">90%</span>
           <span className="hidden md:block" data-tooltip="Inspector"><Button aria-label="Alternar inspector" className={inspectorOpen ? 'bg-primary-soft text-primary-strong' : ''} onClick={onToggleInspector} size="icon" variant="ghost"><Icon name="settings" /></Button></span>
-          <span className="hidden sm:block" data-tooltip="Opciones del canvas"><Button aria-label="Opciones del canvas" size="icon" variant="ghost"><Icon name="more" /></Button></span>
+          <span className="hidden sm:block" data-tooltip="Opciones del canvas · planificadas"><Button aria-label="Opciones del canvas, planificadas" disabled size="icon" variant="ghost"><Icon name="more" /></Button></span>
         </div>
       </div>
 

@@ -43,11 +43,12 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Desktop: rail compacto, Page/Widget Tree, canvas central y Properties Panel; paneles docked/floating/minimized/pinned y resize.
 - Tablet: rail compacto + canvas + panel contextual/overlays.
 - Móvil: Topbar compacta + Canvas + bottom navigation `Widgets / Pages / Canvas / Properties / More` + tool sheets.
-- Desktop objetivo: controles/filas ~32 px, spacing 4–8 px, rail ~44 px.
-- Touch: targets objetivo 44 px.
+- Desktop objetivo: controles/filas ~32–36 px, spacing 4–8 px, rail ~44 px; touch mantiene 44 px.
 - Azul reservado principalmente para selección, foco, active y primary actions.
 - WCAG 2.2 AA; drag/resize/reorder siempre con alternativa de teclado/clic.
-- Las múltiples capas CSS anticipadas deben consolidarse en primitives/componentes base cuando F04–F07/F19 entren formalmente.
+- Auditoría correctiva 2026-08-10: selección del rail, páginas y árbol ahora sigue estado real; dropdowns del Inspector usan controles nativos; alineación y vinculado de padding tienen estado; acciones futuras se muestran deshabilitadas en vez de aparentar funcionalidad.
+- `src/ui-integrity-v11.css` actúa como guardrail final cross-theme para tamaños, selección, foco, legibilidad y overflow; Flow Builder ya no reduce filas/controles a ~30 px.
+- Las múltiples capas CSS anticipadas deben consolidarse en primitives/componentes base cuando F04–F07/F19 entren formalmente; `ui-integrity-v11.css` es una estabilización, no sustituye esa consolidación.
 
 ## Roadmap ampliado F19–F31
 

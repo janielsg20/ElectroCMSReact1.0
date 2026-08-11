@@ -14,6 +14,7 @@ import './flutterflow-builder-v7.css'
 import './flutterflow-builder-v8.css'
 import './flutterflow-fidelity-v9.css'
 import './flow-builder-theme-v10.css'
+import './ui-integrity-v11.css'
 
 const rootElement = document.getElementById('root')
 

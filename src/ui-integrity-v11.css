@@ -1,0 +1,211 @@
+/*
+ * ElectroCMS — UI integrity layer v11
+ * Final cross-theme guardrails for sizing, selection, focus, overflow and legibility.
+ * Loaded after the visual theme layers so Studio, Bento Motion and Flow Builder
+ * share the same interaction contract without erasing their visual identity.
+ */
+
+.editor-shell {
+  --ui-row-touch: 2.75rem;
+  --ui-row-desktop: 2.25rem;
+  --ui-icon-desktop: 2rem;
+  --ui-radius-control: 0.375rem;
+}
+
+:root[data-ui-theme="flow"] {
+  --flow-row: var(--ui-row-desktop);
+  --flow-control: var(--ui-row-desktop);
+}
+
+/* Keep UI copy readable. Density comes from spacing, not microscopic type. */
+.editor-shell :where(button, input, select, textarea) {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.product-demo-workspace [class*="text-[0.5625rem]"],
+.product-demo-workspace [class*="text-[0.625rem]"] {
+  font-size: 0.6875rem !important;
+  line-height: 1rem;
+}
+
+/* Main navigation: persistent, unmistakable active state across every theme. */
+.editor-shell .app-navigation .nav-option {
+  min-height: var(--ui-row-touch) !important;
+  border: 0 !important;
+  border-radius: var(--ui-radius-control) !important;
+  background: transparent;
+  color: var(--color-foreground);
+  isolation: isolate;
+}
+
+.editor-shell .app-navigation .nav-option:hover:not(:disabled) {
+  background: var(--color-muted) !important;
+  color: var(--color-foreground) !important;
+}
+
+.editor-shell .app-navigation .nav-option[aria-current="page"],
+.editor-shell .app-navigation .nav-option[data-active="true"] {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary), inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 16%, transparent) !important;
+}
+
+.editor-shell .app-navigation .nav-option[aria-current="page"]::before,
+.editor-shell .app-navigation .nav-option[data-active="true"]::before {
+  display: none !important;
+}
+
+.editor-shell .app-navigation .nav-accent-icon {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: var(--ui-radius-control) !important;
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface)) !important;
+  color: var(--color-primary-strong) !important;
+}
+
+.editor-shell .app-navigation .nav-option[aria-current="page"] .nav-accent-icon,
+.editor-shell .app-navigation .nav-option[data-active="true"] .nav-accent-icon {
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 24%, transparent) !important;
+}
+
+.editor-shell .app-navigation .nav-option:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* Left library and inspector tabs use the same interaction scale. */
+.editor-shell .library-panel [role="tab"],
+.editor-shell .inspector-panel [role="tab"] {
+  min-height: var(--ui-row-touch) !important;
+  border-radius: var(--ui-radius-control) !important;
+}
+
+.editor-shell .library-panel [role="tab"][aria-selected="true"],
+.editor-shell .inspector-panel [role="tab"][aria-selected="true"] {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+  box-shadow: inset 0 -2px 0 var(--color-primary) !important;
+}
+
+/* Page/tree selection was previously visually hard-coded. These styles follow state. */
+.editor-shell .page-option,
+.editor-shell .layer-option {
+  min-height: var(--ui-row-touch) !important;
+  border-radius: var(--ui-radius-control) !important;
+}
+
+.editor-shell .page-option[data-selected="true"],
+.editor-shell .layer-option[data-selected="true"],
+.editor-shell [role="treeitem"][aria-selected="true"] > .layer-option {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border)) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary) !important;
+}
+
+/* Real inspector selects: consistent size, clipping protection and visible focus. */
+.editor-shell .inspector-select {
+  min-width: 0;
+  min-height: var(--ui-row-touch) !important;
+  border-radius: var(--ui-radius-control) !important;
+  text-overflow: ellipsis;
+}
+
+.editor-shell .inspector-select:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border)) !important;
+}
+
+.editor-shell .inspector-select:focus-visible {
+  border-color: var(--color-primary) !important;
+  background: var(--color-surface) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-focus) 18%, transparent) !important;
+}
+
+/* Window chrome stays compact but no longer drops below a practical click target. */
+.editor-shell .panel-window__bar {
+  min-height: 2.125rem !important;
+  height: 2.125rem !important;
+}
+
+.editor-shell .panel-window__action {
+  width: var(--ui-row-touch) !important;
+  height: var(--ui-row-touch) !important;
+  min-width: var(--ui-row-touch) !important;
+  min-height: var(--ui-row-touch) !important;
+}
+
+/* Disabled prototype actions are deliberately non-interactive and visually explicit. */
+.editor-shell button:disabled {
+  cursor: not-allowed !important;
+}
+
+.editor-shell .semantic-option:disabled,
+.editor-shell button:disabled:hover {
+  transform: none !important;
+  box-shadow: none;
+}
+
+/* Product/demo surfaces had 28px filter controls and 9px labels. Keep high density without tiny targets. */
+.product-demo-workspace :where(button, input, select) {
+  min-height: 2.125rem;
+}
+
+.product-demo-workspace [role="group"] > button {
+  min-height: 2.125rem !important;
+}
+
+/* Protect compact grids from text and select overflow. */
+.editor-shell :where(.library-panel, .inspector-panel, .product-demo-workspace) :where(button, label, div) {
+  min-width: 0;
+}
+
+.editor-shell :where(select, input, textarea) {
+  max-width: 100%;
+}
+
+/* Desktop high-density: slightly larger than the previous 30/32px rows while still compact. */
+@media (min-width: 64rem) {
+  .editor-shell .app-navigation .nav-option,
+  .editor-shell .library-panel [role="tab"],
+  .editor-shell .inspector-panel [role="tab"],
+  .editor-shell .page-option,
+  .editor-shell .layer-option,
+  .editor-shell .inspector-select {
+    min-height: var(--ui-row-desktop) !important;
+  }
+
+  .editor-shell .panel-window__action {
+    width: var(--ui-icon-desktop) !important;
+    height: var(--ui-icon-desktop) !important;
+    min-width: var(--ui-icon-desktop) !important;
+    min-height: var(--ui-icon-desktop) !important;
+  }
+
+  .editor-shell .builder-profile {
+    min-height: var(--ui-row-desktop);
+  }
+
+  .editor-shell .library-panel input[type="search"],
+  .editor-shell .inspector-panel input[type="number"] {
+    min-height: var(--ui-row-desktop);
+  }
+}
+
+/* Touch/tablet contract: every primary control remains at least 44px. */
+@media (max-width: 63.999rem) {
+  .editor-shell :where(.mobile-dock-option, .mobile-sheet button, .mobile-sheet input, .mobile-sheet select) {
+    min-height: var(--ui-row-touch);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-shell .nav-option,
+  .editor-shell .page-option,
+  .editor-shell .layer-option,
+  .editor-shell .inspector-select {
+    transition-duration: 0.01ms !important;
+  }
+}
