@@ -5,7 +5,7 @@
 - Repositorio objetivo: `janielsg20/ElectroCMSReact1.0`, público.
 - Rama de producción: `main`.
 - Proyecto Pages: `electrocms-react`.
-- Método: Direct Upload con `cloudflare/wrangler-action@v3` y Wrangler 4.
+- Método: Direct Upload con `cloudflare/wrangler-action@v4` y Wrangler 4.
 - Artefacto: `dist/`, generado una sola vez por el job de calidad y reutilizado por deploy.
 
 ## Pipeline
