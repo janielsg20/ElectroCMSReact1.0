@@ -1,6 +1,6 @@
 # Modelos de datos
 
-Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS/backend aceptados en `M02.3`; registry y recuperación aceptados en `M02.4`. F02 completada.
+Estado: identidad y envelope v1 aceptados en `M02.1`; estructura de documentos aceptada en `M02.2`; agregados CMS/backend aceptados en `M02.3`; registry y recuperación aceptados en `M02.4`. F02 completada. Los modelos locales de ciclo, recuperación e historial de F03 también están aceptados.
 
 ## Contrato implementado en M02.1
 
@@ -81,6 +81,21 @@ Crear, duplicar, renombrar, archivar, eliminar de forma recuperable, restaurar, 
 
 Los estados del journal son `pending`, `committed`, `recovered` y `superseded`. Conflictos de revisión permanecen pendientes y producen diagnóstico; nunca fuerzan una sobrescritura.
 
+## Contrato implementado en M03.4
+
+`ProjectHistoryState` es el agregado local versionado de historial por proyecto:
+
+- `entries`: pasos reversibles con ID nominal, etiqueta, lista de `commandIds`, timestamp y snapshots completos `before`/`after` validados como `ProjectRecord`.
+- `cursor`: número de entradas actualmente aplicadas; nunca puede superar `entries.length`.
+- `pending`: operación `execute`, `undo` o `redo` preparada con cursor origen/destino y target completo para recuperación tras interrupción.
+- El schema rechaza IDs duplicados, referencias a otro proyecto, cursores fuera de rango y transiciones pending incoherentes.
+
+El historial distingue **estado lógico** de **revisión persistente**: `before` y `after` expresan los extremos reversibles, pero cada execute/undo/redo que se persiste obtiene `revision = current + 1`. Así el usuario puede volver a un estado anterior sin violar la monotonía del envelope ni confundir recuperación con retroceso de versión.
+
+Cuando se ejecuta un comando después de undo, las entradas posteriores al cursor se descartan antes de añadir la nueva entrada. `maxEntries` conserva solo la ventana reversible más reciente; el primer `before` retenido se convierte en el límite de undo disponible.
+
+`ProjectHistoryState` es almacenamiento local de aplicación y no forma parte del envelope portable exportado. Los comandos concretos de editor, Selection Manager, Action Flow o AI deben consumir este contrato en sus fases propietarias y no crear historias paralelas.
+
 ## Agregados mínimos
 
 Project, Document, Node, WidgetDefinition, Theme, Template, ContentType, Taxonomy, FieldDefinition, Record, Relation, Query, Form, Filter, Role, User, BackendScreen, MediaAsset, ExportManifest y HistoryEntry.
@@ -96,3 +111,4 @@ Project, Document, Node, WidgetDefinition, Theme, Template, ContentType, Taxonom
 - Relaciones y bindings rotos producen diagnóstico, no pérdida silenciosa.
 - Datos persistentes son serializables; estado UI transitorio vive separado.
 - Toda entrada persistente se valida con el schema de su versión antes de alcanzar repositorios o casos de uso.
+- El historial local debe representar el estado lógico del `ProjectRecord` actual; una divergencia externa produce conflicto antes de cualquier undo/redo.
