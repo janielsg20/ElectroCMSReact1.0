@@ -10,8 +10,10 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
 - Ampliación funcional tipo FlutterFlow: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
+- Política transversal de interacción visual: `UI_INTERNAL_COMPONENT_POLICY.md`.
 - FlutterFlow se usa como referencia de capacidades y flujos profesionales, no como fuente de código/branding/activos propietarios.
 - Toda capacidad faltante del Addendum se registra como `PARITY_GAP` y se implementa solo en su fase propietaria.
+- La política de UI interna es no negociable desde su incorporación: los menús/pickers de producto pertenecen al Design System de ElectroCMS y no se delegan al OS/navegador salvo excepción de plataforma documentada.
 
 ## Estado real
 
@@ -38,6 +40,10 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Undo/redo restaura estados lógicos anteriores creando revisiones nuevas; la revisión persistente nunca retrocede.
 - `workspace.v1` y `appearance.v1` son preferencias locales de UI, no datos del proyecto.
 - No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History o Export.
+- **No usar `<select>`, `<datalist>`, color/date/time pickers nativos, `alert/confirm/prompt`, context menus nativos ni `title` como tooltip final de controles del producto cuando exista componente interno equivalente.**
+- La familia objetivo de primitives internos incluye Listbox/Select, Combobox, DropdownMenu, ContextMenu, Popover, Tooltip, Dialog/AlertDialog, BottomSheet, ColorPicker, Date/TimePicker, MediaPicker, IconPicker y Token/Variable Picker.
+- En desktop estos controles pueden mostrarse como popover/menu; en tablet como overlay/drawer; en móvil como sheet/full-screen picker. La interacción sigue siendo interna y temática.
+- Excepciones nativas solo en fronteras de plataforma/seguridad: archivos/carpetas, permisos, biometría, share sheet, impresión, instalación PWA u otra UI protegida por sandbox.
 
 ## UI/UX vigente
 
@@ -47,6 +53,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Presets `Studio / Bento Motion / Flow Builder`; modos `Claro / Oscuro / Automático` mediante `appearance.v1`.
 - Contraste WCAG AA automatizado para los tres presets en claro/oscuro.
 - El árbol visual/canvas actual sigue siendo una superficie anticipada hasta que F05 conecte el motor canónico a la representación.
+- Todos los futuros menús/pickers del Inspector, Canvas, Tree, biblioteca, formularios, filtros, backend y configuración deben heredar tokens/tema y cumplir `UI_INTERNAL_COMPONENT_POLICY.md`.
+- Sustituir un control nativo por uno custom solo es válido si conserva teclado, lector de pantalla, focus, Escape/restore y touch accesible.
 
 ## M05.1 — contrato implementado
 
@@ -80,6 +88,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 Implementar `M05.2 — Canvas y renderer`: consumir `ProjectStructure` canónico, aislar errores por nodo, resolver responsive/hidden y asegurar actualizaciones granulares para que cambios locales no rerendericen todo el árbol.
 
+Además, desde esta sesión toda UI nueva o modificada debe cumplir `UI_INTERNAL_COMPONENT_POLICY.md`; la deuda de controles nativos existentes se corrige en su microfase propietaria y se registra si se detecta.
+
 No adelantar M05.3 ni F19 hasta cerrar M05.2 con evidencia reproducible.
 
 ## Riesgos abiertos
@@ -87,6 +97,8 @@ No adelantar M05.3 ni F19 hasta cerrar M05.2 con evidencia reproducible.
 - F05 debe conectar el canvas anticipado al modelo canónico sin duplicar datos en estado React de presentación.
 - El renderer debe evitar que un nodo defectuoso derribe el canvas completo.
 - El renderer debe medir y probar granularidad de rerender antes de declararse optimizado.
+- Controles nativos existentes pueden crear inconsistencias Android/Windows/macOS/iOS; deben inventariarse y reemplazarse por primitives internos en las fases visuales correspondientes.
+- Un componente custom mal implementado puede reducir accesibilidad; no se acepta reemplazo sin ARIA/keyboard/focus/touch completos.
 - Collaboration/AI/integraciones remotas deben mantener funcionamiento local completo.
 - Secrets nunca deben aparecer en frontend, logs o exports.
 
@@ -104,10 +116,11 @@ No adelantar M05.3 ni F19 hasta cerrar M05.2 con evidencia reproducible.
 
 - Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
 - Alcance ampliado: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
+- Política de UI interna: `UI_INTERNAL_COMPONENT_POLICY.md`.
 - Reglas: `RULES.md`.
 - Trazabilidad: `REQUIREMENTS.md`.
 - Fases: `PHASES.md`.
-- Microfases: `DETAILED_EXECUTION_PHASES.md`.
+- Microfases: `DETAILED_EXECUTION_PHASES.md` + `DETAILED_EXECUTION_PHASES_UI_INTERNAL_COMPONENTS.md`.
 - Estado: `TRACKING.md`.
 - Diseño: `design-system/electrocms/MASTER.md`, `UI_UX_LAYOUT_SYSTEM.md`.
 - Arquitectura: `ARCHITECTURE.md`.
