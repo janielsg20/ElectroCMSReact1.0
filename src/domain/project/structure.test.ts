@@ -29,6 +29,7 @@ function nodeBase(id: NodeId, slots: Record<string, NodeId[]> = {}) {
     responsive: {},
     slots,
     locked: false,
+    hidden: false,
   }
 }
 
@@ -112,69 +113,54 @@ function diagnosticCodes(input: unknown): string[] {
   return result.ok ? [] : result.error.map((diagnostic) => diagnostic.code)
 }
 
-describe('estructura canónica de documentos', () => {
-  it('valida árboles normalizados, slots, bindings y componentes', () => {
+describe('estructura canónica del proyecto', () => {
+  it('acepta documentos normalizados, slots, bindings y componentes globales', () => {
     const result = validateProjectStructure(validStructure())
     expect(result.ok).toBe(true)
   })
 
-  it('resuelve overrides siguiendo toda la cadena de herencia', () => {
+  it('resuelve herencia responsive desde base hasta el breakpoint activo', () => {
+    const structure = validStructure()
     const mobileSmallId = DEFAULT_BREAKPOINTS[5]?.id
-    if (!mobileSmallId) throw new Error('Falta el breakpoint móvil pequeño.')
-
-    const resolved = resolveNodeResponsiveState(
-      validStructure(),
-      parseNodeId(ROOT_NODE_ID),
-      parseBreakpointId(mobileSmallId),
-    )
-
-    expect(resolved).toEqual({
-      ok: true,
-      value: {
-        properties: { label: 'Tablet' },
-        styles: { gap: 8, color: 'violet' },
-        hidden: false,
-      },
-    })
+    if (!mobileSmallId) throw new Error('Falta breakpoint móvil.')
+    const result = resolveNodeResponsiveState(structure, ROOT_NODE_ID, mobileSmallId)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.properties.label).toBe('Tablet')
+    expect(result.value.styles).toMatchObject({ color: 'violet', gap: 8 })
+    expect(result.value.hidden).toBe(false)
   })
 
-  it('diagnostica ciclos, referencias ausentes, padres múltiples y huérfanos', () => {
-    const cyclic = validStructure()
-    const document = cyclic.documents[DOCUMENT_ID]
-    document.nodes[CHILD_NODE_ID] = {
-      ...document.nodes[CHILD_NODE_ID],
-      slots: { content: [ROOT_NODE_ID] },
-    }
-    const cyclicCodes = diagnosticCodes(cyclic)
-    expect(cyclicCodes).toContain('node-cycle')
-    expect(cyclicCodes).toContain('multiple-node-parents')
-
-    const broken = validStructure()
-    broken.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID] = {
-      ...broken.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID],
-      slots: { content: [MISSING_NODE_ID] },
-    }
-    const brokenCodes = diagnosticCodes(broken)
-    expect(brokenCodes).toContain('missing-node-reference')
-    expect(brokenCodes).toContain('orphan-node')
+  it('detecta ciclos de nodos', () => {
+    const structure = validStructure()
+    structure.documents[DOCUMENT_ID].nodes[CHILD_NODE_ID].slots = { content: [ROOT_NODE_ID] }
+    expect(diagnosticCodes(structure)).toContain('node-cycle')
   })
 
-  it('diagnostica herencia cíclica y overrides sin breakpoint', () => {
+  it('detecta nodos con múltiples padres', () => {
+    const structure = validStructure()
+    structure.documents[DOCUMENT_ID].rootNodeIds.push(CHILD_NODE_ID)
+    expect(diagnosticCodes(structure)).toContain('multiple-node-parents')
+  })
+
+  it('detecta referencias rotas y nodos huérfanos', () => {
+    const structure = validStructure()
+    structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID].slots = { content: [MISSING_NODE_ID] }
+    const codes = diagnosticCodes(structure)
+    expect(codes).toContain('missing-node-reference')
+    expect(codes).toContain('orphan-node')
+  })
+
+  it('detecta ciclos de breakpoints y overrides inexistentes', () => {
     const structure = validStructure()
     const first = structure.breakpoints[0]
     const second = structure.breakpoints[1]
-    if (!first || !second) throw new Error('Faltan breakpoints para la prueba.')
-    const firstId = first.id
-    const secondId = second.id
-
-    structure.breakpoints[0] = { ...first, inheritsFrom: secondId }
-    structure.breakpoints[1] = { ...second, inheritsFrom: firstId }
-    structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID] = {
-      ...structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID],
-      responsive: {
-        ...structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID].responsive,
-        [MISSING_BREAKPOINT_ID]: { properties: {}, styles: {} },
-      },
+    if (!first || !second) throw new Error('Faltan breakpoints de prueba.')
+    first.inheritsFrom = second.id
+    second.inheritsFrom = first.id
+    structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID].responsive = {
+      ...structure.documents[DOCUMENT_ID].nodes[ROOT_NODE_ID].responsive,
+      [MISSING_BREAKPOINT_ID]: { properties: {}, styles: {} },
     }
 
     const codes = diagnosticCodes(structure)
