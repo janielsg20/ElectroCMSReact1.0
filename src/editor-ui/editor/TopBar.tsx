@@ -39,15 +39,13 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [appearance, setAppearance] = useState<AppearancePreferences>(() => readInitialAppearance())
   const [systemDark, setSystemDark] = useState(() => systemPrefersDark())
+  const [appearanceStore] = useState(() => new BrowserAppearancePreferencesStore(window.localStorage))
   const settingsButtonRef = useRef<HTMLButtonElement>(null)
   const settingsPanelRef = useRef<HTMLDivElement>(null)
-  const appearanceStoreRef = useRef<BrowserAppearancePreferencesStore | null>(null)
   const pendingDarkModeRef = useRef<boolean | null>(null)
   const activeThemeLabel = uiThemeLabels[appearance.uiTheme]
   const activeColorModeLabel = colorModeLabels[appearance.colorMode]
   const resolvedDark = resolveColorMode(appearance.colorMode, systemDark) === 'dark'
-
-  if (!appearanceStoreRef.current) appearanceStoreRef.current = new BrowserAppearancePreferencesStore(window.localStorage)
 
   useLayoutEffect(() => {
     applyAppearance(document.documentElement, appearance, systemDark)
@@ -94,7 +92,7 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
   }, [settingsOpen])
 
   function commitAppearance(next: AppearancePreferences): void {
-    appearanceStoreRef.current?.save(next)
+    appearanceStore.save(next)
     setAppearance(next)
   }
 
