@@ -2,7 +2,7 @@
 
 Actualizado: 2026-08-11.
 
-> Auditoría visual F04/M04.1 (tercera pasada): las cuatro pestañas de Biblioteca se adaptan a su ancho real. Bajo 240 px se ocultan los iconos redundantes y `Documentos` se muestra como `Docs`, mientras su nombre accesible completo no cambia. Revisado en escritorio, tableta y móvil; el desplazamiento que queda para un device frame mayor que la pantalla es interno al viewport del canvas, no de la página.
+> La auditoría visual F04/M04.1 quedó cerrada: Biblioteca responde a su ancho real, el canvas evita colisiones, Apariencia permanece local al editor y `Diseño` concentra recursos exportables. M08.4 quedó implementada y validada después de esa auditoría.
 
 ## Objetivo
 
@@ -18,11 +18,12 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 ## Estado real
 
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
-- F00–F07 completadas.
-- Fase activa: `F04 — Application shell, navegación y workspaces responsive` (auditoría solicitada).
-- `M04.1 — Shell desktop` reabierta para auditoría; `M08.4 — Paquetes theme` queda en pausa.
-- F09–F18 y F19–F31 permanecen `NO_INICIADA`.
-- Puerta más reciente: lint/typecheck, 59 archivos y 271/271 pruebas, build Vite 7.3.6 y `git diff --check` verdes.
+- F00–F08 completadas.
+- Auditoría extraordinaria F04/M04.1 cerrada sin invalidar su cierre histórico.
+- Fase activa: `F09 — Contenido dinámico, CPT, taxonomías y campos`.
+- Microfase activa: `M09.1 — CPT`.
+- F10–F18 y F19–F31 permanecen `NO_INICIADA` salvo contratos/documentación anticipados que no cuentan como implementación formal.
+- Puerta de cierre M08.4: GitHub Actions run `31543564627`; lint, typecheck, suite completa y build verdes. Producción no se desplegó porque el trabajo sigue en PR draft.
 
 ## Decisiones vigentes
 
@@ -31,21 +32,21 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Toda mutación persistente del editor usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro historial.
 - Árbol y canvas consumen `ProjectStructure`; la UI no mantiene árboles ni documentos paralelos.
 - Undo/redo crea revisiones monotónicas nuevas y persiste en IndexedDB.
-- `workspace.v1`, `appearance.v1` y `library.v1` son preferencias locales de UI, no datos del proyecto.
+- `workspace.v1`, `appearance.v1`, `library.v1` y `theme-packages.v1` son datos locales de producto/preferencias; solo aplicar un paquete modifica el proyecto.
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
 - Funciones futuras no se muestran como activas; se registran como `PARITY_GAP` en su fase propietaria.
 
 ## UI/UX vigente
 
 - Dirección: High Density + Minimal Clean + builder/IDE profesional.
-- Desktop usa rail, paneles dock/float/minimize y canvas prioritario; tablet y móvil conservan todas las funciones construidas mediante paneles adaptados.
-- La navegación expone solo Editor; se retiraron dashboard, módulos, rutas, IA, preview/run y controles aspiracionales.
-- Presets de editor: Studio, Bento Motion y Flow Builder; color Claro/Oscuro/Automático en `appearance.v1`.
+- Desktop usa rail, paneles dock/float/minimize y canvas prioritario; tablet y móvil conservan las funciones construidas mediante paneles adaptados.
+- La navegación expone solo áreas funcionales; dashboard, IA, preview/run y controles aspiracionales permanecen fuera hasta sus fases reales.
+- Apariencia del editor vive en TopBar y nunca se confunde con temas exportables.
+- `Biblioteca → Diseño` usa dos superficies: `Tema` para frontend/backend y `Paquetes` para recursos reutilizables.
 - Canvas mantiene selección compartida, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco entre regiones.
-- Auditoría F08: el campo Nombre de tema usa 44 px en touch y 36 px desde escritorio; prueba de regresión específica verde.
-- Auditoría F04/M04.1: un `pointercancel` restaura la geometría previa y las coordenadas de puntero inválidas no producen estilos `NaN`; pruebas de persistencia del workspace 3/3 verdes.
-- Auditoría visual F04/M04.1: se aisló el estilo de los controles de la barra superior para que no comprima las opciones del popover de Apariencia. En móvil el popover queda por encima del dock y en tableta el disparador usa un icono de 44 px con etiqueta accesible; sin overflow horizontal en 1440, 1024, 768, 375 y 812 px.
-- Auditoría visual F04/M04.1 (segunda pasada): canvas usa una grilla de tres regiones para herramientas, viewport/breakpoint y acciones; el breadcrumb y el foco/zoom secundario se ocultan según el ancho real del lienzo, sin solapamientos. Se retiró el indicador sticky que duplicaba breakpoint, tamaño, orientación y zoom. TopBar solo configura appearance.v1; temas frontend/backend viven en Biblioteca > Diseño. La pestaña Plantillas se llama Documentos porque agrupa páginas y plantillas canónicas; no se simula aún un editor de componentes.
+- La barra del canvas se distribuye en tres regiones y adapta controles por container width; se eliminó el estado inferior redundante.
+- Popovers/paneles respetan el bottom dock móvil; targets interactivos son aproximadamente 44 px en touch y 36 px en escritorio denso.
+- Las cuatro pestañas de Biblioteca adaptan iconos/etiquetas al ancho real; `Documentos` puede mostrarse visualmente como `Docs` sin perder su nombre accesible.
 
 ## F05 — motor canónico completado
 
@@ -64,68 +65,50 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Biblioteca: búsqueda diferida, categorías, favoritos, recientes, guardados, miniaturas y DnD pointer/touch/teclado.
 - `library.v1` persiste preferencias y hasta 50 presets locales; un preset conserva propiedades, estilos y responsive, nunca hijos/bindings/condiciones.
 - `insertWidget` valida contra el registro, genera ID, inserta dentro del contenedor seleccionado o después de la selección y pasa por Command Bus.
-- F06 cerró con 209/209 pruebas; entry 329.71 kB y catálogo separado 153.39 kB.
 
-## M07.1 completada
+## F07 — inspector, estilos y responsive completados
 
-- El inspector genera Contenido, Estilo, Layout, Responsive, Datos, Condiciones, Animaciones, Accesibilidad y Avanzado desde `WidgetDefinition.inspector`.
-- Cada campo muestra descriptor, valor efectivo y origen Nodo/Predeterminado; no existen inputs inertes.
-- `INSPECTOR_SYSTEM.md` conserva el contrato detallado.
+- Inspector generado desde `WidgetDefinition.inspector`: Contenido, Estilo, Layout, Responsive, Datos, Condiciones, Animaciones, Accesibilidad y Avanzado.
+- Controles tipados, JSON estructurado, errores inline, defaults seguros y reset; update/reset pasan por Command Bus.
+- `style-engine.ts` resuelve tokens/herencia y CSS seguro; bloquea CSS arbitrario, `url()`, `expression`, ciclos e inyección.
+- Breakpoints canónicos son editables y heredables; reset elimina solo el override activo y es reversible.
+- Bindings literales/rutas/referencias de nodo, condiciones y ARIA comparten contrato entre inspector, renderer, persistencia y undo.
 
-## M07.2 completada
+## M08.1 completada — tres ámbitos de tema
 
-- Controles nativos tipados, JSON para valores complejos, error inline, defaults seguros y reset.
-- Update/reset validan el schema completo y pasan por Command Bus; integración IndexedDB cubre undo.
-- `INSPECTOR_SYSTEM.md` conserva el contrato detallado.
+- Editor es preferencia local `appearance.v1`; frontend/backend viven en `ProjectStructure.themes`.
+- Cada tema usa schema v1 y tokens semánticos estrictos; update/reset pasan por Command Bus, IndexedDB y undo/redo.
+- El renderer consume frontend por defecto y backend explícito sin compartir tokens.
 
-## M07.3 completada
+## M08.2 completada — presets visuales
 
-- `style-engine.ts` resuelve tokens y herencia, ordena clases/declaraciones/estados y genera CSS limitado por `data-style-scope`.
-- Solo admite propiedades y estados declarados; bloquea CSS arbitrario, `url()`, `expression`, ciclos de token y valores inyectables.
-- Preview y futuros exportadores comparten `compileCanonicalStyles`; el renderer no contiene otro compilador.
-- `CanonicalStyleControl` edita clases, declaraciones y estados estructurados; geometría de canvas queda protegida.
-- Update/reset validan y persisten mediante Command Bus; integración IndexedDB cubre undo.
-- `STYLE_ENGINE.md` conserva el contrato detallado.
+- Nueve presets normativos del editor y once presets inmutables de proyecto.
+- Frontend/backend permanecen independientes y editables después de aplicar.
+- 20 variantes del editor y 11 temas de proyecto verifican contraste WCAG AA automáticamente.
 
-## M07.4 completada
+## M08.3 completada — motor de plantillas
 
-- Breakpoints canónicos editables: alta, nombre, ancho, orientación, orden y herencia con rechazo de ciclos.
-- Canvas selecciona cualquier breakpoint, usa su ancho real y persiste solo ID/orientación de preview en `workspace.v1`.
-- Reset elimina únicamente el override activo del nodo y es reversible por Command Bus.
-- `RESPONSIVE_ENGINE.md` conserva el contrato detallado.
+- Documentos canónicos: page, template, header, footer, single, archive y 404.
+- Composición determinista por prioridad/especificidad/ID, rutas únicas y condiciones tipadas.
+- Crear documentos y actualizar condiciones pasan por `ProjectStructureCommand`, IndexedDB y undo/redo.
+- `TEMPLATE_SYSTEM.md` conserva el contrato y límites.
 
-## M07.5 completada
+## M08.4 completada — paquetes theme
 
-- Bindings literales, rutas de proyecto y referencias entre nodos resuelven propiedades antes del adapter.
-- Condiciones tipadas controlan visibilidad con diagnóstico fail-visible; fuentes dinámicas futuras no se simulan.
-- ARIA canónica admite label, description, roles permitidos y tabIndex -1/0.
-- Inspector, renderer, IndexedDB y undo comparten el contrato de `DATA_CONDITION_SYSTEM.md`.
-
-## M08.1 completada
-
-- Editor es una preferencia local en `appearance.v1`; frontend y backend viven como temas canónicos independientes en `ProjectStructure.themes`.
-- Cada tema usa schema v1 y tokens semánticos estrictos para color, tipografía, spacing, radius, shadow, motion y density.
-- Las estructuras anteriores reciben defaults seguros; update/reset pasan por Command Bus, IndexedDB y undo/redo.
-- El renderer usa frontend por defecto y admite backend explícito; ambos alimentan `compileCanonicalStyles` sin compartir tokens.
-- El gestor visible separa los tres ámbitos y no convierte Studio/Bento/Flow en salida exportable.
-- `THEME_SYSTEM.md` conserva el contrato detallado.
-
-## M08.2 completada
-
-- El editor ofrece nueve presets normativos con claro/oscuro, tokens y migración de Studio/Bento/Flow dentro de `appearance.v1`.
-- Frontend/backend comparten once presets inmutables; aplicar crea una copia editable solo en el ámbito elegido mediante historial.
-- Los catálogos declaran layout, bordes, componentes, elevación, densidad, responsive y accesibilidad sin reemplazar contenido o breakpoints.
-- 20 variantes del editor y 11 temas de proyecto verifican automáticamente contraste WCAG AA.
-
-## M08.3 completada
-
-- Documentos canónicos formalizan páginas, templates, headers, footers, single, archive y 404; las páginas pueden tener ruta directa y los demás usan condiciones tipadas.
-- La composición selecciona `main`, header y footer de manera determinista por prioridad, especificidad e ID, sin duplicar árboles ni anticipar datos dinámicos.
-- Crear documentos y actualizar condiciones pasan por `ProjectStructureCommand`, Command Bus, IndexedDB y undo/redo; la pestaña Plantillas expone ambas operaciones.
-- `TEMPLATE_SYSTEM.md` conserva el contrato y sus límites de fase.
+- `ThemePackageSchema`: `electrocms.theme-package`, schema v1, ID UUID y SemVer.
+- Partes actuales: tema frontend, tema backend, documentos, componentes globales y breakpoints dependientes.
+- Biblioteca local `theme-packages.v1`: crear, editar, duplicar, versionar, importar, exportar y borrar no modifica `ProjectStructure`.
+- Importar nunca aplica automáticamente; aplicar exige selección explícita de partes.
+- Aplicación remapea IDs, slots, bindings, responsive y referencias de componentes; la estructura candidata completa se valida antes de persistir.
+- Conflictos de rutas: `abort` o renombrado determinista de la copia importada mediante `suffix`; nunca sobrescritura silenciosa.
+- Aplicar entra al historial mediante `ProjectStructureCommand` + `ProjectCommandBus`; undo real está cubierto por integración.
+- UI: `Biblioteca → Diseño → Paquetes`, con SemVer, import/export, confirmación de borrado en dos pasos, selección de partes y política de rutas.
+- `THEME_PACKAGE_SYSTEM.md` conserva el contrato completo.
 
 ## Riesgos y límites
 
+- F09 debe reutilizar `CmsBackendSchema`/`validateCmsBackend` existentes como contratos anticipados, pero su existencia no significa que CPT/taxonomías/campos estén implementados.
+- M09.1 debe formalizar CRUD de tipos de contenido, capacidades, soportes, visibilidad y vínculo single/archive con persistencia e historial reales antes de avanzar a M09.2.
 - El inspector debe usar el registro existente y no duplicar schemas ni defaults.
 - Ediciones futuras deben converger en Command Bus y resolver overrides por breakpoint.
 - Collaboration, AI e integraciones remotas nunca degradan el modo offline/local.
@@ -133,4 +116,4 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 ## Próximo paso exacto
 
-Implementar `M08.4 — Paquetes theme`: empaquetado, importación/exportación, versiones y conflictos sin alterar datos no compatibles.
+Implementar `M09.1 — CPT`: CRUD canónico de tipos de contenido, capacidades, soportes, visibilidad y plantillas single/archive; integrar persistencia/historial y UI funcional, probar invariantes y no avanzar a M09.2 hasta una puerta completa verde.
