@@ -19,6 +19,24 @@ const WorkspacePanelStateSchema = z.strictObject({
   bounds: PanelBoundsSchema,
 })
 
+export const DEFAULT_CANVAS_WORKSPACE = {
+  orientation: 'portrait',
+  panX: 0,
+  panY: 0,
+  tool: 'select',
+  viewport: 'mobile',
+  zoom: 90,
+} as const satisfies CanvasWorkspaceState
+
+const CanvasWorkspaceStateSchema = z.strictObject({
+  orientation: z.enum(['portrait', 'landscape']),
+  panX: z.number().finite().min(-2000).max(2000),
+  panY: z.number().finite().min(-2000).max(2000),
+  tool: z.enum(['select', 'pan']),
+  viewport: z.enum(['desktop', 'tablet', 'mobile']),
+  zoom: z.number().finite().min(25).max(200),
+})
+
 export const EDITOR_WORKSPACE_PREFERENCES_VERSION = 1 as const
 export const EDITOR_WORKSPACE_PREFERENCES_KEY = 'electrocms.editor.workspace.v1'
 
@@ -32,6 +50,15 @@ export interface WorkspacePanelState {
 
 export type WorkspaceState = Record<WorkspacePanel, WorkspacePanelState>
 
+export interface CanvasWorkspaceState {
+  readonly orientation: 'portrait' | 'landscape'
+  readonly panX: number
+  readonly panY: number
+  readonly tool: 'select' | 'pan'
+  readonly viewport: 'desktop' | 'tablet' | 'mobile'
+  readonly zoom: number
+}
+
 export interface EditorWorkspacePreferences {
   readonly schemaVersion: typeof EDITOR_WORKSPACE_PREFERENCES_VERSION
   readonly railWidth: number
@@ -39,6 +66,7 @@ export interface EditorWorkspacePreferences {
   readonly inspectorWidth: number
   readonly workspace: WorkspaceState
   readonly panelOrder: readonly WorkspacePanel[]
+  readonly canvas: CanvasWorkspaceState
 }
 
 export const EditorWorkspacePreferencesSchema: z.ZodType<EditorWorkspacePreferences> = z.strictObject({
@@ -51,6 +79,7 @@ export const EditorWorkspacePreferencesSchema: z.ZodType<EditorWorkspacePreferen
     inspector: WorkspacePanelStateSchema,
   }),
   panelOrder: z.tuple([WorkspacePanelSchema, WorkspacePanelSchema]),
+  canvas: CanvasWorkspaceStateSchema.default(DEFAULT_CANVAS_WORKSPACE),
 }).superRefine((value, context) => {
   if (new Set(value.panelOrder).size !== 2) {
     context.addIssue({ code: 'custom', path: ['panelOrder'], message: 'El orden del workspace debe contener ambos paneles una sola vez.' })

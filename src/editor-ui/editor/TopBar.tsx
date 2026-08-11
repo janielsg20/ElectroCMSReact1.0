@@ -10,6 +10,7 @@ import {
   type ColorMode,
   type UiTheme,
 } from './appearance-preferences'
+import { useEditorProject } from './editor-project-context'
 
 export type { UiTheme } from './appearance-preferences'
 
@@ -28,17 +29,19 @@ const colorModeLabels: Record<ColorMode, string> = {
 }
 
 interface TopBarProps {
-  readonly activeSectionLabel: string
   readonly darkMode: boolean
   readonly onToggleTheme: () => void
   readonly uiTheme: UiTheme
   readonly onUiThemeChange: (theme: UiTheme) => void
 }
 
-export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
+export function TopBar({ darkMode, onToggleTheme, uiTheme, onUiThemeChange }: TopBarProps) {
+  const session = useEditorProject()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [appearance, setAppearance] = useState<AppearancePreferences>(() => readInitialAppearance())
   const [systemDark, setSystemDark] = useState(() => systemPrefersDark())
+  const [historyPending, setHistoryPending] = useState(false)
+  const [historyStatus, setHistoryStatus] = useState('')
   const [appearanceStore] = useState(() => new BrowserAppearancePreferencesStore(window.localStorage))
   const settingsButtonRef = useRef<HTMLButtonElement>(null)
   const settingsPanelRef = useRef<HTMLDivElement>(null)
@@ -144,9 +147,20 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
     next.focus()
   }
 
+  async function executeHistory(action: 'undo' | 'redo'): Promise<void> {
+    if (historyPending) return
+    setHistoryPending(true)
+    setHistoryStatus(action === 'undo' ? 'Deshaciendo…' : 'Rehaciendo…')
+    const result = action === 'undo' ? await session.undo() : await session.redo()
+    setHistoryStatus(result.ok
+      ? action === 'undo' ? 'Cambio deshecho.' : 'Cambio rehecho.'
+      : result.error)
+    setHistoryPending(false)
+  }
+
   return (
     <header className="app-topbar relative z-20 col-span-full flex h-11 min-h-11 items-center border-b border-border bg-surface px-1 md:h-10 md:min-h-10">
-      <a className="skip-link" href={activeSectionLabel === 'Editor' ? '#editor-canvas' : '#product-demo'}>Saltar al contenido</a>
+      <a className="skip-link" href="#editor-canvas">Saltar al contenido</a>
 
       <div className="builder-brand flex h-full min-w-0 items-center gap-1 border-r border-border pr-1.5 md:w-[13.5rem]">
         <div className="grid size-7 shrink-0 place-items-center rounded bg-primary text-on-primary" aria-hidden="true"><Icon name="sparkles" size={14} /></div>
@@ -154,25 +168,23 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
           <p className="truncate text-xs font-bold">ElectroCMS</p>
           <p className="hidden truncate text-[0.625rem] text-muted-foreground sm:block">Visual Builder</p>
         </div>
-        <span className="ml-auto hidden rounded border border-primary/20 bg-primary-soft px-1 py-0.5 text-[0.5625rem] font-bold text-primary-strong md:inline">DEMO</span>
       </div>
 
       <div className="builder-project-context ml-1 hidden min-w-0 items-center sm:flex">
-        <button aria-label="Cambiar proyecto, planificado" className="project-switcher flex h-8 min-w-0 cursor-not-allowed items-center gap-1 rounded border border-transparent bg-transparent px-1.5 text-left opacity-60" data-tooltip="Cambiar proyecto · planificado" disabled type="button">
+        <div className="project-switcher flex h-8 min-w-0 items-center gap-1 rounded px-1.5 text-left">
           <Icon className="shrink-0 text-muted-foreground" name="editor" size={13} />
-          <span className="min-w-0 truncate text-xs font-semibold text-foreground">Revista Horizonte</span>
-          <Icon className="shrink-0 text-muted-foreground" name="chevron-down" size={11} />
-        </button>
+          <span className="min-w-0 truncate text-xs font-semibold text-foreground">Proyecto local</span>
+        </div>
       </div>
 
       <div className="builder-page-context ml-1 hidden min-w-0 items-center gap-1 border-l border-border pl-2 text-xs text-muted-foreground lg:flex" aria-label="Sección actual">
-        <span className="truncate">Producto</span><span aria-hidden="true">/</span><strong className="truncate font-semibold text-foreground">{activeSectionLabel}</strong>
+        <span className="truncate">Documento</span><span aria-hidden="true">/</span><strong className="truncate font-semibold text-foreground">Página inicial</strong>
       </div>
 
       <div className="builder-topbar-actions ml-auto flex min-w-0 items-center gap-0.5" role="toolbar" aria-label="Acciones del proyecto">
         <div className="builder-toolgroup hidden items-center gap-px xl:flex" aria-label="Historial">
-          <Button aria-label="Deshacer, no disponible" data-tooltip="Deshacer · planificado" disabled size="icon" variant="ghost"><Icon name="undo" size={15} /></Button>
-          <Button aria-label="Rehacer, no disponible" data-tooltip="Rehacer · planificado" disabled size="icon" variant="ghost"><Icon name="redo" size={15} /></Button>
+          <Button aria-label="Deshacer último cambio" data-tooltip="Deshacer" disabled={historyPending} onClick={() => void executeHistory('undo')} size="icon" variant="ghost"><Icon name="undo" size={15} /></Button>
+          <Button aria-label="Rehacer último cambio" data-tooltip="Rehacer" disabled={historyPending} onClick={() => void executeHistory('redo')} size="icon" variant="ghost"><Icon name="redo" size={15} /></Button>
         </div>
 
         <div className="mx-0.5 hidden h-5 w-px bg-border xl:block" aria-hidden="true" />
@@ -241,11 +253,9 @@ export function TopBar({ activeSectionLabel, darkMode, onToggleTheme, uiTheme, o
               </div>
             ) : null}
           </div>
-          <Button aria-label="Previsualizar, no disponible" className="hidden md:inline-flex" data-tooltip="Preview · planificado" disabled size="icon" variant="ghost"><Icon name="eye" size={15} /></Button>
         </div>
-
-        <Button className="builder-run-action ml-0.5" data-tooltip="Ejecución · planificada" disabled size="small"><Icon name="play" size={14} /><span className="hidden sm:inline">Run</span></Button>
       </div>
+      <p aria-live="polite" className="sr-only">{historyStatus}</p>
     </header>
   )
 }

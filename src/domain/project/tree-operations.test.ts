@@ -100,6 +100,21 @@ function idFactory(ids: readonly NodeId[]) {
 }
 
 describe('M05.1 operaciones canónicas del árbol', () => {
+  it('ajusta el índice al reordenar hacia delante dentro del mismo slot', () => {
+    const result = moveNodes(
+      structure(),
+      OWNER,
+      [FIRST_ID],
+      { parentId: ROOT_ID, slot: 'content', index: 2 },
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(documentOf(result.value)?.nodes[ROOT_ID]?.slots.content).toEqual([
+      SECOND_ID,
+      FIRST_ID,
+    ])
+  })
   it('inserta raíces e hijos respetando índice y slots', () => {
     const rootInsert = insertNode(structure(), OWNER, widget(INSERTED_ID, 'Insertado'), { parentId: null, slot: null, index: 1 })
     expect(rootInsert.ok).toBe(true)

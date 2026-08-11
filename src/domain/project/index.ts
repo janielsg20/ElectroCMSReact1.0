@@ -106,6 +106,7 @@ export {
 } from './structure-schema'
 export {
   resolveNodeResponsiveState,
+  resolveValidatedNodeResponsiveState,
   validateProjectStructure,
   type ResolvedNodeResponsiveState,
   type StructureDiagnostic,
@@ -207,3 +208,37 @@ export {
   type ProjectHistoryOperationKind,
   type ProjectHistoryState,
 } from './project-history'
+export {
+  DIRECT_MANIPULATION_GRID,
+  MAX_NODE_SIZE,
+  MAX_NODE_SPACING,
+  MIN_NODE_SIZE,
+  readCanonicalNodeSize,
+  readCanonicalNodeSpacing,
+  resizeNode,
+  snapValue,
+  updateNodeSpacing,
+  type BoxSpacing,
+  type NodeMutationTarget,
+  type NodeSize,
+  type NodeSpacing,
+  type SnappedValue,
+} from './direct-manipulation'
+export {
+  copyNodes,
+  duplicateNodes,
+  groupNodes,
+  insertNode,
+  moveNodes,
+  nestNodes,
+  pasteNodes,
+  renameNode,
+  setNodesHidden,
+  setNodesLocked,
+  type NodePlacement,
+  type PasteResult,
+  type TreeClipboard,
+  type TreeOperationError,
+  type TreeOperationErrorCode,
+  type TreeOwner,
+} from './tree-operations'

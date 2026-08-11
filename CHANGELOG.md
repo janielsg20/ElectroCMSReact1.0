@@ -1,7 +1,69 @@
 # Changelog
 
+## 2026-08-11
+
+- Eliminada la “demo final” completa y sus datos aspiracionales: dashboard, módulos, métricas, rutas, command palette y superficies de producto futuras.
+- Retirados Run, preview, generador IA, binding, acciones, backend, páginas ficticias y todos los controles inertes que aparentaban funcionalidad.
+- Sustituido `Revista Horizonte` por `Proyecto local / Página inicial`, una estructura canónica mínima y una nueva base local v2 que no restaura la demo anterior.
+- La biblioteca ahora deriva sus 115 widgets del registro real y permite buscarlos sin afirmar inserción; el inspector muestra exclusivamente estado, propiedades, estilos y overrides del nodo seleccionado.
+- Simplificados desktop, tablet y móvil alrededor del editor construido; el dock móvil queda en Widgets, Capas, Canvas e Inspector.
+- Eliminados también los fixtures y estilos nominales de demo; la cobertura se actualizó al alcance real sin cerrar anticipadamente M06.5.
+- Puerta local posterior al ajuste: lint, typecheck, **46 archivos / 200 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 316.13 kB, DnD 49.08 kB, persistencia 96.44 kB y catálogo 153.39 kB.
+
+- Cerrada `M06.4 — Comercio, formularios y filtros`: añadidas 15 definiciones comerciales, 20 de formulario y 11 filtros; catálogo acumulado de 115 widgets.
+- Checkout, carrito, CAPTCHA, submit, filtros y carga progresiva permanecen como estados/contratos declarativos; el preview bloquea destinos inseguros y envíos remotos.
+- Añadidos adapters con controles HTML nativos y pruebas de defaults, inspector, exportadores, accesibilidad, seguridad y fallback.
+- `widget-catalog` queda en 153.39 kB y el entry principal en 379.66 kB.
+- Puerta local: lint, typecheck, **47 archivos / 206 pruebas**, build Vite 7.3.6 y `git diff --check` verdes.
+- Activada `M06.5 — UX de biblioteca`.
+
+- Cerrada `M06.3 — Contenido y dinámicos`: añadidas 20 definiciones de contenido y 14 dinámicas al catálogo único, con schemas/defaults, inspector, accesibilidad y matriz de exportadores.
+- Los adapters representan contenido semántico, bindings, fallbacks y estados vacíos; queries, relaciones, condiciones y expresiones permanecen declarativas y no simulan un DataProvider futuro.
+- Retirados del fallback provisional `content.card` y `content.metric`; las familias de comercio, formularios y filtros continúan reservadas a M06.4.
+- Separado `widget-catalog` como chunk de 130.36 kB; el entry principal bajó de 502.46 kB con warning a 379.66 kB sin volver asíncrono el renderer.
+- Puerta local: lint, typecheck, **45 archivos / 197 pruebas**, build Vite 7.3.6 y `git diff --check` verdes.
+- Activada `M06.4 — Comercio, formularios y filtros`.
+
+- Cerrada `M06.2 — Estructurales y básicos`: registradas 35 definiciones (15 estructurales y 20 básicas) con schemas, defaults, inspectores, iconos, accesibilidad y matriz de exportadores.
+- Añadido `ReactWidgetAdapterRegistry`; el renderer canónico valida propiedades y resuelve adapters por `rendererId`, conservando fallback solo para familias posteriores.
+- Aislados HTML e iframes no confiables y cubiertos render, inspector, exportación, accesibilidad y fallback mediante pruebas parametrizadas.
+- La revisión React confirmó adapters estáticos a nivel de módulo, sin estado paralelo, hooks innecesarios ni componentes inline.
+- Puerta local: lint, typecheck, 43 archivos / 188 pruebas, build Vite 7.3.6 y `git diff --check` verdes; entry principal 483.30 kB.
+- Activada `M06.3 — Contenido y dinámicos`.
+
+- Cerrada `M06.1 — Contrato de widget`: añadido `WidgetDefinition` neutral a framework con schema/defaults, renderer, inspector, icono, accesibilidad, migraciones y matriz de exportadores.
+- `WidgetRegistry` rechaza contratos incompletos, duplicados e incompatibles con diagnósticos tipados y sin omisiones silenciosas.
+- Puerta local: lint, typecheck, 41 archivos / 179 pruebas, build Vite 7.3.6 y `git diff --check` verdes; entry principal 457.59 kB.
+- Activada `M06.2 — Estructurales y básicos`.
+
+- Cerrada `M05.5 — Selección, zoom y viewport`: zoom 25–200 %, pan acotado, fit, orientación y herramienta activa persisten en `workspace.v1`.
+- Añadida migración compatible para preferencias v1 anteriores, device frames portrait/landscape y región bidimensional contenida.
+- Añadidos controles y atajos de teclado para zoom/pan/fit y movimiento de foco entre Capas, Canvas e Inspector.
+- Puerta local: lint, typecheck, 40 archivos / 175 pruebas, build Vite 7.3.6 y `git diff --check` verdes; entry principal 457.58 kB.
+- F05 queda completada; activada `F06 / M06.1 — Contrato de widget`.
+
+- Cerrada `M05.4 — Direct manipulation`: tamaño, padding y margen se persisten como estilos canónicos por breakpoint mediante comandos reversibles.
+- Añadidos cuatro handles de resize para pointer/touch/teclado, retícula de 8 px, snapping a guías, reglas del canvas y feedback de dimensiones.
+- Conectados selección compartida, breadcrumbs derivados del árbol y menú contextual accesible para editar geometría completa sin arrastrar.
+- Activado undo/redo real en el header sobre el `ProjectCommandBus`; nodos locked bloquean resize y espaciado.
+- La revisión React sustituyó un contexto que repintaba todos los frames por snapshots booleanos por nodo.
+- Puerta local: lint, typecheck, 38 archivos / 169 pruebas, build Vite 7.3.6 y `git diff --check` verdes; entry principal 451.84 kB.
+- Activada `M05.5 — Selección, zoom y viewport` sin adelantar F06 ni el Selection Manager formal de F19.
+
 ## 2026-08-10
 
+- Cerrada `M05.3 — Drag/drop y alternativas accesibles`: el panel de capas ahora deriva el árbol del `ProjectStructure` canónico y elimina `layerItems` como fuente paralela.
+- Añadidos sensores `@dnd-kit` de pointer (4 px), touch (180 ms/6 px) y teclado sortable, con autoscroll, anuncios accesibles, locked state e indicadores antes/después.
+- Añadido menú accesible para mover antes, después o dentro sin arrastre; todas las mutaciones pasan por `BrowserEditorProjectSession` → `ProjectStructureCommand` → `ProjectCommandBus` → IndexedDB → render store.
+- Corregido el índice de movimientos hacia delante dentro del mismo contenedor y añadidas pruebas específicas de dominio e interacción.
+- Separados los chunks DnD y Dexie: entry 435.61 kB, DnD 56.94 kB y persistencia 96.43 kB; lint, typecheck, 36 archivos con 162/162 pruebas y build Vite 7.3.6 correctos.
+- Activada `M05.4 — Direct manipulation` sin adelantar M05.5 ni el Selection Manager formal de F19.
+- Cerrada `M05.2 — Canvas y renderer`: sustituido el documento HTML estático del canvas por `CanonicalProjectRenderer` sobre `ProjectStructure` validado.
+- Añadido `ProjectStructureRenderStore` con snapshots estables por `NodeId`, suscripciones `useSyncExternalStore`, reemplazo atómico y notificación granular; modificar un nodo no repinta ancestros ni hermanos.
+- Añadida resolución responsive optimizada para estructuras ya validadas, soporte de roots/slots/componentes globales, representación de `hidden`/`locked` y error boundaries recuperables por nodo.
+- Añadidas 6 pruebas de renderer para orden, responsive, bloqueo, aislamiento de errores, granularidad, componentes globales y rechazo de estructuras inválidas.
+- Lint, typecheck, 35 archivos con 156/156 pruebas y build Vite 7.3.6 correctos. La comprobación browser se intentó, pero el daemon del CLI temporal no pudo arrancar bajo las restricciones de filesystem del runtime.
+- Activada `M05.3 — Drag/drop y alternativas accesibles` sin adelantar M05.4 ni el Selection Manager formal de F19.
 - Cerrada `M04.1 — Shell desktop`: formalizado el shell existente y añadida persistencia versionada `workspace.v1` para rail, anchuras, dock/float/minimize, bounds, pin, visibilidad y orden de paneles.
 - Añadido `WorkspacePreferencesStore` con adapter `BrowserWorkspacePreferencesStore`, schema Zod estricto, fallback seguro ante JSON corrupto/versiones desconocidas y clamping de geometría al viewport actual.
 - Añadidas pruebas de round-trip, corrupción/versionado, limpieza y restauración real del workspace después de desmontar/remontar el editor; `localStorage` se aísla entre tests.

@@ -1,0 +1,74 @@
+.direct-node-frame[data-selected='true'] {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.direct-resize-handle {
+  position: absolute;
+  z-index: 4;
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 3px;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary), black 18%);
+  touch-action: none;
+}
+
+.direct-resize-handle[data-corner='north-west'] { left: -7px; top: -7px; cursor: nwse-resize; }
+.direct-resize-handle[data-corner='north-east'] { right: -7px; top: -7px; cursor: nesw-resize; }
+.direct-resize-handle[data-corner='south-east'] { bottom: -7px; right: -7px; cursor: nwse-resize; }
+.direct-resize-handle[data-corner='south-west'] { bottom: -7px; left: -7px; cursor: nesw-resize; }
+
+.direct-guide {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background: #db2777;
+}
+
+.direct-guide--horizontal { left: -100vw; right: -100vw; bottom: 0; height: 1px; }
+.direct-guide--vertical { top: -100vh; bottom: -100vh; right: 0; width: 1px; }
+
+.canvas-ruler {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  color: rgb(71 85 105 / 0.8);
+  background-color: rgb(248 250 252 / 0.92);
+}
+
+.canvas-ruler--horizontal {
+  top: 0;
+  left: 18px;
+  right: 0;
+  height: 18px;
+  border-bottom: 1px solid rgb(203 213 225);
+  background-image: repeating-linear-gradient(to right, transparent 0 7px, rgb(100 116 139 / 0.55) 7px 8px);
+}
+
+.canvas-ruler--vertical {
+  top: 18px;
+  bottom: 0;
+  left: 0;
+  width: 18px;
+  border-right: 1px solid rgb(203 213 225);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 7px, rgb(100 116 139 / 0.55) 7px 8px);
+}
+
+@media (pointer: coarse) {
+  .direct-resize-handle {
+    width: 20px;
+    height: 20px;
+  }
+
+  .direct-resize-handle[data-corner='north-west'] { left: -11px; top: -11px; }
+  .direct-resize-handle[data-corner='north-east'] { right: -11px; top: -11px; }
+  .direct-resize-handle[data-corner='south-east'] { bottom: -11px; right: -11px; }
+  .direct-resize-handle[data-corner='south-west'] { bottom: -11px; left: -11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .direct-node-frame { transition: none !important; }
+}

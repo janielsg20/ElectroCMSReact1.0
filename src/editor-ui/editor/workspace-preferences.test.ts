@@ -8,6 +8,7 @@ import {
 } from './workspace-preferences'
 
 const preferences: EditorWorkspacePreferences = {
+  canvas: { orientation: 'landscape', panX: 48, panY: -24, tool: 'pan', viewport: 'tablet', zoom: 125 },
   schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
   railWidth: 144,
   libraryWidth: 232,
@@ -39,6 +40,13 @@ describe('BrowserWorkspacePreferencesStore', () => {
     expect(store.save(preferences)).toBe(true)
     expect(store.load()).toEqual(preferences)
     expect(EditorWorkspacePreferencesSchema.safeParse(store.load()).success).toBe(true)
+  })
+
+  it('migra preferencias v1 anteriores al canvas usando defaults seguros', () => {
+    const store = new BrowserWorkspacePreferencesStore(window.localStorage)
+    const legacy = Object.fromEntries(Object.entries(preferences).filter(([key]) => key !== 'canvas'))
+    window.localStorage.setItem(EDITOR_WORKSPACE_PREFERENCES_KEY, JSON.stringify(legacy))
+    expect(store.load()?.canvas).toEqual({ orientation: 'portrait', panX: 0, panY: 0, tool: 'select', viewport: 'mobile', zoom: 90 })
   })
 
   it('ignora JSON corrupto, versiones desconocidas y orden inválido', () => {
