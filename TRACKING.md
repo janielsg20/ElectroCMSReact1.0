@@ -12,6 +12,7 @@ Actualizado: 2026-08-10.
 - F05: `EN_CURSO` en M05.2.
 - F06–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
+- Sección 35 del Prompt Maestro: `UI interna cross-platform / no native chrome`, incorporada como regla normativa transversal sin alterar la microfase activa.
 
 ## Roadmap ampliado
 
@@ -37,6 +38,18 @@ Actualizado: 2026-08-10.
 | F29 | NO_INICIADA | Versioning/Branching/Collaboration |
 | F30 | NO_INICIADA | AI Builder/Agents/Command Palette |
 | F31 | NO_INICIADA | Export ampliado/Deployment/Production validation |
+
+## Política transversal incorporada — Sección 35
+
+- Nuevo documento normativo `UI_INTERNAL_COMPONENT_POLICY.md`, definido como Sección 35 del Prompt Maestro por referencia.
+- Regla principal: un control no cumple solo por estar estilizado si al activarlo Android, Windows, macOS, iOS o el navegador abre su menú/picker visual nativo.
+- Select/Listbox, Combobox, DropdownMenu, ContextMenu, Popover, Tooltip, Dialog/AlertDialog, BottomSheet, ColorPicker, Date/TimePicker, MediaPicker, IconPicker y Token/Variable Picker deben ser componentes internos del Design System.
+- Quedan prohibidos como experiencia final de producto, salvo excepción documentada: `<select>`, `<datalist>`, color/date/time pickers nativos, `window.alert/confirm/prompt`, context menus nativos para acciones de ElectroCMS y tooltips basados solo en `title`.
+- En desktop el control puede usar popover/menu; en tablet overlay/drawer; en móvil sheet/full-screen picker interno. La función no se delega al OS por cambiar de plataforma.
+- Excepciones nativas permitidas únicamente en fronteras de plataforma/seguridad: archivos/carpetas, permisos, biometría, share sheet, impresión, instalación PWA u otras superficies protegidas por sandbox.
+- `DETAILED_EXECUTION_PHASES_UI_INTERNAL_COMPONENTS.md` mapea la política a microfases existentes y añade `M17.5 — Auditoría de UI interna cross-platform` como gate transversal.
+- La política entra en vigor inmediatamente para cualquier UI nueva o modificada. Controles nativos heredados se registran y sustituyen en su fase propietaria; no se consideran conformes por estar estilizados.
+- La incorporación documental no cambia el estado de F05/M05.2 ni autoriza adelantar fases.
 
 ## Cierres relevantes previos
 
@@ -65,6 +78,7 @@ Actualizado: 2026-08-10.
 - El árbol visual, canvas e inspector existen con UI anticipada, pero F05 es quien formaliza ahora su motor funcional.
 - `src/ui-integrity-v11.css` sigue como guardrail cross-theme para tamaño, selección, foco y overflow.
 - M05.1 formaliza operaciones de dominio; no cierra renderer, drag/drop, direct manipulation ni Selection Manager futuro de F19.
+- Cualquier control nativo detectado en Inspector/Canvas/Tree/biblioteca se considera deuda de conformidad con Sección 35 y se reemplaza cuando su microfase propietaria entre en curso.
 
 ## Próximo paso exacto
 
@@ -75,7 +89,8 @@ Actualizado: 2026-08-10.
 - resolver base + responsive mediante el contrato existente;
 - asegurar updates granulares y medir que un cambio local no rerenderice todo el árbol;
 - respetar `hidden`, slots, orden y nodos bloqueados en la representación;
-- añadir pruebas de renderer y rendimiento antes de avanzar a M05.3.
+- añadir pruebas de renderer y rendimiento antes de avanzar a M05.3;
+- toda UI nueva/modificada durante M05.2 debe cumplir Sección 35; en M05.3 los menús `Mover a / Antes de / Después de` y contextuales serán internos, no nativos.
 
 ## Bloqueos
 
@@ -85,6 +100,8 @@ Actualizado: 2026-08-10.
 ## Criterio para cambiar de microfase
 
 No avanzar hasta cerrar la microfase activa con evidencia reproducible. La documentación o prototipos anticipados no cuentan como implementación formal.
+
+Para microfases visuales, una funcionalidad que siga abriendo UI nativa no autorizada permanece incompleta aunque sus pruebas funcionales básicas pasen.
 
 ## Evidencia técnica histórica resumida
 
@@ -99,9 +116,11 @@ No avanzar hasta cerrar la microfase activa con evidencia reproducible. La docum
 ## Documentos de control
 
 - Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
+- Sección 35 / política UI interna: `UI_INTERNAL_COMPONENT_POLICY.md`.
 - Alcance ampliado: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - Trazabilidad: `REQUIREMENTS.md`.
 - Reglas: `RULES.md`.
 - Plan: `PHASES.md`.
-- Microfases: `DETAILED_EXECUTION_PHASES.md`.
+- Microfases base: `DETAILED_EXECUTION_PHASES.md`.
+- Microfases Sección 35: `DETAILED_EXECUTION_PHASES_UI_INTERNAL_COMPONENTS.md`.
 - Memoria: `MEMORY.md`.
