@@ -17,6 +17,16 @@ export {
   type ProjectRecoveryReport,
 } from './projects/project-autosave-service'
 export {
+  CompositeProjectCommand,
+  ProjectCommandBus,
+  type ProjectCommandBusDependencies,
+  type ProjectCommandBusError,
+  type ProjectCommandFailure,
+  type ProjectCommandReceipt,
+  type ProjectCommandRecoveryReport,
+  type ReversibleProjectCommand,
+} from './projects/project-command-bus'
+export {
   PLATFORM_ADAPTER_CONTRACT_VERSION,
   type PlatformAdapter,
   type PlatformAdapterDescriptor,

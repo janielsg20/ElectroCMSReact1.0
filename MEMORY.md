@@ -17,22 +17,23 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 ## Estado real
 
 - React 19 + TypeScript estricto + Tailwind 4 + Vite + PWA local-first.
-- F00, F01 y F02 completadas.
-- F03 activa.
+- F00, F01, F02 y F03 completadas.
 - M03.1 repositorios locales: completada.
 - M03.2 ciclo de proyecto: completada.
 - M03.3 autosave/recuperación: completada.
-- Microfase actual: `M03.4 — Command bus e historial` `EN_CURSO`.
-- F04–F18 siguen `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
-- F19–F31 existen solo como roadmap ampliado y están `NO_INICIADA`.
+- M03.4 Command Bus e historial: completada con execute/undo/redo, transacciones compuestas, branching, límite configurable, recuperación y persistencia IndexedDB.
+- Fase activa: `F04 — Application shell, navegación y workspaces responsive`.
+- Microfase actual: `M04.1 — Shell desktop` `EN_CURSO`.
+- F05–F18 siguen `NO_INICIADA`; F19–F31 continúan `NO_INICIADA`.
 
 ## Decisiones vigentes
 
 - Núcleo web local-first/PWA; envolturas desktop/móvil desacopladas.
 - Dominio/modelo canónico independientes de React, Tailwind, almacenamiento y exportadores.
 - Modelo, preview y exportación deben compartir una sola fuente de verdad.
-- Toda mutación futura relevante debe integrarse con Command Bus/History cuando aplique.
-- No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components o exportadores.
+- Toda mutación futura relevante debe integrarse con `ProjectCommandBus`/`ProjectHistoryState` cuando aplique.
+- Undo/redo restaura estados lógicos anteriores creando revisiones nuevas; la revisión persistente nunca retrocede.
+- No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History o exportadores.
 - Integraciones externas son adapters/providers opcionales.
 - AI Agents futuros no persisten directamente; producen comandos validados.
 - Custom Code futuro requiere aislamiento, diagnostics, typecheck y seguridad.
@@ -46,9 +47,9 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Desktop objetivo: controles/filas ~32–36 px, spacing 4–8 px, rail ~44 px; touch mantiene 44 px.
 - Azul reservado principalmente para selección, foco, active y primary actions.
 - WCAG 2.2 AA; drag/resize/reorder siempre con alternativa de teclado/clic.
-- Auditoría correctiva 2026-08-10: selección del rail, páginas y árbol ahora sigue estado real; dropdowns del Inspector usan controles nativos; alineación y vinculado de padding tienen estado; acciones futuras se muestran deshabilitadas en vez de aparentar funcionalidad.
+- Auditoría correctiva 2026-08-10: selección del rail, páginas y árbol sigue estado real; dropdowns del Inspector usan controles nativos; alineación y vinculado de padding tienen estado; acciones futuras se muestran deshabilitadas en vez de aparentar funcionalidad.
 - `src/ui-integrity-v11.css` actúa como guardrail final cross-theme para tamaños, selección, foco, legibilidad y overflow; Flow Builder ya no reduce filas/controles a ~30 px.
-- Las múltiples capas CSS anticipadas deben consolidarse en primitives/componentes base cuando F04–F07/F19 entren formalmente; `ui-integrity-v11.css` es una estabilización, no sustituye esa consolidación.
+- Al entrar formalmente F04 debe comenzar la consolidación de capas CSS/primitives sin perder las correcciones de v11.
 
 ## Roadmap ampliado F19–F31
 
@@ -68,14 +69,14 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 ## Próximo paso exacto
 
-Continuar `M03.4`: comandos reversibles, transacciones compuestas, límites configurables y persistencia de undo/redo con prueba de ramas nuevas.
+Implementar `M04.1 — Shell desktop`: formalizar header, navegación, panel izquierdo, canvas, inspector y status bar redimensionables; persistir posición, orden, visibilidad y anchuras del workspace. Consolidar el prototipo anticipado existente en vez de crear otro shell.
 
-No avanzar a F19 ni a otra fase por la ampliación documental.
+No adelantar M04.2 ni F19 hasta cerrar M04.1 con evidencia reproducible.
 
 ## Riesgos abiertos
 
-- La UI anticipada debe consolidarse para evitar acumulación indefinida de CSS/overrides.
-- La densidad y legibilidad deben revalidarse cuando el editor tenga flujos funcionales reales.
+- La UI anticipada debe consolidarse ahora que F04 entra formalmente para evitar acumulación indefinida de CSS/overrides.
+- La persistencia de workspace debe usar un contrato propio de preferencias, no contaminar el modelo canónico del documento.
 - Collaboration/AI/integraciones remotas deben mantener funcionamiento local completo.
 - Secrets nunca deben aparecer en frontend, logs o exports.
 - Cada export target debe diagnosticar capacidades no soportadas; prohibida la pérdida silenciosa.
@@ -85,8 +86,9 @@ No avanzar a F19 ni a otra fase por la ampliación documental.
 - CI/CD y Cloudflare Pages existen y han sido verificados en entregas previas.
 - PWA offline, manifest y Service Worker están implementados.
 - Modelo canónico v1, schemas Zod, migraciones v0→v1, breakpoints, CMS models y relaciones están implementados y probados.
-- Dexie/IndexedDB, ProjectRecord, import/export y recovery journal están implementados y probados.
-- Las cifras exactas de ejecuciones, bundles y suites históricas viven en `TRACKING.md` y `CHANGELOG.md`; no duplicarlas aquí.
+- Dexie/IndexedDB, ProjectRecord, import/export, recovery journal y `project-history` están implementados y probados.
+- M03.4: GitHub Actions run `31449931973`; lint, typecheck, 24 archivos de test / 97 pruebas y build Vite 7.3.6 verdes.
+- Las cifras históricas y publicaciones viven en `TRACKING.md` y `CHANGELOG.md`.
 
 ## Punteros
 

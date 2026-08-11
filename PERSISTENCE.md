@@ -1,6 +1,6 @@
 # Persistencia local-first
 
-Estado: `M03.1 — Repositorios locales`, `M03.2 — Ciclo de proyecto` y `M03.3 — Guardado incremental y recuperación` aceptadas; command bus e historial pendientes de M03.4.
+Estado: `M03.1 — Repositorios locales`, `M03.2 — Ciclo de proyecto`, `M03.3 — Guardado incremental y recuperación` y `M03.4 — Command bus e historial` aceptadas. F03 completada.
 
 ## Contrato M03.1
 
@@ -70,7 +70,30 @@ Si la lectura del proyecto detecta corrupción, se restaura el snapshot válido 
 
 `DebouncedProjectAutosave` sustituye cambios pendientes durante la ventana configurable, guarda solo el último y permite `flush()` o `cancel()` explícitos. Todavía no conecta eventos de la UI anticipada; esa integración pertenece a las fases funcionales del editor.
 
+## Contrato M03.4
+
+`ProjectHistoryState` persiste por `projectId` en el namespace IndexedDB `project-history`. El schema v1 conserva entradas reversibles con estado `before`/`after`, etiqueta, IDs de los comandos que componen la operación, cursor aplicado y una operación pendiente recuperable.
+
+`ProjectCommandBus` implementa el contrato de ADR-003 sin depender de React:
+
+- `execute()` aplica un `ReversibleProjectCommand` puro, valida su salida y registra un único paso reversible.
+- `CompositeProjectCommand` ejecuta varios comandos en memoria como una transacción lógica; si uno falla no se persiste ningún cambio parcial y, si todos pasan, se crea una sola entrada de historial.
+- `undo()` restaura el extremo `before`; `redo()` restaura `after`. Ambos crean una revisión nueva (`current + 1`) en vez de retroceder el contador persistente.
+- Ejecutar después de `undo` corta la cola de redo y crea una rama nueva determinista.
+- `maxEntries` limita el historial conservando una cadena reversible coherente dentro de la ventana retenida.
+- Cambios externos que ya no coinciden con el cursor producen `history-conflict`; nunca fuerzan una sobrescritura silenciosa.
+
+Cada execute/undo/redo usa el protocolo preparar→proyecto→confirmar:
+
+1. Persistir el historial con `pending`, cursor de origen y target completo.
+2. Persistir el `ProjectRecord` objetivo.
+3. Avanzar el cursor y limpiar `pending`.
+
+Si falla el paso 2, `recover()` reaplica el target solo cuando el proyecto todavía coincide con el origen lógico. Si falla el paso 3, detecta que el proyecto ya coincide con el target y reconcilia únicamente el cursor. Cualquier tercer estado produce conflicto y queda sin sobrescribir.
+
+La integración con `createProjectHistoryRepository()` fue probada cerrando y reabriendo IndexedDB: el cursor y las entradas sobreviven a la reapertura y `undo` sigue funcionando con revisión monotónica.
+
 ## Límites pendientes
 
-- M03.4 añadirá command bus e historial persistente con undo/redo.
-- OPFS permanece detrás de un puerto futuro para blobs grandes; M03.1 no simula assets persistentes.
+- Conectar comandos concretos del árbol, canvas, inspector y workspaces pertenece a F04/F05/F07/F19; M03.4 entrega el contrato común, no implementaciones paralelas de UI.
+- OPFS permanece detrás de un puerto futuro para blobs grandes; F03 no simula assets persistentes.

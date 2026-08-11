@@ -194,3 +194,16 @@ export {
   type ProjectRecoveryState,
   type ProjectSnapshot,
 } from './project-recovery'
+export {
+  createEmptyProjectHistoryState,
+  createProjectHistoryStateSchema,
+  parseProjectHistoryEntryId,
+  PROJECT_HISTORY_SCHEMA_VERSION,
+  ProjectHistoryEntryIdSchema,
+  ProjectHistoryOperationKindSchema,
+  type PendingProjectHistoryOperation,
+  type ProjectHistoryEntry,
+  type ProjectHistoryEntryId,
+  type ProjectHistoryOperationKind,
+  type ProjectHistoryState,
+} from './project-history'

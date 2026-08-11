@@ -2,6 +2,11 @@
 
 ## 2026-08-10
 
+- Cerrada `M03.4 — Command bus e historial`: añadido `ProjectCommandBus` con execute/undo/redo, `CompositeProjectCommand`, branching después de undo, límites configurables y detección de conflictos sin sobrescritura.
+- Añadido `ProjectHistoryState` schema v1 con entradas reversibles `before`/`after`, cursor y operación pendiente recuperable; undo/redo conserva revisiones monotónicas creando siempre `revision = current + 1`.
+- Persistido el historial en IndexedDB mediante namespace `project-history`; una prueba de integración cierra y reabre la base y confirma que el cursor persiste y undo continúa funcionando.
+- Implementado protocolo preparar→guardar proyecto→confirmar historial y recuperación diferenciada para escritura interrumpida o confirmación fallida.
+- PR #5 / GitHub Actions `31449931973`: lint, typecheck, 24 archivos de test con 97/97 pruebas y build Vite 7.3.6 correctos. F03 queda completada y la fase activa pasa a `F04 / M04.1 — Shell desktop`.
 - Ejecutada una nueva auditoría de integridad UI/UX del shell desde navegación hasta inspector para corregir incoherencias de selección, tamaños, estados, affordance, legibilidad y overrides entre temas.
 - Corregido el sidebar principal con estado activo persistente y claramente distinguible en Studio, Bento Motion y Flow Builder; filas compactas aumentadas a 36 px en desktop y 44 px en superficies touch, con iconos y foco más legibles.
 - Páginas y Árbol de widgets ahora actualizan selección real al hacer clic; el Inspector sustituye dropdowns falsos por `select` nativos y hace funcionales la matriz de alineación y el estado de vinculado de padding.
