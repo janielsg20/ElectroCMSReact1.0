@@ -3,15 +3,16 @@
 ## R0. Jerarquía
 
 1. Seguridad e integridad de datos.
-2. `PROMPT_MAESTRO_ELECTROCMS.md` + `FLUTTERFLOW_PARITY_ADDENDUM.md` como alcance normativo conjunto.
+2. `PROMPT_MAESTRO_ELECTROCMS.md` + `FLUTTERFLOW_PARITY_ADDENDUM.md` + `UI_INTERNAL_COMPONENT_POLICY.md` como alcance normativo conjunto.
 3. Estas reglas.
 4. Decisiones aceptadas en documentos de arquitectura.
 5. Fase y microfase activas.
 
 ## R1. Alcance y verdad
 
-- Las 33 secciones del prompt maestro son no negociables.
-- El Addendum de paridad funcional amplía el alcance sin reemplazar ni reducir las 33 secciones originales.
+- Las secciones del prompt maestro son no negociables.
+- El Addendum de paridad funcional amplía el alcance sin reemplazar ni reducir las secciones originales.
+- `UI_INTERNAL_COMPONENT_POLICY.md` es transversal y obligatoria para editor, backend visual y superficies generadas que utilicen el Design System de ElectroCMS.
 - F19–F31 son posteriores al roadmap base y no se ejecutan por su sola incorporación documental.
 - Los estados válidos son `NO_INICIADA`, `EN_CURSO`, `BLOQUEADA`, `EN_REVISION` y `COMPLETADA`.
 - Solo se usa `COMPLETADA` con evidencia reproducible.
@@ -24,7 +25,7 @@
 2. Implementar el cambio mínimo completo.
 3. Añadir o actualizar pruebas.
 4. Ejecutar lint, typecheck, pruebas y build que correspondan.
-5. Revisar accesibilidad y responsive si existe impacto visual.
+5. Revisar accesibilidad, responsive y cumplimiento de `UI_INTERNAL_COMPONENT_POLICY.md` si existe impacto visual.
 6. Actualizar memoria, tracking y changelog.
 
 ## R3. Código
@@ -52,6 +53,9 @@
 - El builder mantiene High Density + Minimal Clean: controles compactos en desktop y targets táctiles en touch.
 - Azul de acento reservado principalmente para selección, foco, estado activo y acción primaria; no usarlo como decoración permanente.
 - No acumular hojas de override indefinidas: cuando una UI anticipada entre en fase formal, consolidar en tokens/primitives/componentes base y retirar CSS redundante.
+- **Prohibido usar como experiencia final controles que deleguen menús/pickers al sistema operativo o navegador cuando exista equivalente interno.** Esto incluye `<select>`, `<datalist>`, color/date/time pickers nativos, `alert/confirm/prompt`, context menus nativos y tooltips basados solo en `title`.
+- Select, Listbox, Combobox, Dropdown, ContextMenu, Tooltip, Popover, Dialog, ColorPicker, Date/Time Picker, MediaPicker y controles equivalentes deben pertenecer al Design System de ElectroCMS y adoptar automáticamente preset, modo de color, densidad y responsive activos.
+- Una excepción nativa solo se acepta en fronteras de plataforma/seguridad que no puedan sustituirse de forma segura: selector de archivos/carpetas, permisos, biometría, share sheet, print dialog, instalación PWA u otra UI protegida por el sandbox. Debe quedar documentada.
 
 ## R5. Accesibilidad
 
@@ -61,6 +65,8 @@
 - Reflow sin pérdida a 320 CSS px, salvo regiones bidimensionales justificadas como el canvas; esas regiones deben quedar contenidas.
 - Errores junto al campo, resumen cuando haya varios y anuncio con región viva.
 - Color nunca es el único indicador.
+- Los componentes internos que sustituyen UI nativa deben conservar o superar su accesibilidad: patrón ARIA correcto, flechas/Home/End/typeahead cuando aplique, Escape, foco visible, focus trap solo donde corresponda y restauración de foco al trigger.
+- En touch, un control interno puede cambiar de popover/dropdown a sheet/full-screen picker sin cambiar su semántica ni delegar el flujo a un picker visual nativo del OS.
 
 ## R6. Local-first
 
@@ -71,7 +77,7 @@
 
 ## R7. Cambios destructivos
 
-- Confirmar borrados permanentes.
+- Confirmar borrados permanentes mediante `Dialog` interno de ElectroCMS; no usar `window.confirm()`.
 - Ofrecer deshacer o recuperación cuando sea viable.
 - Validar rutas, nombres, MIME, tamaño y contenido de importaciones.
 
