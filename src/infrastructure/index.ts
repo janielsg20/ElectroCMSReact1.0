@@ -17,6 +17,10 @@ export {
   createProjectRecoveryRepository,
   PROJECT_RECOVERY_NAMESPACE,
 } from './indexed-db/project-recovery-repository'
+export {
+  createProjectHistoryRepository,
+  PROJECT_HISTORY_NAMESPACE,
+} from './indexed-db/project-history-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,
