@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Button, Icon } from '../primitives'
 import { EditorShell } from './EditorShell'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
@@ -26,6 +26,10 @@ function clampOverlayWidth(width: number): number {
   return Math.min(Math.max(width, TABLET_OVERLAY_MIN), Math.min(TABLET_OVERLAY_MAX, available))
 }
 
+function panelTitle(panel: TabletPanel): string {
+  return panel === 'library' ? 'Páginas y capas' : 'Inspector'
+}
+
 export function ResponsiveEditorShell() {
   const [tabletViewport, setTabletViewport] = useState(() => isTabletViewport())
   const [editorVisible, setEditorVisible] = useState(true)
@@ -42,7 +46,12 @@ export function ResponsiveEditorShell() {
   const tabletActive = tabletViewport && editorVisible
   const persistentWidth = window.innerWidth >= 900 ? 248 : 232
   const secondaryPanel: TabletPanel = persistentPanel === 'library' ? 'inspector' : 'library'
-  const secondaryTitle = secondaryPanel === 'library' ? 'Páginas y capas' : 'Inspector'
+  const secondaryTitle = panelTitle(secondaryPanel)
+
+  const closeOverlay = useCallback((): void => {
+    setOverlayPanel(null)
+    requestAnimationFrame(() => previousFocusRef.current?.focus())
+  }, [])
 
   useEffect(() => {
     function handleResize(): void {
@@ -54,7 +63,7 @@ export function ResponsiveEditorShell() {
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  })
+  }, [closeOverlay, overlayPanel])
 
   useEffect(() => {
     const frame = frameRef.current
@@ -66,11 +75,10 @@ export function ResponsiveEditorShell() {
       if (!nextVisible && overlayPanel) closeOverlay()
     }
 
-    updateEditorVisibility()
     const observer = new MutationObserver(updateEditorVisibility)
     observer.observe(frame, { childList: true, subtree: true })
     return () => observer.disconnect()
-  })
+  }, [closeOverlay, overlayPanel])
 
   useEffect(() => {
     if (!overlayPanel || !tabletActive) return
@@ -98,18 +106,9 @@ export function ResponsiveEditorShell() {
     }
   }, [])
 
-  function panelTitle(panel: TabletPanel): string {
-    return panel === 'library' ? 'Páginas y capas' : 'Inspector'
-  }
-
   function openOverlay(panel: TabletPanel): void {
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     setOverlayPanel(panel)
-  }
-
-  function closeOverlay(): void {
-    setOverlayPanel(null)
-    requestAnimationFrame(() => previousFocusRef.current?.focus())
   }
 
   function promoteOverlay(): void {
@@ -155,7 +154,8 @@ export function ResponsiveEditorShell() {
 
     if (document.activeElement === overlayRef.current) {
       event.preventDefault()
-      ;(event.shiftKey ? last : first).focus()
+      const target = event.shiftKey ? last : first
+      target.focus()
     } else if (event.shiftKey && document.activeElement === first) {
       event.preventDefault()
       last.focus()
