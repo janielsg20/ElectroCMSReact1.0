@@ -98,6 +98,12 @@ function isStringOrNull(value: JsonValue): value is string | null {
   return value === null || typeof value === 'string'
 }
 
+function taxonomyTermMatches(cms: CmsBackend, value: JsonValue, taxonomyId: string): boolean {
+  if (typeof value !== 'string') return false
+  const term = Object.values(cms.taxonomyTerms).find((candidate) => candidate.id === value)
+  return term?.taxonomyId === taxonomyId
+}
+
 function validateDefaultValue(cms: CmsBackend, field: FieldDefinition): readonly CustomFieldDiagnostic[] {
   const value = field.defaultValue
   const path = ['cms', 'fields', field.id, 'defaultValue'] as const
@@ -156,8 +162,7 @@ function validateDefaultValue(cms: CmsBackend, field: FieldDefinition): readonly
   }
   if (field.type === 'taxonomy' && field.taxonomyId) {
     const ids = Array.isArray(value) ? value : [value]
-    const invalid = ids.find((item) => typeof item !== 'string' || cms.taxonomyTerms[item]?.taxonomyId !== field.taxonomyId)
-    if (invalid !== undefined) {
+    if (ids.some((item) => !taxonomyTermMatches(cms, item, field.taxonomyId as string))) {
       return [diagnostic('invalid-default-value', 'El valor predeterminado debe usar términos de la taxonomía configurada.', path)]
     }
   }
@@ -190,8 +195,8 @@ function validateOptions(field: FieldDefinition): readonly CustomFieldDiagnostic
   const values = new Set<string>()
   for (const option of field.options) {
     const normalizedLabel = option.label.trim().toLocaleLowerCase('es')
-    const value = jsonKey(option.value)
-    if (labels.has(normalizedLabel) || values.has(value)) {
+    const valueKey = jsonKey(option.value)
+    if (labels.has(normalizedLabel) || values.has(valueKey)) {
       return [diagnostic(
         'invalid-options',
         'Las etiquetas y valores de opciones deben ser únicos.',
@@ -199,7 +204,7 @@ function validateOptions(field: FieldDefinition): readonly CustomFieldDiagnostic
       )]
     }
     labels.add(normalizedLabel)
-    values.add(value)
+    values.add(valueKey)
   }
   return []
 }
