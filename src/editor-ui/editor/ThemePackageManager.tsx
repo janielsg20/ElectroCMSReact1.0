@@ -12,7 +12,7 @@ import {
   type ThemePackageRouteConflictPolicy,
 } from '../../domain'
 import { Button, Icon } from '../primitives'
-import { useEditorProject, useEditorProjectStructure } from './editor-project-context'
+import { useEditorProjectStructure, useThemePackageSession } from './editor-project-context'
 
 const EMPTY_SELECTION: ThemePackagePartSelection = {
   backendTheme: false,
@@ -48,7 +48,7 @@ function newestPackage(packages: readonly ThemePackage[]): ThemePackage | undefi
 }
 
 export function ThemePackageManager() {
-  const session = useEditorProject()
+  const session = useThemePackageSession()
   const structure = useEditorProjectStructure()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [packages, setPackages] = useState<readonly ThemePackage[]>([])
