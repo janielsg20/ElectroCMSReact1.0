@@ -1,0 +1,65 @@
+/* F04/M04.2: responsive shell contract owned by the tablet workspace component. */
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+  .editor-shell {
+    --tablet-panel-width: clamp(13.5rem, 28vw, 17rem);
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+  }
+
+  .editor-shell.editor-shell--editor {
+    grid-template-columns: 2.75rem minmax(0, 1fr) var(--tablet-panel-width);
+  }
+
+  .app-navigation {
+    width: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .editor-shell--editor .canvas-workspace {
+    grid-column: 2;
+  }
+
+  .tablet-primary-panel {
+    grid-column: 3;
+    min-width: 0;
+    box-shadow: -1px 0 0 var(--color-border);
+  }
+
+  .tablet-primary-panel .library-panel,
+  .tablet-primary-panel .inspector-panel,
+  .tablet-panel-overlay__surface .library-panel,
+  .tablet-panel-overlay__surface .inspector-panel {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .tablet-panel-overlay__surface {
+    max-width: calc(100vw - 3.5rem);
+  }
+
+  [data-ui-theme="bento"] .tablet-primary-panel,
+  [data-ui-theme="bento"] .tablet-panel-overlay__surface {
+    border-color: color-mix(in srgb, var(--color-border) 84%, transparent);
+    background: var(--bento-surface, var(--color-surface));
+    backdrop-filter: blur(16px) saturate(120%);
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) and (orientation: portrait) {
+  .editor-shell {
+    --tablet-panel-width: clamp(13rem, 29vw, 15rem);
+  }
+
+  .tablet-panel-overlay__surface {
+    width: min(21rem, calc(100vw - 4rem));
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) and (orientation: landscape) {
+  .editor-shell {
+    --tablet-panel-width: clamp(14rem, 27vw, 17rem);
+  }
+
+  .tablet-panel-overlay__surface {
+    width: min(23rem, calc(100vw - 4rem));
+  }
+}
