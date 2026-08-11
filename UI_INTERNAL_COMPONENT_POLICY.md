@@ -2,6 +2,8 @@
 
 Estado: **NORMATIVO / NO NEGOCIABLE**.
 
+**Este documento constituye la Sección 35 del Prompt Maestro de ElectroCMS y forma parte integral de `PROMPT_MAESTRO_ELECTROCMS.md` por referencia normativa.** No es una recomendación visual opcional ni una fase independiente.
+
 Esta política forma parte del alcance funcional y visual de ElectroCMS. Aplica a la interfaz del editor, backend visual, paneles administrativos, previews interactivos y proyectos generados cuando utilicen componentes de ElectroCMS.
 
 ## Objetivo
