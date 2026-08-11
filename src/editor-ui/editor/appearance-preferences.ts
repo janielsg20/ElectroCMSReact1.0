@@ -52,12 +52,12 @@ export class BrowserAppearancePreferencesStore implements AppearancePreferencesS
   }
 }
 
-export function resolveColorMode(colorMode: ColorMode, systemPrefersDark: boolean): ResolvedColorMode {
-  return colorMode === 'system' ? systemPrefersDark ? 'dark' : 'light' : colorMode
+export function resolveColorMode(colorMode: ColorMode, systemDark: boolean): ResolvedColorMode {
+  return colorMode === 'system' ? systemDark ? 'dark' : 'light' : colorMode
 }
 
-export function systemPrefersDark(mediaMatcher: Pick<Window, 'matchMedia'> = window): boolean {
-  return mediaMatcher.matchMedia('(prefers-color-scheme: dark)').matches
+export function systemPrefersDark(mediaMatcher: Partial<Pick<Window, 'matchMedia'>> = window): boolean {
+  return typeof mediaMatcher.matchMedia === 'function' && mediaMatcher.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
 export function applyAppearance(root: HTMLElement, preferences: AppearancePreferences, systemDark: boolean): void {
