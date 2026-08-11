@@ -7,6 +7,8 @@ import type {
   ContentTypeId,
   Document,
   DocumentId,
+  FieldDefinition,
+  FieldDefinitionId,
   JsonValue,
   NodeDataSettings,
   NodeId,
@@ -30,6 +32,7 @@ import type {
   ThemePackageRouteConflictPolicy,
 } from '../../domain'
 import type { ContentTypeEditablePatch } from '../../domain/project/content-type-engine'
+import type { FieldDefinitionEditablePatch } from '../../domain/project/custom-field-engine'
 import type {
   TaxonomyEditablePatch,
   TaxonomyTermEditablePatch,
@@ -105,6 +108,12 @@ export interface TaxonomySession {
   deleteTaxonomyTerm(termId: TaxonomyTermId): Promise<Result<ProjectStructure, string>>
 }
 
+export interface CustomFieldSession {
+  createCustomField(field: FieldDefinition): Promise<Result<ProjectStructure, string>>
+  updateCustomField(fieldId: FieldDefinitionId, patch: FieldDefinitionEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteCustomField(fieldId: FieldDefinitionId): Promise<Result<ProjectStructure, string>>
+}
+
 export interface EditorSelection {
   readonly getSelectedNodeId: () => NodeId | null
   readonly selectNode: (nodeId: NodeId) => void
@@ -170,6 +179,22 @@ export function requireTaxonomySession(session: EditorProjectSession): EditorPro
 
 export function useTaxonomySession(): TaxonomySession {
   return requireTaxonomySession(useEditorProject())
+}
+
+export function requireCustomFieldSession(session: EditorProjectSession): EditorProjectSession & CustomFieldSession {
+  const candidate = session as EditorProjectSession & Partial<CustomFieldSession>
+  if (
+    typeof candidate.createCustomField !== 'function'
+    || typeof candidate.updateCustomField !== 'function'
+    || typeof candidate.deleteCustomField !== 'function'
+  ) {
+    throw new Error('La sesión actual no ofrece la capacidad de campos personalizados.')
+  }
+  return candidate as EditorProjectSession & CustomFieldSession
+}
+
+export function useCustomFieldSession(): CustomFieldSession {
+  return requireCustomFieldSession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {
