@@ -21,6 +21,10 @@ export {
   createProjectHistoryRepository,
   PROJECT_HISTORY_NAMESPACE,
 } from './indexed-db/project-history-repository'
+export {
+  createThemePackageRepository,
+  THEME_PACKAGES_NAMESPACE,
+} from './indexed-db/theme-package-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,
