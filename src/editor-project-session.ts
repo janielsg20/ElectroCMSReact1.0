@@ -32,6 +32,8 @@ import {
   type BreakpointId,
   type BreakpointInput,
   type BreakpointPatch,
+  type ContentType,
+  type ContentTypeId,
   type Document,
   type DocumentId,
   type JsonValue,
@@ -54,6 +56,12 @@ import {
   type ThemePackagePartSelection,
   type ThemePackageRouteConflictPolicy,
 } from './domain'
+import {
+  createContentType as createContentTypeInStructure,
+  deleteContentType as deleteContentTypeInStructure,
+  updateContentType as updateContentTypeInStructure,
+  type ContentTypeEditablePatch,
+} from './domain/project/content-type-engine'
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import {
   createProjectHistoryRepository,
@@ -175,6 +183,20 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return created.ok ? success({ breakpointId, structure: created.value }) : created
   }
 
+  async createContentType(contentType: ContentType): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-content-type',
+      `Crear tipo ${contentType.pluralName}`,
+      (structure) => {
+        const created = createContentTypeInStructure(structure, contentType)
+        return created.ok ? success(created.value) : failure({
+          code: 'invalid-tree' as const,
+          message: created.error[0]?.message ?? 'El tipo de contenido no es válido.',
+        })
+      },
+    ))
+  }
+
   async createDocument(document: Document): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
       'template.create-document',
@@ -182,6 +204,20 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       (structure) => {
         const created = addDocument(structure, document)
         return created.ok ? created : failure({ code: 'invalid-tree' as const, message: created.error.message })
+      },
+    ))
+  }
+
+  async deleteContentType(contentTypeId: ContentTypeId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-content-type',
+      'Eliminar tipo de contenido',
+      (structure) => {
+        const deleted = deleteContentTypeInStructure(structure, contentTypeId)
+        return deleted.ok ? success(deleted.value) : failure({
+          code: 'invalid-tree' as const,
+          message: deleted.error[0]?.message ?? 'El tipo de contenido no se puede eliminar.',
+        })
       },
     ))
   }
@@ -326,6 +362,23 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (!ready.ok) return ready
     const saved = await this.#themePackages.save(themePackage)
     return saved.ok ? success(undefined) : failure(saved.error.message)
+  }
+
+  async updateContentType(
+    contentTypeId: ContentTypeId,
+    patch: ContentTypeEditablePatch,
+  ): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-content-type',
+      'Editar tipo de contenido',
+      (structure) => {
+        const updated = updateContentTypeInStructure(structure, contentTypeId, patch)
+        return updated.ok ? success(updated.value) : failure({
+          code: 'invalid-tree' as const,
+          message: updated.error[0]?.message ?? 'El tipo de contenido no es válido.',
+        })
+      },
+    ))
   }
 
   async updateWidgetProperty(
