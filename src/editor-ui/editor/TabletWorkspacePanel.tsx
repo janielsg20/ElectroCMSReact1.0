@@ -76,9 +76,17 @@ export function TabletWorkspacePanel({ primaryPanel, overlayPanel, primaryConten
       </aside>
 
       {overlayPanel ? (
-        <div aria-label={`${panelTitle(overlayPanel)} · panel secundario tablet`} aria-modal="true" className="tablet-panel-overlay fixed inset-0 z-50 hidden md:block lg:hidden" role="dialog">
+        <div className="tablet-panel-overlay fixed inset-0 z-50 hidden md:block lg:hidden">
           <button aria-label="Cerrar panel secundario" className="absolute inset-0 cursor-pointer bg-slate-950/35 backdrop-blur-[1px]" onClick={closeOverlay} tabIndex={-1} type="button" />
-          <div className="tablet-panel-overlay__surface absolute bottom-6 right-2 top-12 flex w-[min(23rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-lg outline-none" onKeyDown={trapOverlayFocus} ref={overlayRef} tabIndex={-1}>
+          <div
+            aria-label={`${panelTitle(overlayPanel)} · panel secundario tablet`}
+            aria-modal="true"
+            className="tablet-panel-overlay__surface absolute bottom-6 right-2 top-12 flex w-[min(23rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-lg outline-none"
+            onKeyDown={trapOverlayFocus}
+            ref={overlayRef}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="flex min-h-12 shrink-0 items-center gap-1 border-b border-border bg-primary-soft px-2">
               <span className="grid size-8 shrink-0 place-items-center rounded-md bg-surface text-primary shadow-sm"><Icon name={panelIcon(overlayPanel)} size={14} /></span>
               <div className="min-w-0 flex-1"><p className="truncate text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Panel secundario</p><h2 className="truncate text-xs font-bold">{panelTitle(overlayPanel)}</h2></div>
