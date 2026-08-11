@@ -24,7 +24,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - M03.4 Command Bus e historial: completada con execute/undo/redo, transacciones compuestas, branching, límite configurable, recuperación y persistencia IndexedDB.
 - Fase activa: `F04 — Application shell, navegación y workspaces responsive`.
 - `M04.1 — Shell desktop`: completada con persistencia local versionada del workspace, restauración segura y orden de paneles.
-- Microfase actual: `M04.2 — Shell tablet` `EN_CURSO`.
+- `M04.2 — Shell tablet`: completada con rail contraído, canvas prioritario, un panel persistente y overlay secundario accesible/efímero.
+- Microfase actual: `M04.3 — Shell móvil` `EN_CURSO`.
 - F05–F18 siguen `NO_INICIADA`; F19–F31 continúan `NO_INICIADA`.
 
 ## Decisiones vigentes
@@ -39,6 +40,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - AI Agents futuros no persisten directamente; producen comandos validados.
 - Custom Code futuro requiere aislamiento, diagnostics, typecheck y seguridad.
 - Preferencias del workspace son estado local de UI y no forman parte del modelo canónico del proyecto.
+- Tablet reutiliza el shell desktop como base mediante `ResponsiveEditorShell`; su geometría de overlay no se persiste en `workspace.v1`.
 
 ## UI/UX vigente
 
@@ -46,8 +48,9 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Desktop: rail compacto, Page/Widget Tree, canvas central y Properties Panel; paneles docked/floating/minimized/pinned y resize.
 - `workspace.v1` usa `localStorage` detrás de `WorkspacePreferencesStore`; persiste rail, anchuras, modo, dock, bounds, pin y orden de Biblioteca/Inspector.
 - Preferencias inválidas/corruptas se ignoran; anchuras y ventanas restauradas se ajustan a límites y viewport actual.
-- Tablet objetivo M04.2: rail contraído + canvas + un panel persistente; panel secundario mediante overlay accesible, sin perder foco ni funciones.
-- Móvil: Topbar compacta + Canvas + bottom navigation `Widgets / Pages / Canvas / Properties / More` + tool sheets.
+- Tablet 768–1023: rail presentado a 44 px, canvas prioritario, un único panel contextual persistente y panel secundario como dialog lateral redimensionable; `Escape`, focus trap y restauración de foco son obligatorios y están implementados.
+- En tablet Biblioteca/Inspector pueden intercambiarse y el secundario puede fijarse como persistente sin crear dos paneles persistentes simultáneos.
+- Móvil objetivo M04.3: Topbar compacta + Canvas + bottom navigation `Widgets / Pages / Canvas / Properties / More` + tool sheets o pantallas completas; ninguna función debe desaparecer a 320/375 px.
 - Desktop objetivo: controles/filas ~32–36 px, spacing 4–8 px, rail ~44 px; touch mantiene 44 px.
 - Azul reservado principalmente para selección, foco, active y primary actions.
 - WCAG 2.2 AA; drag/resize/reorder siempre con alternativa de teclado/clic.
@@ -72,14 +75,14 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 ## Próximo paso exacto
 
-Implementar `M04.2 — Shell tablet`: rail contraído, canvas prioritario, un único panel persistente y overlays accesibles para el panel secundario. Verificar landscape/portrait, cierre por `Escape`, retención/restauración de foco y que ninguna función del shell desaparezca.
+Implementar `M04.3 — Shell móvil`: canvas prioritario, navegación compacta y paneles como sheets o pantallas completas. Verificar 320/375 px sin overflow de página, conservar todas las funciones del shell, targets touch, foco/restauración y alternativas visibles a interacciones de drag.
 
-No adelantar M04.3 ni F19 hasta cerrar M04.2 con evidencia reproducible.
+No adelantar M04.4 ni F19 hasta cerrar M04.3 con evidencia reproducible.
 
 ## Riesgos abiertos
 
 - La UI anticipada debe consolidarse gradualmente para evitar acumulación indefinida de CSS/overrides.
-- Tablet debe reutilizar `workspace.v1` sin guardar geometría efímera de overlays como si fuera layout desktop.
+- Móvil debe formalizar las superficies anticipadas sin duplicar Biblioteca, Inspector o navegación ni perder acciones al reducir viewport.
 - Collaboration/AI/integraciones remotas deben mantener funcionamiento local completo.
 - Secrets nunca deben aparecer en frontend, logs o exports.
 - Cada export target debe diagnosticar capacidades no soportadas; prohibida la pérdida silenciosa.
@@ -92,6 +95,7 @@ No adelantar M04.3 ni F19 hasta cerrar M04.2 con evidencia reproducible.
 - Dexie/IndexedDB, ProjectRecord, import/export, recovery journal y `project-history` están implementados y probados.
 - M03.4: 97/97 pruebas y build Vite 7.3.6 verdes.
 - M04.1: GitHub Actions run `31451142252`; lint, typecheck, 26 archivos de test / 102 pruebas y build Vite 7.3.6 verdes, sin avisos React de hidratación del workspace.
+- M04.2: PR #8 / GitHub Actions run `31453249710`; lint, typecheck, 27 archivos de test / 107 pruebas y build Vite 7.3.6 verdes. La suite incluye 5 pruebas específicas del shell tablet.
 - Las cifras históricas y publicaciones viven en `TRACKING.md` y `CHANGELOG.md`.
 
 ## Punteros
