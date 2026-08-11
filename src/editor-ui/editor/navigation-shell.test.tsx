@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../../App'
 
@@ -64,8 +64,11 @@ describe('M04.4 navegación, rutas y shortcuts', () => {
     fireEvent.click(navButton('Inicio'))
     await waitFor(() => expect(navButton('Inicio')).toHaveAttribute('aria-current', 'page'))
 
-    replaceHash('#/editor')
-    window.dispatchEvent(new PopStateEvent('popstate'))
+    await act(async () => {
+      replaceHash('#/editor')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+      await Promise.resolve()
+    })
 
     await waitFor(() => expect(navButton('Editor')).toHaveAttribute('aria-current', 'page'))
     expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
