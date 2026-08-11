@@ -6,10 +6,12 @@ import {
   parseThemePackageId,
 } from './domain'
 import { createBrowserEditorProjectSession } from './editor-project-session'
+import { requireThemePackageSession } from './editor-ui/editor/editor-project-context'
 
 describe('editor theme package integration', () => {
   it('applies selected package parts through the reversible project command bus', async () => {
     const session = createBrowserEditorProjectSession(`electrocms-theme-package-session-${crypto.randomUUID()}`)
+    const themePackages = requireThemePackageSession(session)
     const before = session.store.structure.themes.frontend.name
     const created = createThemePackage(session.store.structure, {
       createdAt: '2026-08-11T22:00:00.000Z',
@@ -37,7 +39,7 @@ describe('editor theme package integration', () => {
       },
     })
 
-    const applied = await session.applyThemePackage(imported, {
+    const applied = await themePackages.applyThemePackage(imported, {
       backendTheme: false,
       documents: false,
       frontendTheme: true,
