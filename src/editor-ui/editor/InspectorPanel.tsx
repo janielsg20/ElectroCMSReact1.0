@@ -1,5 +1,8 @@
+import { createCompleteWidgetRegistry } from '../../domain'
 import { Icon } from '../primitives'
+import { InspectorSchemaSections } from './InspectorSchemaSections'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
+import { DataConditionAccessibilityControl } from './DataConditionAccessibilityControl'
 
 export type InspectorTab = 'properties'
 
@@ -9,10 +12,7 @@ interface InspectorPanelProps {
   readonly className?: string
 }
 
-function displayValue(value: unknown): string {
-  if (typeof value === 'string') return value || 'Vacío'
-  return JSON.stringify(value)
-}
+const widgetRegistry = createCompleteWidgetRegistry()
 
 export function InspectorPanel({ className = '' }: InspectorPanelProps) {
   const session = useEditorProject()
@@ -20,9 +20,9 @@ export function InspectorPanel({ className = '' }: InspectorPanelProps) {
   const selectedNodeId = useEditorSelectedNodeId()
   const document = structure.documents[session.documentId]
   const node = selectedNodeId ? document?.nodes[selectedNodeId] : undefined
-  const propertyEntries = node ? Object.entries(node.properties) : []
-  const styleEntries = node ? Object.entries(node.styles) : []
+  const definition = node?.kind === 'widget' ? widgetRegistry.get(node.widgetType) : undefined
   const responsiveOverrides = node ? Object.keys(node.responsive).length : 0
+  const persistedStyles = node ? Object.keys(node.styles).length : 0
 
   return (
     <aside aria-label="Inspector de propiedades" className={`inspector-panel flex min-h-0 flex-col border-l border-border bg-surface ${className}`}>
@@ -38,32 +38,32 @@ export function InspectorPanel({ className = '' }: InspectorPanelProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-16 lg:pb-6">
         {node ? (
-          <div className="divide-y divide-border">
-            <section className="grid gap-1.5 p-2 lg:p-1.5" aria-labelledby="node-state-title">
-              <h2 className="flex items-center gap-1 text-xs font-bold" id="node-state-title"><Icon className="text-muted-foreground" name="eye" size={12} />Estado</h2>
+          <div>
+            <section className="grid gap-1.5 border-b border-border p-2 lg:p-1.5" aria-labelledby="node-state-title">
+              <h2 className="flex items-center gap-1 text-xs font-bold" id="node-state-title"><Icon className="text-muted-foreground" name="eye" size={12} />Estado canónico</h2>
               <dl className="grid grid-cols-2 gap-1.5 text-[0.625rem]">
                 <div className="rounded-md border border-border bg-muted/35 p-1.5"><dt className="text-muted-foreground">Visible</dt><dd className="mt-0.5 font-semibold text-foreground">{node.hidden ? 'No' : 'Sí'}</dd></div>
                 <div className="rounded-md border border-border bg-muted/35 p-1.5"><dt className="text-muted-foreground">Bloqueado</dt><dd className="mt-0.5 font-semibold text-foreground">{node.locked ? 'Sí' : 'No'}</dd></div>
-                <div className="col-span-2 rounded-md border border-border bg-muted/35 p-1.5"><dt className="text-muted-foreground">Overrides responsive</dt><dd className="mt-0.5 font-semibold text-foreground">{responsiveOverrides}</dd></div>
+                <div className="rounded-md border border-border bg-muted/35 p-1.5"><dt className="text-muted-foreground">Responsive</dt><dd className="mt-0.5 font-semibold text-foreground">{responsiveOverrides}</dd></div>
+                <div className="rounded-md border border-border bg-muted/35 p-1.5"><dt className="text-muted-foreground">Estilos</dt><dd className="mt-0.5 font-semibold text-foreground">{persistedStyles}</dd></div>
               </dl>
             </section>
 
-            <section className="grid gap-1.5 p-2 lg:p-1.5" aria-labelledby="node-properties-title">
-              <h2 className="flex items-center gap-1 text-xs font-bold" id="node-properties-title"><Icon className="text-muted-foreground" name="code" size={12} />Propiedades canónicas</h2>
-              {propertyEntries.length > 0 ? <dl className="grid gap-1">{propertyEntries.map(([key, value]) => <div className="rounded-md border border-border bg-surface px-2 py-1.5" key={key}><dt className="text-[0.625rem] font-semibold text-muted-foreground">{key}</dt><dd className="mt-0.5 break-words text-xs text-foreground">{displayValue(value)}</dd></div>)}</dl> : <p className="rounded-md border border-dashed border-border p-2 text-xs text-muted-foreground">Este nodo no tiene propiedades declaradas.</p>}
-            </section>
+            {definition ? <InspectorSchemaSections definition={definition} node={node} /> : (
+              <section className="grid gap-2 p-2 lg:p-1.5" aria-labelledby="missing-inspector-title">
+                <h2 className="text-xs font-bold" id="missing-inspector-title">Inspector no disponible</h2>
+                <p className="rounded-md border border-dashed border-border p-2 text-xs leading-4 text-muted-foreground">La selección no tiene una definición de widget registrada; no se generan controles ni datos ficticios.</p>
+              </section>
+            )}
 
-            <section className="grid gap-1.5 p-2 lg:p-1.5" aria-labelledby="node-styles-title">
-              <h2 className="flex items-center gap-1 text-xs font-bold" id="node-styles-title"><Icon className="text-muted-foreground" name="palette" size={12} />Estilos persistidos</h2>
-              {styleEntries.length > 0 ? <dl className="grid gap-1">{styleEntries.map(([key, value]) => <div className="flex items-start justify-between gap-2 rounded-md border border-border px-2 py-1.5 text-xs" key={key}><dt className="font-semibold text-muted-foreground">{key}</dt><dd className="break-words text-right text-foreground">{displayValue(value)}</dd></div>)}</dl> : <p className="rounded-md border border-dashed border-border p-2 text-xs text-muted-foreground">Sin estilos persistidos en el breakpoint base.</p>}
-            </section>
+            <DataConditionAccessibilityControl key={node.id} node={node} structure={structure} />
 
-            <section className="p-2 lg:p-1.5">
-              <p className="rounded-md border border-primary/25 bg-primary-soft p-2 text-[0.625rem] leading-4 text-primary-strong">La edición de tamaño y espaciado está disponible desde el botón de geometría del canvas o el menú contextual del elemento.</p>
+            <section className="border-t border-border p-2 lg:p-1.5">
+              <p className="rounded-md border border-primary/25 bg-primary-soft p-2 text-[0.625rem] leading-4 text-primary-strong">Propiedades y estilos se validan antes de crear una entrada reversible en el historial. Tamaño y espaciado continúan editándose desde el canvas.</p>
             </section>
           </div>
         ) : (
-          <div className="grid place-items-center p-6 text-center"><Icon className="text-muted-foreground" name="cursor" size={20} /><p className="mt-2 text-xs font-semibold">Sin selección</p><p className="mt-1 text-xs leading-4 text-muted-foreground">El inspector muestra únicamente datos reales del nodo seleccionado.</p></div>
+          <div className="grid place-items-center p-6 text-center"><Icon className="text-muted-foreground" name="cursor" size={20} /><p className="mt-2 text-xs font-semibold">Sin selección</p><p className="mt-1 text-xs leading-4 text-muted-foreground">El inspector se genera únicamente desde el schema del widget seleccionado.</p></div>
         )}
       </div>
     </aside>

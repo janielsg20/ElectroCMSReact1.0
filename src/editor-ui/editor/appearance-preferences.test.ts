@@ -17,18 +17,25 @@ function createStorage() {
 }
 
 describe('M04.5 preferencias de apariencia', () => {
-  it('conserva Studio + claro como fallback compatible', () => {
-    expect(DEFAULT_APPEARANCE_PREFERENCES).toEqual({ version: 1, uiTheme: 'studio', colorMode: 'light' })
+  it('conserva High Density + claro como fallback compatible', () => {
+    expect(DEFAULT_APPEARANCE_PREFERENCES).toEqual({ version: 1, uiTheme: 'high-density', colorMode: 'light' })
   })
 
   it('persiste y restaura preset y modo de color como estado UI versionado', () => {
     const storage = createStorage()
     const store = new BrowserAppearancePreferencesStore(storage)
-    const expected = { version: 1 as const, uiTheme: 'flow' as const, colorMode: 'system' as const }
+    const expected = { version: 1 as const, uiTheme: 'minimal-clean' as const, colorMode: 'system' as const }
 
     store.save(expected)
     expect(store.load()).toEqual(expected)
     expect(JSON.parse(storage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY) ?? '{}')).toEqual(expected)
+  })
+
+  it('migra los tres identificadores históricos al catálogo canónico', () => {
+    const storage = createStorage()
+    const store = new BrowserAppearancePreferencesStore(storage)
+    storage.setItem(EDITOR_APPEARANCE_PREFERENCES_KEY, JSON.stringify({ version: 1, uiTheme: 'bento', colorMode: 'dark' }))
+    expect(store.load()).toEqual({ version: 1, uiTheme: 'google-bento-grid', colorMode: 'dark' })
   })
 
   it('ignora JSON corrupto, versiones desconocidas y campos extra', () => {
@@ -52,11 +59,13 @@ describe('M04.5 preferencias de apariencia', () => {
 
   it('aplica atributos separados para preset, preferencia y color resuelto', () => {
     const root = document.createElement('html')
-    applyAppearance(root, { version: 1, uiTheme: 'bento', colorMode: 'system' }, true)
+    applyAppearance(root, { version: 1, uiTheme: 'google-bento-grid', colorMode: 'system' }, true)
 
     expect(root).toHaveAttribute('data-ui-theme', 'bento')
+    expect(root).toHaveAttribute('data-ui-preset', 'google-bento-grid')
     expect(root).toHaveAttribute('data-color-mode', 'system')
     expect(root).toHaveAttribute('data-theme', 'dark')
     expect(root.style.colorScheme).toBe('dark')
+    expect(root.style.getPropertyValue('--color-primary')).toBe('#75a7ff')
   })
 })

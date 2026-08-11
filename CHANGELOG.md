@@ -2,6 +2,64 @@
 
 ## 2026-08-11
 
+- Cerrada `M08.2 — Presets visuales`: catálogo canónico de 9 presets para el editor y 11 presets independientes para frontend/backend.
+- Los presets del editor aplican color claro/oscuro, tipografía, sombras, radios, densidad y una gramática estructural compatible; `appearance.v1` migra los IDs históricos Studio/Bento/Flow sin perder preferencias.
+- Los presets de proyecto declaran layout, componentes, bordes, elevación, perfil responsive y accesibilidad; aplicarlos crea una copia editable en un único ámbito mediante Command Bus, sin reemplazar contenido ni breakpoints.
+- Añadidas paletas visuales, navegación radio con flechas/Home/End, foco roving y pruebas automáticas WCAG AA para 20 variantes de editor y 11 temas de proyecto.
+- Puerta local: lint, typecheck, **59 archivos / 271 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 396.37 kB y catálogo 153.40 kB.
+- Activada `M08.3 — Motor de plantillas`.
+
+- Cerrada `M08.1 — Tres ámbitos de tema`: editor permanece en `appearance.v1`, mientras frontend/backend se incorporan como estado canónico independiente y retrocompatible en `ProjectStructure.themes`.
+- Añadidos schema v1 y tokens semánticos estrictos para color, tipografía, espaciado, radios, sombras, movimiento y densidad; valores inseguros o fuera de rango se rechazan antes de persistir.
+- Update/reset de temas pasan por Command Bus, IndexedDB y undo/redo; el renderer consume frontend por defecto y backend de forma explícita sin mezclar tokens.
+- El store publica cambios por ámbito preservando granularidad de render; la UI de Ajustes separa Editor/Frontend/Backend con paleta, edición validada y reset honesto.
+- La revisión React mantuvo drafts aplicados por evento, compiladores fuera de componentes y suscripciones estables sin estado derivado por efectos.
+- Puerta local: lint, typecheck, **57 archivos / 246 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 380.58 kB y catálogo 153.40 kB.
+- Activada `M08.2 — Presets visuales`.
+
+- Cerrada `M07.5 — Datos, condiciones y accesibilidad` y completada F07.
+- Añadido motor neutral para bindings literales, rutas de proyecto y referencias entre nodos, más condiciones `all/any/negate` con diagnóstico fail-visible.
+- Incorporado `node.accessibility` retrocompatible con label, description, roles permitidos y tabIndex acotado; el renderer aplica ARIA y visibilidad reactivas.
+- Añadido editor JSON estructurado con diagnósticos, validación y reset en una sola operación reversible; no se adelantaron DataProvider, queries ni Action Flow.
+- Update/reset persisten mediante Command Bus e IndexedDB; pruebas cubren fuentes, operadores, reactividad, UI, ARIA y undo.
+- Puerta local: lint, typecheck, **55 archivos / 236 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 370.25 kB y catálogo 153.40 kB.
+- Activada `F08 / M08.1 — Tres ámbitos de tema`.
+
+- Cerrada `M07.4 — Motor de breakpoints`: alta, edición, orden, orientación y herencia sobre la lista canónica con rechazo de padres inválidos y ciclos.
+- Añadido administrador accesible y selección completa de perfiles; Desktop/Tablet/Móvil permanecen como atajos, no como segunda lista.
+- El canvas usa el ancho real activo y `workspace.v1` persiste solo ID/orientación de preview; reset elimina únicamente el override del nodo en ese breakpoint.
+- Operaciones integradas con Command Bus, IndexedDB, renderer y undo; `RESPONSIVE_ENGINE.md` documenta el contrato.
+- Puerta local: lint, typecheck, **54 archivos / 229 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 360.86 kB y catálogo 153.39 kB.
+- Activada `M07.5 — Datos, condiciones y accesibilidad`.
+
+- Cerrada `M07.3 — Motor de estilos`: compilador neutral a React para tokens, clases, estados interactivos, herencia segura y CSS determinista con alcance por nodo.
+- Rechazadas propiedades, extensiones y valores peligrosos (`url()`, `expression`, selectores o reglas arbitrarias) antes de persistir; el renderer también degrada con seguridad estructuras históricas inválidas.
+- Añadido editor de estilos canónicos con clases y JSON estructurado; tamaño, margen y padding permanecen bajo direct manipulation y se preservan al aplicar/resetear estilos visuales.
+- `setNodeStyles`, update y reset pasan por `ProjectStructureCommand`, `ProjectCommandBus`, IndexedDB y renderer; integración cubierta hasta undo.
+- La revisión React mantuvo el compilador fuera de React, evitó barrels nuevos en la ruta del renderer y conservó un único estado canónico.
+- Puerta local: lint, typecheck, **52 archivos / 223 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 349.95 kB y catálogo 153.39 kB.
+- Activada `M07.4 — Motor de breakpoints`.
+
+- Cerrada `M07.2 — Controles y validación`: controles nativos tipados, JSON para valores complejos, error inline accesible, defaults seguros y reset por campo.
+- Añadidos `setNodeProperties`, `updateWidgetProperty` y `resetWidgetProperty`; todos validan schema/estructura y persisten por `ProjectStructureCommand` + `ProjectCommandBus`.
+- Un formulario por campo crea una sola entrada de historial al aplicar; integración IndexedDB cubre invalidación, update, reset y undo.
+- Puerta local: lint, typecheck, **51 archivos / 215 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 337.13 kB y catálogo 153.39 kB.
+- Activada `M07.3 — Motor de estilos`.
+
+- Cerrada `M07.1 — Inspector generado por schema`: nueve secciones derivadas exclusivamente de `WidgetDefinition.inspector`, con descriptor, tipo, opciones, obligatoriedad, valor efectivo y origen Nodo/Predeterminado.
+- Añadidos grupos nativos `details/summary`, conteos, estados vacíos y fallback honesto para selecciones sin definición; no se crearon inputs inertes ni runtimes futuros.
+- Creado `INSPECTOR_SYSTEM.md` como contrato breve para F07.
+- Puerta local: lint, typecheck, **51 archivos / 213 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 332.28 kB y catálogo 153.39 kB.
+- Activada `M07.2 — Controles y validación`.
+
+- Cerrada `M06.5 — UX de biblioteca` y completada F06: búsqueda, categorías, filtros, favoritos, recientes, miniaturas SVG y presets guardados sobre las 115 definiciones reales.
+- Añadido `library.v1` para preferencias locales versionadas y recuperables; los presets conservan propiedades/estilos/responsive sin copiar hijos ni referencias dinámicas.
+- Añadida inserción por clic y DnD pointer/touch/teclado con destino visible en canvas y alternativa accesible sin arrastre.
+- Toda inserción valida defaults, genera ID, elige colocación canónica y ejecuta `ProjectStructureCommand` mediante el `ProjectCommandBus`; el nodo nuevo queda seleccionado.
+- La revisión React separó proveedor/contexto DnD, evitó lecturas de refs durante render, difirió búsqueda y aplicó `content-visibility` al catálogo largo.
+- Puerta local: lint, typecheck, **49 archivos / 209 pruebas**, build Vite 7.3.6 y `git diff --check` verdes; entry 329.71 kB, DnD 53.27 kB, persistencia 96.44 kB y catálogo 153.39 kB.
+- Activada `M07.1 — Inspector generado por schema`.
+
 - Eliminada la “demo final” completa y sus datos aspiracionales: dashboard, módulos, métricas, rutas, command palette y superficies de producto futuras.
 - Retirados Run, preview, generador IA, binding, acciones, backend, páginas ficticias y todos los controles inertes que aparentaban funcionalidad.
 - Sustituido `Revista Horizonte` por `Proyecto local / Página inicial`, una estructura canónica mínima y una nueva base local v2 que no restaura la demo anterior.

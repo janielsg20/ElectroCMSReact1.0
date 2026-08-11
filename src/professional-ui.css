@@ -228,6 +228,11 @@ body,
   min-width: 0;
 }
 
+.widget-library-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 8rem;
+}
+
 #library-panel-widgets .semantic-option > span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;

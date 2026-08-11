@@ -46,7 +46,7 @@ function safeCoordinate(value: number, fallback: number): number {
   return Number.isFinite(value) ? value : fallback
 }
 
-export function DirectManipulationFrame({ children, snapshot, style }: CanonicalNodeFrameProps) {
+export function DirectManipulationFrame({ children, className, snapshot, style, styleScope, styleSheet }: CanonicalNodeFrameProps) {
   const session = useEditorProject()
   const selection = useEditorSelection()
   const selected = useNodeSelected(snapshot.node.id)
@@ -159,11 +159,12 @@ export function DirectManipulationFrame({ children, snapshot, style }: Canonical
   return (
     <div
       aria-label={`${snapshot.node.name}${locked ? ', bloqueado' : ''}`}
-      className="direct-node-frame relative"
+      className={`direct-node-frame relative ${className}`.trim()}
       data-node-id={snapshot.node.id}
       data-node-locked={locked ? 'true' : 'false'}
       data-node-name={snapshot.node.name}
       data-selected={selected ? 'true' : 'false'}
+      data-style-scope={styleScope}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -180,6 +181,7 @@ export function DirectManipulationFrame({ children, snapshot, style }: Canonical
       style={renderedStyle}
       tabIndex={selected ? 0 : -1}
     >
+      {styleSheet ? <style data-node-state-styles={snapshot.node.id}>{styleSheet}</style> : null}
       {children}
       {selected ? (
         <>

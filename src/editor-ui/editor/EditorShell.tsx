@@ -15,6 +15,7 @@ import {
   type WorkspaceState,
 } from './workspace-preferences'
 import { Button, Icon } from '../primitives'
+import { getEditorThemePreset } from '../theme/editor-presets'
 
 type PointerInteraction =
   | { readonly kind: 'nav-resize'; readonly startX: number; readonly startWidth: number }
@@ -107,7 +108,7 @@ function PanelContent({ panel, libraryTab, inspectorTab, onLibraryTabChange, onI
 
 export function EditorShell() {
   const [darkMode, setDarkMode] = useState(false)
-  const [uiTheme, setUiTheme] = useState<UiTheme>('studio')
+  const [uiTheme, setUiTheme] = useState<UiTheme>('high-density')
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('layers')
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('properties')
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
@@ -141,8 +142,13 @@ export function EditorShell() {
   }, [darkMode])
 
   useLayoutEffect(() => {
-    document.documentElement.dataset.uiTheme = uiTheme
-    return () => { delete document.documentElement.dataset.uiTheme }
+    const preset = getEditorThemePreset(uiTheme)
+    document.documentElement.dataset.uiPreset = preset.id
+    document.documentElement.dataset.uiTheme = preset.layout
+    return () => {
+      delete document.documentElement.dataset.uiPreset
+      delete document.documentElement.dataset.uiTheme
+    }
   }, [uiTheme])
 
   useEffect(() => {

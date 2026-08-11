@@ -74,6 +74,14 @@ export {
 } from './identity'
 export { DEFAULT_BREAKPOINTS } from './default-breakpoints'
 export {
+  createBreakpoint,
+  reorderBreakpoint,
+  resetNodeBreakpointOverride,
+  updateBreakpoint,
+  type BreakpointInput,
+  type BreakpointPatch,
+} from './breakpoint-engine'
+export {
   createProjectEnvelopeSchema,
   CURRENT_PROJECT_SCHEMA_VERSION,
   JsonValueSchema,
@@ -92,6 +100,7 @@ export {
   DocumentSchema,
   GlobalComponentSchema,
   NodeResponsiveOverrideSchema,
+  NodeAccessibilitySchema,
   NodeSchema,
   ProjectStructureSchema,
   type BindingSource,
@@ -102,8 +111,17 @@ export {
   type GlobalComponent,
   type Node,
   type NodeResponsiveOverride,
+  type NodeAccessibility,
   type ProjectStructure,
 } from './structure-schema'
+export {
+  NodeDataSettingsSchema,
+  resolveNodeDataState,
+  setNodeDataSettings,
+  type DataConditionDiagnostic,
+  type NodeDataSettings,
+  type ResolvedNodeDataState,
+} from './data-condition-engine'
 export {
   resolveNodeResponsiveState,
   resolveValidatedNodeResponsiveState,
@@ -112,6 +130,58 @@ export {
   type StructureDiagnostic,
   type StructureDiagnosticCode,
 } from './validate-structure'
+export {
+  CANONICAL_GEOMETRY_STYLE_KEYS,
+  CANONICAL_STYLE_STATES,
+  CORE_STYLE_TOKENS,
+  STYLE_CLASSES_KEY,
+  STYLE_STATES_KEY,
+  compileCanonicalStyles,
+  editableVisualStyles,
+  mergeEditableVisualStyles,
+  validateCanonicalStyles,
+  type CanonicalStyleMap,
+  type CanonicalStyleState,
+  type CompiledCanonicalStyles,
+  type CompileCanonicalStylesOptions,
+  type StyleEngineDiagnostic,
+  type StyleTokenMap,
+} from './style-engine'
+export {
+  DEFAULT_BACKEND_THEME,
+  DEFAULT_FRONTEND_THEME,
+  DEFAULT_PROJECT_THEMES,
+  ProjectThemeSchema,
+  ProjectThemesSchema,
+  ProjectThemeScopeSchema,
+  SemanticThemeTokensSchema,
+  THEME_SCHEMA_VERSION,
+  ThemeScopeSchema,
+  type ProjectTheme,
+  type ProjectThemes,
+  type ProjectThemeScope,
+  type SemanticThemeTokens,
+  type ThemeScope,
+} from './theme-schema'
+export {
+  compileThemeStyleTokens,
+  defaultProjectTheme,
+  resetProjectTheme,
+  setProjectTheme,
+  themePersistence,
+  type ThemeDiagnostic,
+  type ThemePersistence,
+} from './theme-engine'
+export {
+  applyProjectThemePreset,
+  getProjectThemePreset,
+  projectThemeContrastPairs,
+  PROJECT_THEME_PRESETS,
+  themeContrastRatio,
+  type ProjectThemePreset,
+  type ProjectThemePresetId,
+  type ThemePresetDiagnostic,
+} from './theme-presets'
 export {
   BackendScreenSchema,
   CmsBackendSchema,
@@ -233,6 +303,8 @@ export {
   nestNodes,
   pasteNodes,
   renameNode,
+  setNodeProperties,
+  setNodeStyles,
   setNodesHidden,
   setNodesLocked,
   type NodePlacement,

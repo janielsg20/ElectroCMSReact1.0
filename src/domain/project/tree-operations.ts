@@ -1,6 +1,7 @@
 import { failure, success, type Result } from '../common/result'
 import type { DocumentId, GlobalComponentId, NodeId } from './identity'
 import type { BindingSource, Node, ProjectStructure } from './structure-schema'
+import { validateCanonicalStyles } from './style-engine'
 import { validateProjectStructure } from './validate-structure'
 
 export type TreeOwner =
@@ -25,8 +26,12 @@ export type TreeOperationErrorCode =
   | 'invalid-tree'
   | 'clipboard-empty'
   | 'breakpoint-not-found'
+  | 'invalid-breakpoint'
   | 'invalid-geometry'
   | 'invalid-spacing'
+  | 'invalid-styles'
+  | 'invalid-theme'
+  | 'invalid-data-settings'
 
 export interface TreeOperationError {
   readonly code: TreeOperationErrorCode
@@ -463,5 +468,41 @@ export function renameNode(
   const trimmed = name.trim()
   if (!trimmed || trimmed.length > 160) return operationFailure('invalid-selection', 'El nombre debe contener entre 1 y 160 caracteres.')
   tree.nodes[nodeId] = { ...node, name: trimmed }
+  return validateMutation(next)
+}
+
+export function setNodeProperties(
+  structure: ProjectStructure,
+  owner: TreeOwner,
+  nodeId: NodeId,
+  properties: Node['properties'],
+): Result<ProjectStructure, TreeOperationError> {
+  const next = cloneStructure(structure)
+  const tree = ownerTree(next, owner)
+  if (!tree) return operationFailure('owner-not-found', 'El documento o componente no existe.')
+  const node = tree.nodes[nodeId]
+  if (!node) return operationFailure('node-not-found', `El nodo ${nodeId} no existe.`)
+  if (node.locked) return operationFailure('locked-node', `El nodo ${nodeId} está bloqueado.`)
+  tree.nodes[nodeId] = { ...node, properties: structuredClone(properties) }
+  return validateMutation(next)
+}
+
+export function setNodeStyles(
+  structure: ProjectStructure,
+  owner: TreeOwner,
+  nodeId: NodeId,
+  styles: Node['styles'],
+): Result<ProjectStructure, TreeOperationError> {
+  const safe = validateCanonicalStyles(styles)
+  if (!safe.ok) {
+    return operationFailure('invalid-styles', safe.error.slice(0, 3).map((item) => item.message).join(' '))
+  }
+  const next = cloneStructure(structure)
+  const tree = ownerTree(next, owner)
+  if (!tree) return operationFailure('owner-not-found', 'El documento o componente no existe.')
+  const node = tree.nodes[nodeId]
+  if (!node) return operationFailure('node-not-found', `El nodo ${nodeId} no existe.`)
+  if (node.locked) return operationFailure('locked-node', `El nodo ${nodeId} está bloqueado.`)
+  tree.nodes[nodeId] = { ...node, styles: structuredClone(safe.value) }
   return validateMutation(next)
 }

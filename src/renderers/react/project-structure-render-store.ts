@@ -1,5 +1,6 @@
 import {
   failure,
+  resolveNodeDataState,
   resolveValidatedNodeResponsiveState,
   success,
   validateProjectStructure,
@@ -9,18 +10,24 @@ import {
   type GlobalComponent,
   type GlobalComponentId,
   type Node,
+  type NodeAccessibility,
   type NodeId,
   type ProjectStructure,
+  type ProjectTheme,
+  type ProjectThemeScope,
   type ResolvedNodeResponsiveState,
   type Result,
   type StructureDiagnostic,
 } from '../../domain'
+import type { DataConditionDiagnostic } from '../../domain/project/data-condition-engine'
 
 type StructureTree = Document | GlobalComponent
 type Listener = () => void
 const EMPTY_NODE_IDS: readonly NodeId[] = Object.freeze([])
 
 export interface NodeRenderSnapshot {
+  readonly accessibility: NodeAccessibility
+  readonly diagnostics: readonly DataConditionDiagnostic[]
   readonly node: Node
   readonly responsive: ResolvedNodeResponsiveState
 }
@@ -29,6 +36,7 @@ interface CachedNodeSnapshot {
   readonly breakpointId: BreakpointId
   readonly breakpoints: ProjectStructure['breakpoints']
   readonly node: Node
+  readonly structure: ProjectStructure
   readonly snapshot: NodeRenderSnapshot
 }
 
@@ -63,6 +71,7 @@ export class ProjectStructureRenderStore {
   readonly #documentListeners = new Map<DocumentId, Set<Listener>>()
   readonly #nodeListeners = new Map<NodeId, Set<Listener>>()
   readonly #structureListeners = new Set<Listener>()
+  readonly #themeListeners = new Map<ProjectThemeScope, Set<Listener>>()
   readonly #snapshotCache = new Map<NodeId, CachedNodeSnapshot>()
   #nodeOwners: ReadonlyMap<NodeId, StructureTree>
   #structure: ProjectStructure
@@ -88,6 +97,10 @@ export class ProjectStructureRenderStore {
     return this.getDocument(documentId)?.rootNodeIds ?? EMPTY_NODE_IDS
   }
 
+  getTheme(scope: ProjectThemeScope): ProjectTheme {
+    return this.#structure.themes[scope]
+  }
+
   getComponentRootNodeIds(componentId: GlobalComponentId): readonly NodeId[] {
     return this.#structure.globalComponents[componentId]?.rootNodeIds ?? EMPTY_NODE_IDS
   }
@@ -104,6 +117,7 @@ export class ProjectStructureRenderStore {
       cached?.node === node
       && cached.breakpointId === breakpointId
       && cached.breakpoints === this.#structure.breakpoints
+      && (Object.keys(node.bindings).length === 0 && node.conditions.length === 0 || cached.structure === this.#structure)
     ) {
       return cached.snapshot
     }
@@ -111,12 +125,23 @@ export class ProjectStructureRenderStore {
     const resolved = resolveValidatedNodeResponsiveState(this.#structure, node, breakpointId)
     if (!resolved.ok) return undefined
 
-    const snapshot = { node, responsive: resolved.value } satisfies NodeRenderSnapshot
+    const data = resolveNodeDataState(this.#structure, node, resolved.value.properties)
+    const snapshot = {
+      accessibility: data.accessibility,
+      diagnostics: data.diagnostics,
+      node,
+      responsive: {
+        ...resolved.value,
+        hidden: resolved.value.hidden || !data.visible,
+        properties: data.properties,
+      },
+    } satisfies NodeRenderSnapshot
     this.#snapshotCache.set(nodeId, {
       breakpointId,
       breakpoints: this.#structure.breakpoints,
       node,
       snapshot,
+      structure: this.#structure,
     })
     return snapshot
   }
@@ -134,6 +159,10 @@ export class ProjectStructureRenderStore {
     return () => this.#structureListeners.delete(listener)
   }
 
+  subscribeTheme(scope: ProjectThemeScope, listener: Listener): () => void {
+    return this.#subscribe(this.#themeListeners, scope, listener)
+  }
+
   replaceStructure(
     input: unknown,
   ): Result<ProjectStructure, readonly StructureDiagnostic[]> {
@@ -141,9 +170,23 @@ export class ProjectStructureRenderStore {
     if (!validated.ok) return failure(validated.error)
 
     const previous = this.#structure
-    const next = validated.value
+    const parsed = validated.value
+    const next: ProjectStructure = {
+      ...parsed,
+      themes: {
+        backend: sameJson(previous.themes.backend, parsed.themes.backend) ? previous.themes.backend : parsed.themes.backend,
+        frontend: sameJson(previous.themes.frontend, parsed.themes.frontend) ? previous.themes.frontend : parsed.themes.frontend,
+      },
+    }
     const breakpointsChanged = !sameJson(previous.breakpoints, next.breakpoints)
     const nextOwners = indexNodeOwners(next)
+    const dynamicNodeIds = new Set<NodeId>([...nextOwners.entries()]
+      .filter(([nodeId, tree]) => {
+        const node = tree.nodes[nodeId]
+        return Boolean(node && (Object.keys(node.bindings).length > 0 || node.conditions.length > 0))
+      })
+      .map(([nodeId]) => nodeId))
+    const notifiedNodeIds = new Set<NodeId>()
     const nodeIds = new Set<NodeId>([
       ...this.#nodeOwners.keys(),
       ...nextOwners.keys(),
@@ -156,6 +199,9 @@ export class ProjectStructureRenderStore {
     this.#structure = next
     this.#nodeOwners = nextOwners
     this.#emit(this.#structureListeners)
+    for (const scope of ['frontend', 'backend'] as const) {
+      if (previous.themes[scope] !== next.themes[scope]) this.#emit(this.#themeListeners.get(scope))
+    }
 
     for (const nodeId of nodeIds) {
       const previousNode = this.#findNode(previous, nodeId)
@@ -174,6 +220,13 @@ export class ProjectStructureRenderStore {
       if (breakpointsChanged || referencedComponentChanged || !sameJson(previousNode, nextNode)) {
         this.#snapshotCache.delete(nodeId)
         this.#emit(this.#nodeListeners.get(nodeId))
+        notifiedNodeIds.add(nodeId)
+        for (const dynamicNodeId of dynamicNodeIds) {
+          if (notifiedNodeIds.has(dynamicNodeId)) continue
+          this.#snapshotCache.delete(dynamicNodeId)
+          this.#emit(this.#nodeListeners.get(dynamicNodeId))
+          notifiedNodeIds.add(dynamicNodeId)
+        }
       }
     }
 
