@@ -168,6 +168,16 @@ interface CanvasNodeViewProps {
   readonly onNodeRender?: (nodeId: NodeId) => void
 }
 
+interface CanvasNodeContentProps {
+  readonly node: CanvasRenderNode
+  readonly renderNode: CanvasNodeRenderer
+  readonly children: ReactNode
+}
+
+function CanvasNodeContent({ node, renderNode, children }: CanvasNodeContentProps) {
+  return renderNode({ node, children })
+}
+
 const CanvasNodeView = memo(function CanvasNodeView({ node, renderNode, onNodeRender }: CanvasNodeViewProps) {
   onNodeRender?.(node.id)
   if (node.hidden) return null
@@ -182,7 +192,7 @@ const CanvasNodeView = memo(function CanvasNodeView({ node, renderNode, onNodeRe
 
   return (
     <CanvasNodeBoundary nodeId={node.id} resetKey={node.signature}>
-      {renderNode({ node, children })}
+      <CanvasNodeContent node={node} renderNode={renderNode}>{children}</CanvasNodeContent>
     </CanvasNodeBoundary>
   )
 }, (previous, next) => (
