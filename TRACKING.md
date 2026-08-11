@@ -5,10 +5,11 @@ Actualizado: 2026-08-10.
 ## Estado global
 
 - Fase actual: `F04 — Application shell, navegación y workspaces responsive`.
-- Microfase actual: `M04.2 — Shell tablet`.
+- Microfase actual: `M04.3 — Shell móvil`.
 - Estado: `EN_CURSO`.
 - F00–F03: `COMPLETADA`.
 - `M04.1 — Shell desktop`: `COMPLETADA`.
+- `M04.2 — Shell tablet`: `COMPLETADA`.
 - F05–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
 - La incorporación del Addendum no cambia ni adelanta el orden real de fases.
@@ -31,7 +32,7 @@ Actualizado: 2026-08-10.
 | F01 | COMPLETADA | Plataforma React/Tailwind/PWA |
 | F02 | COMPLETADA | Modelo canónico y migraciones |
 | F03 | COMPLETADA | Persistencia local-first, proyectos, autosave, recuperación y Command Bus/History |
-| F04 | EN_CURSO | M04.1 desktop completada; M04.2 tablet activa |
+| F04 | EN_CURSO | M04.1 desktop y M04.2 tablet completadas; M04.3 móvil activa |
 | F05–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
@@ -67,27 +68,39 @@ Actualizado: 2026-08-10.
 - Se corrigió la hidratación para evitar `setState` síncrono dentro de effects y renders redundantes; el log final no contiene avisos `act(...)` del workspace.
 - Puerta técnica final PR #6 / run `31451142252`: lint, typecheck, 26 archivos de test / 102 pruebas y build Vite 7.3.6 correctos.
 
+## Cierre M04.2 — Shell tablet
+
+- Añadido `ResponsiveEditorShell` como capa adaptativa sobre el shell existente, sin duplicar el workspace desktop ni crear una segunda fuente de verdad.
+- Entre 768 y 1023 px el rail se presenta completamente contraído a 44 px y el canvas conserva prioridad de espacio.
+- Biblioteca e Inspector se intercambian como único panel contextual persistente; el secundario se abre como dialog lateral superpuesto y descartable.
+- El overlay secundario admite resize por puntero y teclado, `Home`/`End`, valores ARIA, `Escape`, focus trap y restauración de foco al disparador.
+- El panel secundario puede promoverse a persistente mediante una acción explícita; nunca quedan dos paneles persistentes simultáneos en tablet.
+- Portrait 768 y landscape 1023 están cubiertos por pruebas; al cruzar a 1024 se desmontan las superficies tablet y reaparece el comportamiento desktop.
+- Anchura y geometría del overlay tablet son estado efímero en React y no se escriben en `workspace.v1`; una prueba compara el payload de preferencias antes/después del resize.
+- El rail tablet oculta también etiquetas y encabezados heredados cuando la preferencia desktop estaba expandida, sin modificar esa preferencia persistida.
+- Puerta técnica PR #8 / run `31453249710`: lint y typecheck correctos, 27 archivos de test / 107 pruebas verdes y build Vite 7.3.6 correcto.
+
 ## Entregas UI anticipadas que continúan pendientes de su fase propietaria
 
 - Biblioteca/árbol, canvas, inspector, dock móvil y themes existen visualmente y con interacciones parciales.
 - `src/ui-integrity-v11.css` sigue como guardrail cross-theme para tamaño, selección, foco y overflow.
-- M04.1 formaliza únicamente el shell desktop y su workspace; no cierra tablet/móvil, rutas, themes, F05–F07 ni F19.
+- M04.1 y M04.2 formalizan únicamente shell desktop/tablet; no cierran móvil, rutas, themes, F05–F07 ni F19.
 - La consolidación de CSS/primitives continúa de forma segura al entrar cada microfase propietaria.
 
 ## Próximo paso exacto
 
-`M04.2 — Shell tablet`:
+`M04.3 — Shell móvil`:
 
-- mantener rail contraído y canvas como región prioritaria;
-- permitir un solo panel contextual persistente a la vez;
-- presentar el panel secundario como overlay accesible y descartable;
-- comprobar landscape y portrait;
-- retener/restaurar foco y soportar `Escape`;
-- reutilizar `workspace.v1` sin persistir geometría efímera del overlay como layout desktop.
+- mantener el canvas como región prioritaria;
+- formalizar navegación compacta para 320–767 px;
+- presentar paneles como sheets o pantallas completas sin perder funciones;
+- conservar acciones esenciales sin depender de drag;
+- verificar 320 y 375 px sin overflow horizontal de página;
+- validar foco, `Escape`, touch targets y reflow antes de avanzar a M04.4.
 
 ## Bloqueos
 
-- Ninguno para M04.2.
+- Ninguno para M04.3.
 - F19–F31 están deliberadamente pendientes de sus dependencias, no bloqueadas.
 
 ## Criterio para cambiar de microfase
@@ -101,7 +114,8 @@ No avanzar hasta cerrar la microfase activa con evidencia reproducible. La docum
 - Modelo canónico v1, Zod, migraciones, breakpoints, CMS models y relaciones probados.
 - Dexie/IndexedDB, ciclo de proyecto, import/export, recovery journal y project-history probados.
 - M04.1: run `31451142252`, 102/102 pruebas, lint/typecheck/build verdes.
-- Evidencia responsive histórica existe para 320/375/768/1024/1440/812×375; M04.2 debe volver a validar específicamente tablet antes de cerrar.
+- M04.2: run `31453249710`, 107/107 pruebas, lint/typecheck/build verdes; pruebas específicas 768/1023 y transición a 1024.
+- Evidencia responsive histórica existe para 320/375/768/1024/1440/812×375; M04.3 debe volver a validar específicamente 320/375 antes de cerrar.
 - Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
 ## Documentos de control
