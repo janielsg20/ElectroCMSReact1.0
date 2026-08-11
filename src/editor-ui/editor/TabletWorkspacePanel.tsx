@@ -1,6 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { Button, Icon } from '../primitives'
 import type { WorkspacePanel } from './PanelWindow'
+import './tablet-workspace.css'
 
 interface TabletWorkspacePanelProps {
   readonly primaryPanel: WorkspacePanel
