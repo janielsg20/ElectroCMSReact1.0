@@ -7,12 +7,13 @@ Actualizado: 2026-08-11.
 ## Estado global
 
 - Fase actual: `F09 — Contenido dinámico, CPT, taxonomías y campos`.
-- Microfase actual: `M09.3 — Campos personalizados`.
+- Microfase actual: `M09.4 — Registros y relaciones`.
 - Estado: `EN_CURSO`.
 - F00–F08: `COMPLETADA`.
 - `M09.1 — CPT`: `COMPLETADA`.
 - `M09.2 — Taxonomías`: `COMPLETADA`.
-- `M09.3–M09.5`: pendientes, con M09.3 activa.
+- `M09.3 — Campos personalizados`: `COMPLETADA`.
+- `M09.4–M09.5`: pendientes, con M09.4 activa.
 - F10–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 - Auditoría extraordinaria F04/M04.1: `COMPLETADA` sin invalidar el cierre histórico de F04.
@@ -30,7 +31,7 @@ Actualizado: 2026-08-11.
 | F06 | COMPLETADA | Registro versionado, 115 widgets, adapters y biblioteca |
 | F07 | COMPLETADA | Inspector, estilos, responsive, bindings, condiciones y ARIA |
 | F08 | COMPLETADA | Temas, presets, plantillas y paquetes versionados |
-| F09 | EN_CURSO | M09.1–M09.2 completadas; M09.3 Campos personalizados activa |
+| F09 | EN_CURSO | M09.1–M09.3 completadas; M09.4 Registros y relaciones activa |
 | F10–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -56,96 +57,85 @@ Actualizado: 2026-08-11.
 
 ## Cierre M09.1 — CPT
 
-### Modelo y dominio
-
-- `ProjectStructure.cms` integra opcionalmente `CmsBackendSchema` para mantener retrocompatibilidad.
-- `content-type-engine.ts` implementa CRUD canónico con ID/slug únicos.
-- Capacidades y soportes se deduplican.
-- Soportes: title, editor, author, thumbnail, excerpt, revisions y custom-fields.
-- Singular/plural, descripción, icono, público/privado, menú, orden y plantillas single/archive son editables.
-- Las plantillas se validan contra documentos compatibles.
-- El borrado se bloquea ante dependencias CMS.
-- Cada candidato valida `CmsBackend` y `ProjectStructure` completo.
-
-### Persistencia/UI
-
-- `ContentTypeSession` está segregada del contrato base.
-- Create/update/delete pasan por `ProjectStructureCommand` + `ProjectCommandBus` + IndexedDB.
-- Integración: `create → update → undo → redo → delete → undo`.
-- UI funcional en `Biblioteca → Datos → Tipos`.
-- Targets ~44 px touch / ~36 px desktop, listas y fieldsets accesibles, confirmación de borrado en dos pasos.
+- `ProjectStructure.cms` integra `CmsBackendSchema` de forma retrocompatible.
+- `content-type-engine.ts` implementa CRUD con ID/slug únicos, capacidades, soportes, visibilidad, orden y Single/Archive compatibles.
+- Borrado protegido por dependencias CMS.
+- `ContentTypeSession` usa Command Bus + IndexedDB + undo/redo.
+- UI: `Datos → Tipos`.
 - Documento: `CONTENT_TYPE_SYSTEM.md`.
-
-### Puerta M09.1
-
-Run `31544864623`: lint, typecheck, suite completa y build verdes; deploy omitido por PR draft.
+- Gate: run `31544864623`, lint/typecheck/suite/build verdes.
 
 ## Cierre M09.2 — Taxonomías
 
-### Modelo y dominio
-
-- `taxonomy-engine.ts` reutiliza exactamente `TaxonomySchema` y `TaxonomyTermSchema`; no añade estado CMS paralelo.
-- Taxonomías: ID/slug únicos, singular/plural, descripción, jerárquica/plana, asociaciones múltiples, `fieldIds` preservados y `archiveTemplateId` compatible.
-- La relación `Taxonomy.contentTypeIds` ↔ `ContentType.taxonomyIds` se sincroniza bidireccionalmente.
-- `archiveTemplateId` solo acepta documentos `archive` o `template` existentes.
-- Términos: slug único dentro de su taxonomía, descripción y padre opcional.
-- Taxonomías planas no admiten padres; padres deben pertenecer a la misma taxonomía; ciclos jerárquicos se rechazan.
-- No se permite cambiar a plana mientras existan términos con padre.
-- Borrado de taxonomía bloqueado por términos, campos o queries dependientes.
-- Borrado de término bloqueado por hijos, registros o predicados de query que lo referencien.
-- Cada candidato valida `CmsBackend` y `ProjectStructure` completo.
-
-### Persistencia e historial
-
-- Capacidad segregada `TaxonomySession`.
-- Create/update/delete de taxonomías y términos usan comandos `cms.*` sobre el mismo Command Bus.
-- IndexedDB y undo/redo canónico cubiertos por integración real.
-- Al eliminar una taxonomía válida se limpian también las asociaciones inversas de CPT.
-
-### UI/UX
-
-- `Datos` se organiza en tabs secundarios reales: `Tipos` y `Taxonomías`.
-- Los tabpanels inactivos usan el atributo HTML `hidden` para desaparecer también del árbol de accesibilidad.
-- El gestor de Taxonomías permite CRUD, CPT múltiples, jerarquía, Archive Template y términos.
-- Borrados usan confirmación en dos pasos y presentan diagnósticos con `aria-live`.
-- Targets touch/desktop y densidad siguen el sistema High Density + Minimal Clean.
-- Campos personalizados no se simulan antes de M09.3.
+- `taxonomy-engine.ts` reutiliza `TaxonomySchema`/`TaxonomyTermSchema`.
+- Asociaciones CPT↔taxonomía bidireccionales; Archive compatible; jerarquía sin ciclos.
+- Borrado protegido por términos, campos, registros/queries cuando corresponda.
+- `TaxonomySession` usa Command Bus + IndexedDB + undo/redo.
+- UI: `Datos → Taxonomías`.
 - Documento: `TAXONOMY_SYSTEM.md`.
+- Gate: run `31546741841`, lint/typecheck, 304/304 pruebas y build verdes.
 
-### Puerta M09.2
+## Cierre M09.3 — Campos personalizados
 
-GitHub Actions run `31546741841`:
+### Dominio e integridad
+
+- `custom-field-engine.ts` formaliza `FieldDefinitionSchema` sin crear schemas alternativos.
+- CRUD para propietarios CPT y taxonomía con key única por propietario.
+- 27 tipos exigidos: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
+- Validación de defaults por tipo, opciones únicas, condiciones del mismo propietario y roles existentes.
+- group/repeater admiten hijos del mismo propietario y se benefician de la detección de ciclos de `validateCmsBackend`.
+- relation solo referencia una Relation canónica existente y compatible; taxonomy solo una taxonomía existente/compatible; calculated exige expresión.
+- Cambiar tipo queda bloqueado si existen valores almacenados.
+- `ContentType.fieldIds` / `Taxonomy.fieldIds` se sincronizan con create/delete.
+- Borrado protegido por valores, composición, condiciones, queries, formularios y permisos de rol.
+- Cada candidato valida `CmsBackend` y después `ProjectStructure` completo.
+
+### Persistencia/UI
+
+- `CustomFieldSession` está segregada del contrato base.
+- Comandos `cms.create-custom-field`, `cms.update-custom-field` y `cms.delete-custom-field` usan el mismo Command Bus/IndexedDB/history.
+- Integración real cubre `create → update → undo → redo → delete → undo`.
+- `Datos` ahora expone tabs secundarios `Tipos | Taxonomías | Campos` con tabpanels semánticamente `hidden` cuando están inactivos.
+- UI estructurada por tipo: propietario, label/key, validación, opciones, hijos, relación/taxonomía, calculated, default, condiciones y roles.
+- La UI no crea relaciones ni roles ficticios; remite honestamente a M09.4/F12.
+- Registros y bindings siguen fuera hasta M09.4/M09.5.
+- Documento: `CUSTOM_FIELD_SYSTEM.md`.
+
+### Puerta M09.3
+
+GitHub Actions run `31548253008`:
 
 - Lint: `VERDE`.
 - Typecheck: `VERDE`.
-- Suite completa: `304/304 VERDE`.
+- Suite completa: `73 archivos / 312 pruebas VERDES`.
 - Build producción: `VERDE`.
 - Deploy producción: `SKIPPED` por PR draft.
 
-## M09.3 — alcance activo
+## M09.4 — alcance activo
 
-Implementar el sistema de campos personalizados antes de avanzar a M09.4:
+Objetivo: CRUD de registros, validación, borradores, revisiones y relaciones con integridad referencial.
 
-- CRUD de `FieldDefinition` canónico para propietarios CPT y taxonomía.
-- Tipos exigidos por el prompt: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
-- Valor predeterminado, placeholder, descripción, requerido y validación.
-- Opciones para select/radio/checkbox.
-- Condiciones tipadas.
-- Campos hijos para group/repeater, sin ciclos.
-- Relaciones/taxonomías existentes para tipos que las requieren.
-- Expresión para calculated.
-- Visibilidad por rol usando el contrato existente.
-- Organización por grupo y orden.
-- Integridad bidireccional con `ContentType.fieldIds` / `Taxonomy.fieldIds`.
-- Persistencia e historial por Command Bus.
-- UI funcional y accesible dentro de `Datos`, sin adelantar registros/bindings.
-- Tests de invariantes, persistencia, undo/redo y UI.
-- Gate lint + typecheck + suite + build antes de activar M09.4.
+Antes de avanzar a M09.5 debe cubrir:
 
-## Bloqueos
+- CRUD canónico de `ContentRecord` con estados draft/pending/published/private/archived.
+- Validación de valores contra los `FieldDefinition` reales del CPT, incluidos required, tipos, opciones y taxonomías.
+- TaxonomyTermIds compatibles con las taxonomías asociadas al CPT.
+- Autor solo si existe un usuario canónico.
+- Cronología y actualización de timestamps consistente.
+- Definir explícitamente el alcance de revisiones de contenido sin confundirlas con ProjectCommandBus/history.
+- CRUD de `Relation` y `RelationEntry`.
+- Slug único de relación y endpoints CPT existentes.
+- Cardinalidades one-to-one, one-to-many y many-to-many con integridad.
+- Proteger eliminación de registros/relaciones cuando existan referencias incompatibles.
+- Persistencia/historial por Command Bus.
+- UI funcional dentro de `Datos`, responsive y accesible; sin adelantar bindings de M09.5.
+- Tests de dominio, IndexedDB/undo/redo y UI.
+- Gate lint + typecheck + suite + build antes de activar M09.5.
 
-- Ninguno técnico conocido para M09.3.
-- `FieldDefinitionSchema` ya existe como contrato anticipado, pero aún no cuenta como implementación formal hasta cerrar CRUD, integridad, persistencia, UI y pruebas.
+## Bloqueos / decisiones por resolver dentro de M09.4
+
+- `ContentRecordSchema`, `RelationSchema` y `RelationEntrySchema` ya existen como contratos anticipados, pero no cuentan como implementación formal.
+- El requisito de “revisiones” debe revisarse contra el prompt/reglas y el history de proyecto antes de introducir una nueva colección. No se asumirá que el history global equivale automáticamente a revisiones de contenido.
 
 ## Regla de avance
 
@@ -161,4 +151,5 @@ No cambiar de microfase sin evidencia reproducible verde. Tipos, documentación 
 - Paquetes: `THEME_PACKAGE_SYSTEM.md`.
 - CPT: `CONTENT_TYPE_SYSTEM.md`.
 - Taxonomías: `TAXONOMY_SYSTEM.md`.
+- Campos: `CUSTOM_FIELD_SYSTEM.md`.
 - Historial: `CHANGELOG.md`.
