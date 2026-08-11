@@ -4,13 +4,13 @@ Actualizado: 2026-08-10.
 
 ## Estado global
 
-- Fase actual: `F03 — Persistencia local-first, proyectos e historial`.
-- Microfase actual: `M03.4 — Command bus e historial`.
+- Fase actual: `F04 — Application shell, navegación y workspaces responsive`.
+- Microfase actual: `M04.1 — Shell desktop`.
 - Estado: `EN_CURSO`.
-- F00–F02: `COMPLETADA`.
-- F04–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran las fases funcionales.
+- F00–F03: `COMPLETADA`.
+- F05–F18: `NO_INICIADA` salvo entregas UI anticipadas que no cierran sus fases funcionales.
 - F19–F31: `NO_INICIADA`; añadidas como ampliación documental de paridad funcional tipo FlutterFlow.
-- La incorporación del Addendum no cambia ni adelanta la microfase activa.
+- La incorporación del Addendum no cambia ni adelanta el orden real de fases.
 
 ## Ampliación de alcance 2026-08-10
 
@@ -29,8 +29,9 @@ Actualizado: 2026-08-10.
 | F00 | COMPLETADA | Descubrimiento y contratos |
 | F01 | COMPLETADA | Plataforma React/Tailwind/PWA |
 | F02 | COMPLETADA | Modelo canónico y migraciones |
-| F03 | EN_CURSO | Persistencia e historial; M03.4 activa |
-| F04–F18 | NO_INICIADA | Roadmap base existente |
+| F03 | COMPLETADA | Persistencia local-first, proyectos, autosave, recuperación y Command Bus/History |
+| F04 | EN_CURSO | Application shell responsive; M04.1 activa |
+| F05–F18 | NO_INICIADA | Roadmap base restante |
 | F19 | NO_INICIADA | Visual Builder avanzado y workspace |
 | F20 | NO_INICIADA | Component/Design System |
 | F21 | NO_INICIADA | Data Types, State, Variables y condiciones |
@@ -45,45 +46,54 @@ Actualizado: 2026-08-10.
 | F30 | NO_INICIADA | AI Builder/Agents/Command Palette |
 | F31 | NO_INICIADA | Export ampliado/Deployment/Production validation |
 
+## Cierre F03 / M03.4
+
+- Implementado `ProjectHistoryState` schema v1 con entradas `before`/`after`, cursor, operación pendiente recuperable e invariantes de proyecto/cursor/operación.
+- Implementado `ProjectCommandBus` con execute, undo y redo; todos conservan revisiones monotónicas al restaurar estados lógicos anteriores.
+- Implementado `CompositeProjectCommand`: varios comandos se evalúan como una sola transacción lógica; un fallo intermedio no persiste parciales.
+- Implementadas ramas nuevas: ejecutar después de undo corta la cola de redo antes de registrar el nuevo paso.
+- Implementado límite `maxEntries` conservando la ventana reversible más reciente.
+- Persistencia IndexedDB añadida mediante namespace `project-history`; cursor e historial sobreviven cierre/reapertura.
+- Protocolo preparar→guardar proyecto→confirmar historial; `recover()` reaplica una operación pendiente o reconcilia cursor si el proyecto ya alcanzó el target.
+- Cambios externos incompatibles producen `history-conflict`; no se sobrescriben silenciosamente.
+- Puerta técnica PR #5 / run `31449931973`: `npm run lint`, `npm run typecheck`, `npm run test` y `npm run build` correctos; 24 archivos de test y 97/97 pruebas verdes, Vite 7.3.6.
+
 ## Entregas UI anticipadas
 
 - Existe un shell high-density con navegación, Page/Widget Tree, canvas, inspector y status bar.
 - Biblioteca e Inspector admiten dock, float, minimize, pin, restore y resize con alternativas de teclado.
 - Móvil usa navegación de builder y tool sheets.
-- Auditoría correctiva 2026-08-10: se reforzó el estado activo del sidebar, se aumentaron filas/targets compactos, Páginas y Árbol de widgets ahora cambian selección real, y los falsos dropdowns del Inspector se sustituyeron por selects accesibles.
-- La matriz de alineación y el vínculo de padding ahora expresan y modifican estado; controles futuros del topbar, biblioteca, inspector y canvas se muestran deshabilitados/planificados en vez de simular interacción.
-- `src/ui-integrity-v11.css` estabiliza tamaños, selected/focus states, overflow y legibilidad entre Studio, Bento Motion y Flow Builder; Flow deja de comprimir filas/controles a ~30 px.
-- Estas entregas son prototipos/implementaciones anticipadas y no cierran F04–F07 ni F19.
-- Cuando las fases propietarias entren en curso se debe consolidar el CSS/estructura y eliminar overrides redundantes; la capa v11 es un guardrail temporal deliberado.
+- Auditoría correctiva 2026-08-10: se reforzó el estado activo del sidebar, se aumentaron filas/targets compactos, Páginas y Árbol de widgets cambian selección real, y los falsos dropdowns del Inspector se sustituyeron por selects accesibles.
+- La matriz de alineación y el vínculo de padding expresan y modifican estado; controles futuros del topbar, biblioteca, inspector y canvas se muestran deshabilitados/planificados en vez de simular interacción.
+- `src/ui-integrity-v11.css` estabiliza tamaños, selected/focus states, overflow y legibilidad entre Studio, Bento Motion y Flow Builder.
+- Estas entregas anticipadas no cierran por sí solas M04.1 ni F05–F07/F19.
+- Ahora que F04 está activa, M04.1 debe consolidar el shell existente y eliminar overrides redundantes de forma segura, no crear una segunda UI.
 
 ## Próximo paso exacto
 
-`M03.4 — Command bus e historial`:
+`M04.1 — Shell desktop`:
 
-- comandos reversibles;
-- transacciones compuestas;
-- undo/redo;
-- ramas nuevas;
-- límites configurables;
-- persistencia del historial;
-- pruebas de recuperación e invariantes.
+- formalizar header, navegación, panel izquierdo, canvas, inspector y status bar redimensionables;
+- persistir posición, orden, visibilidad y anchuras del workspace;
+- reutilizar el shell anticipado existente y consolidar tokens/primitives/CSS donde corresponda;
+- probar restauración del workspace y no avanzar a M04.2 hasta cerrar la salida de M04.1.
 
 ## Bloqueos
 
-- Ninguno para M03.4.
+- Ninguno para M04.1.
 - F19–F31 están deliberadamente pendientes de sus dependencias, no bloqueadas.
 
-## Criterio para cambiar de fase
+## Criterio para cambiar de microfase
 
-No avanzar hasta cerrar la microfase activa con evidencia reproducible. La documentación de funciones futuras no cuenta como implementación.
+No avanzar hasta cerrar la microfase activa con evidencia reproducible. La documentación o prototipos anticipados no cuentan como implementación formal.
 
 ## Evidencia técnica histórica resumida
 
 - CI/CD GitHub Actions + Cloudflare Pages configurados y verificados en entregas previas.
 - PWA offline, manifest y Service Worker implementados.
 - Modelo canónico v1, Zod, migraciones, breakpoints, CMS models y relaciones probados.
-- Dexie/IndexedDB, ciclo de proyecto, import/export y recovery journal probados.
-- UI high-density responsive fue verificada previamente en 320/375/768/1024/1440/812×375; cualquier cambio posterior requiere nueva validación antes de afirmarlo como verificado.
+- Dexie/IndexedDB, ciclo de proyecto, import/export, recovery journal y project-history probados.
+- UI high-density responsive fue verificada previamente en 320/375/768/1024/1440/812×375; cambios futuros de F04 requieren nueva validación antes de afirmarlos como verificados.
 - Historial detallado de commits, runs, bundles y resultados anteriores: `CHANGELOG.md`.
 
 ## Documentos de control
