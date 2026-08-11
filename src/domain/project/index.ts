@@ -113,7 +113,19 @@ export {
   type NodeResponsiveOverride,
   type NodeAccessibility,
   type ProjectStructure,
+  TemplateConditionSchema,
+  type TemplateCondition,
 } from './structure-schema'
+export {
+  addDocument,
+  resolveTemplateComposition,
+  updateDocumentConditions,
+  type TemplateComposition,
+  type TemplateEngineError,
+  type TemplateEngineErrorCode,
+  type TemplateRuntimeContext,
+  type TemplateTarget,
+} from './template-engine'
 export {
   NodeDataSettingsSchema,
   resolveNodeDataState,

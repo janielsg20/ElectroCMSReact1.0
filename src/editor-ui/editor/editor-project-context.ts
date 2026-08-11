@@ -1,5 +1,5 @@
 import { createContext, useContext, useSyncExternalStore } from 'react'
-import type { BreakpointId, BreakpointInput, BreakpointPatch, DocumentId, JsonValue, NodeDataSettings, NodeId, NodePlacement, NodeResponsiveOverride, NodeSize, NodeSpacing, ProjectStructure, ProjectTheme, ProjectThemeScope, Result } from '../../domain'
+import type { BreakpointId, BreakpointInput, BreakpointPatch, Document, DocumentId, JsonValue, NodeDataSettings, NodeId, NodePlacement, NodeResponsiveOverride, NodeSize, NodeSpacing, ProjectStructure, ProjectTheme, ProjectThemeScope, Result, TemplateCondition } from '../../domain'
 import type { ProjectStructureRenderStore } from '../../renderers'
 
 export interface WidgetInsertionTemplate {
@@ -23,6 +23,7 @@ export interface EditorProjectSession {
   readonly documentId: DocumentId
   readonly initialSelectedNodeId?: NodeId
   readonly store: ProjectStructureRenderStore
+  createDocument?(document: Document): Promise<Result<ProjectStructure, string>>
   createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>>
   insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template?: WidgetInsertionTemplate): Promise<Result<WidgetInsertionResult, string>>
   moveNodes(nodeIds: readonly NodeId[], placement: NodePlacement): Promise<Result<ProjectStructure, string>>
@@ -39,6 +40,7 @@ export interface EditorProjectSession {
   updateNodeSpacing(nodeId: NodeId, spacing: NodeSpacing, breakpointId?: BreakpointId): Promise<Result<ProjectStructure, string>>
   updateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings): Promise<Result<ProjectStructure, string>>
   updateBreakpoint(breakpointId: BreakpointId, patch: BreakpointPatch): Promise<Result<ProjectStructure, string>>
+  updateDocumentConditions?(documentId: DocumentId, conditions: readonly TemplateCondition[]): Promise<Result<ProjectStructure, string>>
   undo(): Promise<Result<ProjectStructure, string>>
   redo(): Promise<Result<ProjectStructure, string>>
 }

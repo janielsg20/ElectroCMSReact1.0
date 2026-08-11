@@ -18,7 +18,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F07 completadas.
 - Fase activa: `F08 — Temas, plantillas y paquetes`.
-- `M08.1–M08.2` completadas; `M08.3 — Motor de plantillas` `EN_CURSO`.
+- `M08.1–M08.3` completadas; `M08.4 — Paquetes theme` `EN_CURSO`.
 - F09–F18 y F19–F31 permanecen `NO_INICIADA`.
 - Puerta más reciente: lint/typecheck, 59 archivos y 271/271 pruebas, build Vite 7.3.6 y `git diff --check` verdes.
 
@@ -111,10 +111,12 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Los catálogos declaran layout, bordes, componentes, elevación, densidad, responsive y accesibilidad sin reemplazar contenido o breakpoints.
 - 20 variantes del editor y 11 temas de proyecto verifican automáticamente contraste WCAG AA.
 
-## Alcance activo M08.3
+## M08.3 completada
 
-- Formalizar páginas, templates, headers, footers, single, archive, 404 y componentes globales sobre `ProjectStructure`.
-- Añadir condiciones deterministas y operaciones reversibles sin duplicar documentos ni árboles.
+- Documentos canónicos formalizan páginas, templates, headers, footers, single, archive y 404; las páginas pueden tener ruta directa y los demás usan condiciones tipadas.
+- La composición selecciona `main`, header y footer de manera determinista por prioridad, especificidad e ID, sin duplicar árboles ni anticipar datos dinámicos.
+- Crear documentos y actualizar condiciones pasan por `ProjectStructureCommand`, Command Bus, IndexedDB y undo/redo; la pestaña Plantillas expone ambas operaciones.
+- `TEMPLATE_SYSTEM.md` conserva el contrato y sus límites de fase.
 
 ## Riesgos y límites
 
@@ -125,4 +127,4 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 ## Próximo paso exacto
 
-Implementar `M08.3 — Motor de plantillas` sobre los documentos y componentes globales canónicos existentes.
+Implementar `M08.4 — Paquetes theme`: empaquetado, importación/exportación, versiones y conflictos sin alterar datos no compatibles.

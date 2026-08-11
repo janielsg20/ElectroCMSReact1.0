@@ -1,4 +1,4 @@
-import { createBreakpoint, createCompleteWidgetRegistry, editableVisualStyles, failure, insertNode, mergeEditableVisualStyles, moveNodes, parseBreakpointId, parseNodeId, parseProjectHistoryEntryId, parseProjectId, parseTimestamp, ProjectStructureSchema, reorderBreakpoint, resetNodeBreakpointOverride, resetProjectTheme, resizeNode, resolveNodeDataState, setNodeDataSettings, setNodeProperties, setNodeStyles, setProjectTheme, success, updateBreakpoint, updateNodeSpacing, type BreakpointId, type BreakpointInput, type BreakpointPatch, type JsonValue, type Node, type NodeDataSettings, type NodeId, type NodePlacement, type NodeSize, type NodeSpacing, type ProjectId, type ProjectRecord, type ProjectStructure, type ProjectTheme, type ProjectThemeScope, type Result } from './domain'
+import { addDocument, createBreakpoint, createCompleteWidgetRegistry, editableVisualStyles, failure, insertNode, mergeEditableVisualStyles, moveNodes, parseBreakpointId, parseNodeId, parseProjectHistoryEntryId, parseProjectId, parseTimestamp, ProjectStructureSchema, reorderBreakpoint, resetNodeBreakpointOverride, resetProjectTheme, resizeNode, resolveNodeDataState, setNodeDataSettings, setNodeProperties, setNodeStyles, setProjectTheme, success, updateBreakpoint, updateDocumentConditions, updateNodeSpacing, type BreakpointId, type BreakpointInput, type BreakpointPatch, type Document, type DocumentId, type JsonValue, type Node, type NodeDataSettings, type NodeId, type NodePlacement, type NodeSize, type NodeSpacing, type ProjectId, type ProjectRecord, type ProjectStructure, type ProjectTheme, type ProjectThemeScope, type Result, type TemplateCondition } from './domain'
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import { createProjectHistoryRepository, createProjectRecordRepository, ElectroCmsLocalDatabase } from './infrastructure'
 import { ProjectStructureRenderStore } from './renderers'
@@ -69,6 +69,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       (structure) => createBreakpoint(structure, breakpointId, input, index),
     ))
     return created.ok ? success({ breakpointId, structure: created.value }) : created
+  }
+
+  async createDocument(document: Document): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'template.create-document',
+      `Crear ${document.kind}: ${document.name}`,
+      (structure) => {
+        const created = addDocument(structure, document)
+        return created.ok ? created : failure({ code: 'invalid-tree' as const, message: created.error.message })
+      },
+    ))
   }
 
   async insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template: WidgetInsertionTemplate = {}): Promise<Result<WidgetInsertionResult, string>> {
@@ -213,6 +224,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       'responsive.update-breakpoint',
       'Editar breakpoint',
       (structure) => updateBreakpoint(structure, breakpointId, patch),
+    ))
+  }
+
+  async updateDocumentConditions(documentId: DocumentId, conditions: readonly TemplateCondition[]): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'template.update-conditions',
+      'Editar condiciones de plantilla',
+      (structure) => {
+        const updated = updateDocumentConditions(structure, documentId, conditions)
+        return updated.ok ? updated : failure({ code: 'invalid-tree' as const, message: updated.error.message })
+      },
     ))
   }
 

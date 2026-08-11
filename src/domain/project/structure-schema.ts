@@ -11,6 +11,8 @@ import { DEFAULT_PROJECT_THEMES, ProjectThemesSchema } from './theme-schema'
 const LabelSchema = z.string().trim().min(1).max(160)
 const PropertyKeySchema = z.string().min(1).max(160)
 const PropertyMapSchema = z.record(PropertyKeySchema, JsonValueSchema)
+const RoutePathSchema = z.string().trim().min(1).max(240).regex(/^\/[a-z0-9\-_/]*$/i, 'La ruta debe comenzar con / y usar caracteres URL seguros.')
+const ContentTypeReferenceSchema = z.string().trim().min(1).max(160)
 
 export const BreakpointSchema = z.strictObject({
   id: BreakpointIdSchema,
@@ -102,11 +104,27 @@ const NodeTreeShape = {
   nodes: z.record(NodeIdSchema, NodeSchema),
 } as const
 
+export const TemplateConditionSchema = z.strictObject({
+  contentType: ContentTypeReferenceSchema.optional(),
+  pathPrefix: RoutePathSchema.optional(),
+  priority: z.number().int().min(-1000).max(1000).default(0),
+  target: z.enum(['page', 'single', 'archive', 'not-found']),
+})
+
 export const DocumentSchema = z.strictObject({
+  conditions: z.array(TemplateConditionSchema).max(32).default(() => []),
   id: DocumentIdSchema,
   name: LabelSchema,
   kind: z.enum(['page', 'template', 'header', 'footer', 'single', 'archive', 'not-found']),
+  routePath: RoutePathSchema.optional(),
   ...NodeTreeShape,
+}).superRefine((document, context) => {
+  if (document.kind !== 'page' && document.routePath) {
+    context.addIssue({ code: 'custom', message: 'Solo las páginas pueden declarar una ruta directa.', path: ['routePath'] })
+  }
+  if (document.kind === 'page' && document.conditions.length > 0) {
+    context.addIssue({ code: 'custom', message: 'Las páginas se resuelven por ruta y no admiten condiciones de plantilla.', path: ['conditions'] })
+  }
 })
 
 export const GlobalComponentSchema = z.strictObject({
@@ -128,6 +146,7 @@ export type ConditionPredicate = z.infer<typeof ConditionPredicateSchema>
 export type ConditionGroup = z.infer<typeof ConditionGroupSchema>
 export type NodeResponsiveOverride = z.infer<typeof NodeResponsiveOverrideSchema>
 export type NodeAccessibility = z.infer<typeof NodeAccessibilitySchema>
+export type TemplateCondition = z.infer<typeof TemplateConditionSchema>
 export type Node = z.infer<typeof NodeSchema>
 export type Document = z.infer<typeof DocumentSchema>
 export type GlobalComponent = z.infer<typeof GlobalComponentSchema>
