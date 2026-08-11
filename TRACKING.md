@@ -50,8 +50,11 @@ Actualizado: 2026-08-10.
 - Existe un shell high-density con navegación, Page/Widget Tree, canvas, inspector y status bar.
 - Biblioteca e Inspector admiten dock, float, minimize, pin, restore y resize con alternativas de teclado.
 - Móvil usa navegación de builder y tool sheets.
+- Auditoría correctiva 2026-08-10: se reforzó el estado activo del sidebar, se aumentaron filas/targets compactos, Páginas y Árbol de widgets ahora cambian selección real, y los falsos dropdowns del Inspector se sustituyeron por selects accesibles.
+- La matriz de alineación y el vínculo de padding ahora expresan y modifican estado; controles futuros del topbar, biblioteca, inspector y canvas se muestran deshabilitados/planificados en vez de simular interacción.
+- `src/ui-integrity-v11.css` estabiliza tamaños, selected/focus states, overflow y legibilidad entre Studio, Bento Motion y Flow Builder; Flow deja de comprimir filas/controles a ~30 px.
 - Estas entregas son prototipos/implementaciones anticipadas y no cierran F04–F07 ni F19.
-- Cuando las fases propietarias entren en curso se debe consolidar el CSS/estructura y eliminar overrides redundantes.
+- Cuando las fases propietarias entren en curso se debe consolidar el CSS/estructura y eliminar overrides redundantes; la capa v11 es un guardrail temporal deliberado.
 
 ## Próximo paso exacto
 
