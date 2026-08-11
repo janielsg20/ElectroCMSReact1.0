@@ -351,13 +351,33 @@ export function resolveNodeResponsiveState(
 
   const structure = validated.value
   const node = findNode(structure, nodeId)
+  if (!node) {
+    return failure([{
+      code: 'missing-node-reference',
+      message: `El nodo ${nodeId} no existe.`,
+      path: [],
+    }])
+  }
+
+  return resolveValidatedNodeResponsiveState(structure, node, breakpointId)
+}
+
+/**
+ * Resuelve un nodo que ya pertenece a una ProjectStructure validada.
+ * Evita revalidar el árbol completo durante el render incremental.
+ */
+export function resolveValidatedNodeResponsiveState(
+  structure: ProjectStructure,
+  node: Node,
+  breakpointId: BreakpointId,
+): Result<ResolvedNodeResponsiveState, readonly StructureDiagnostic[]> {
   const breakpointMap = new Map(structure.breakpoints.map((breakpoint) => [breakpoint.id, breakpoint]))
   const breakpoint = breakpointMap.get(breakpointId)
 
-  if (!node || !breakpoint) {
+  if (!breakpoint) {
     return failure([{
-      code: node ? 'missing-breakpoint-override' : 'missing-node-reference',
-      message: node ? `El breakpoint ${breakpointId} no existe.` : `El nodo ${nodeId} no existe.`,
+      code: 'missing-breakpoint-override',
+      message: `El breakpoint ${breakpointId} no existe.`,
       path: [],
     }])
   }

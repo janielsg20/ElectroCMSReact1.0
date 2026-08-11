@@ -24,6 +24,9 @@ export type TreeOperationErrorCode =
   | 'invalid-placement'
   | 'invalid-tree'
   | 'clipboard-empty'
+  | 'breakpoint-not-found'
+  | 'invalid-geometry'
+  | 'invalid-spacing'
 
 export interface TreeOperationError {
   readonly code: TreeOperationErrorCode
@@ -260,6 +263,10 @@ export function moveNodes(
   const placementValid = assertPlacement(tree, placement)
   if (!placementValid.ok) return placementValid
 
+  const sourceLocations = selected.value
+    .map((nodeId) => findLocation(tree, nodeId))
+    .filter((location): location is NodeLocation => location !== null)
+
   if (placement.parentId) {
     for (const nodeId of selected.value) {
       if (nodeId === placement.parentId || descendantSet(tree, nodeId).has(placement.parentId)) {
@@ -268,8 +275,18 @@ export function moveNodes(
     }
   }
 
+  const removedBeforeDestination = sourceLocations.filter((location) => (
+    location.parentId === placement.parentId
+    && location.slot === placement.slot
+    && location.index < placement.index
+  )).length
+  const adjustedPlacement = {
+    ...placement,
+    index: Math.max(0, placement.index - removedBeforeDestination),
+  }
+
   for (const nodeId of selected.value) removeFromLocation(tree, nodeId)
-  insertAtPlacement(tree, selected.value, placement)
+  insertAtPlacement(tree, selected.value, adjustedPlacement)
   return validateMutation(next)
 }
 

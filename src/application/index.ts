@@ -27,6 +27,10 @@ export {
   type ReversibleProjectCommand,
 } from './projects/project-command-bus'
 export {
+  ProjectStructureCommand,
+  type ProjectStructureMutation,
+} from './projects/project-structure-command'
+export {
   PLATFORM_ADAPTER_CONTRACT_VERSION,
   type PlatformAdapter,
   type PlatformAdapterDescriptor,

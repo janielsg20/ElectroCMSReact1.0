@@ -5,12 +5,12 @@ import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
 import { MobileDock, type MobilePanel } from './MobileDock'
 import { PanelWindow, type DockSide, type PanelBounds, type WorkspacePanel } from './PanelWindow'
-import { ProductDemoView } from './ProductDemoView'
 import { TopBar, type UiTheme } from './TopBar'
-import { navigationItems, type NavigationSectionId } from './editor-data'
 import {
   BrowserWorkspacePreferencesStore,
+  DEFAULT_CANVAS_WORKSPACE,
   EDITOR_WORKSPACE_PREFERENCES_VERSION,
+  type CanvasWorkspaceState,
   type WorkspacePanelState,
   type WorkspaceState,
 } from './workspace-preferences'
@@ -108,10 +108,10 @@ function PanelContent({ panel, libraryTab, inspectorTab, onLibraryTabChange, onI
 export function EditorShell() {
   const [darkMode, setDarkMode] = useState(false)
   const [uiTheme, setUiTheme] = useState<UiTheme>('studio')
-  const [activeSection, setActiveSection] = useState<NavigationSectionId>('editor')
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('layers')
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('style')
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('properties')
   const [viewport, setViewport] = useState<ViewportMode>('mobile')
+  const [canvasWorkspace, setCanvasWorkspace] = useState<CanvasWorkspaceState>(DEFAULT_CANVAS_WORKSPACE)
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace)
   const [libraryWidth, setLibraryWidth] = useState(216)
@@ -128,8 +128,6 @@ export function EditorShell() {
   const workspacePreferencesHydratedRef = useRef(false)
 
   const activePanel = panelOrder[panelOrder.length - 1] ?? 'inspector'
-  const editorActive = activeSection === 'editor'
-  const activeNavigationItem = navigationItems.find((item) => item.id === activeSection) ?? navigationItems[1]
   const leftDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'left')
   const rightDockPanel = (['library', 'inspector'] as const).find((panel) => workspace[panel].mode === 'docked' && workspace[panel].dockSide === 'right')
   const leftDockWidth = leftDockPanel === 'library' ? libraryWidth : leftDockPanel === 'inspector' ? inspectorWidth : 0
@@ -161,6 +159,8 @@ export function EditorShell() {
         setLibraryWidth(clampPanelWidth('library', saved.libraryWidth))
         setInspectorWidth(clampPanelWidth('inspector', saved.inspectorWidth))
         setPanelOrder(saved.panelOrder)
+        setCanvasWorkspace(saved.canvas)
+        setViewport(saved.canvas.viewport)
         setWorkspace({
           library: {
             ...saved.workspace.library,
@@ -176,6 +176,7 @@ export function EditorShell() {
       } else {
         store.save({
           schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
+          canvas: DEFAULT_CANVAS_WORKSPACE,
           railWidth: 44,
           libraryWidth: 216,
           inspectorWidth: 288,
@@ -198,8 +199,9 @@ export function EditorShell() {
       inspectorWidth,
       workspace,
       panelOrder,
+      canvas: { ...canvasWorkspace, viewport },
     })
-  }, [railWidth, libraryWidth, inspectorWidth, workspace, panelOrder])
+  }, [railWidth, libraryWidth, inspectorWidth, workspace, panelOrder, canvasWorkspace, viewport])
 
   useEffect(() => {
     if (!mobilePanel) return
@@ -304,16 +306,8 @@ export function EditorShell() {
     setWorkspace((current) => ({ ...current, [panel]: update(current[panel]) }))
   }
 
-  function navigateSection(section: NavigationSectionId): void {
-    setActiveSection(section)
-    setMobilePanel(null)
-    setDockPreview(null)
-    setDraggingPanel(null)
-  }
-
   function changeMobilePanel(panel: MobilePanel): void {
     if (panel) previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    if (panel === 'widgets' || panel === 'layers' || panel === 'inspector') setActiveSection('editor')
     setMobilePanel(panel)
     if (panel === 'widgets' || panel === 'layers') setLibraryTab(panel)
   }
@@ -514,11 +508,10 @@ export function EditorShell() {
       className="editor-shell h-dvh overflow-hidden bg-canvas text-foreground"
       style={{ '--rail-width': `${railWidth}px`, '--left-panel-width': `${leftDockWidth}px`, '--right-panel-width': `${rightDockWidth}px` } as CSSProperties}
     >
-      <TopBar activeSectionLabel={activeNavigationItem.label} darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
-      <AppNavigation activeSection={activeSection} expanded={railWidth >= 96} onResizeKeyDown={resizeRailWithKeyboard} onResizePointerDown={startRailResize} onSectionChange={navigateSection} onToggleExpanded={() => setRailWidth((current) => current >= 96 ? 44 : 144)} width={railWidth} />
+      <TopBar darkMode={darkMode} onToggleTheme={() => setDarkMode((current) => !current)} onUiThemeChange={setUiTheme} uiTheme={uiTheme} />
+      <AppNavigation expanded={railWidth >= 96} onResizeKeyDown={resizeRailWithKeyboard} onResizePointerDown={startRailResize} onToggleExpanded={() => setRailWidth((current) => current >= 96 ? 44 : 144)} width={railWidth} />
 
-      {editorActive ? (
-        <>
+      <>
           {leftDockPanel ? (
             <div className="relative col-start-2 row-start-2 hidden min-h-0 lg:block">
               {renderPanelWindow(leftDockPanel, 'docked')}
@@ -526,7 +519,7 @@ export function EditorShell() {
             </div>
           ) : null}
 
-          <CanvasPreview inspectorOpen={inspectorVisible} libraryOpen={libraryVisible} onToggleInspector={() => togglePanel('inspector')} onToggleLibrary={() => togglePanel('library')} onViewportChange={setViewport} viewport={viewport} />
+          <CanvasPreview canvasWorkspace={canvasWorkspace} inspectorOpen={inspectorVisible} libraryOpen={libraryVisible} onCanvasWorkspaceChange={setCanvasWorkspace} onToggleInspector={() => togglePanel('inspector')} onToggleLibrary={() => togglePanel('library')} onViewportChange={setViewport} viewport={viewport} />
 
           {rightDockPanel ? (
             <div className="relative col-start-4 row-start-2 hidden min-h-0 lg:block">
@@ -549,33 +542,23 @@ export function EditorShell() {
           </div> : null}
 
           {draggingPanel ? <div aria-live="polite" className="dock-guide pointer-events-none fixed inset-0 z-50 hidden lg:block"><div className={`dock-preview-zone dock-preview-zone--rail ${dockPreview === 'rail' ? 'dock-preview-zone--active' : ''}`}><Icon name="panel-left" size={18} /><span>Barra lateral</span></div><div className={`dock-preview-zone dock-preview-zone--left ${dockPreview === 'left' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-left" size={18} /><span>Acoplar a la izquierda</span></div><div className={`dock-preview-zone dock-preview-zone--right ${dockPreview === 'right' ? 'dock-preview-zone--active' : ''}`}><Icon name="dock-right" size={18} /><span>Acoplar a la derecha</span></div></div> : null}
-        </>
-      ) : <ProductDemoView activeSection={activeSection} key={activeSection} onSectionChange={navigateSection} />}
+      </>
 
       <footer className="app-statusbar col-span-full hidden min-h-6 items-center gap-2 border-t border-border bg-surface px-2 text-[0.625rem] text-muted-foreground md:flex">
         <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-success" />Guardado localmente</span>
-        <span>Producto / {activeNavigationItem.label}</span>
-        <span className="ml-auto">{editorActive ? 'Workspace persistente · M04.1' : 'Superficie final · Activación progresiva por fases'}</span>
-        <span className="font-heading">{editorActive ? '390 × 844 · 90%' : activeNavigationItem.phase}</span>
+        <span>Editor / Página inicial</span>
+        <span className="ml-auto">Workspace persistente</span>
+        <span className="font-heading">Canvas local</span>
       </footer>
 
-      <MobileDock activePanel={mobilePanel} editorActive={editorActive} onPanelChange={changeMobilePanel} />
+      <MobileDock activePanel={mobilePanel} onPanelChange={changeMobilePanel} />
       {mobilePanel ? (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'modules' ? 'Módulos del producto' : mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label={mobilePanel === 'inspector' ? 'Inspector' : 'Biblioteca'} aria-modal="true">
           <button aria-label="Ocultar panel" className="absolute inset-0 cursor-pointer bg-slate-950/45 backdrop-blur-[2px]" onClick={closeMobilePanel} tabIndex={-1} type="button" />
           <div className="mobile-sheet absolute inset-x-0 bottom-0 max-h-[82dvh] min-h-[18rem] overflow-hidden rounded-t-xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg outline-none" onKeyDown={trapSheetFocus} ref={sheetRef} tabIndex={-1}>
-            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-10 rounded-full bg-primary/35" aria-hidden="true" /><h2 className="mt-1 text-xs font-bold text-primary-strong">{mobilePanel === 'modules' ? 'Módulos del producto' : mobilePanel === 'inspector' ? 'Inspector' : mobilePanel === 'widgets' ? 'Componentes' : 'Páginas y capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
+            <div className="flex min-h-12 items-center justify-between border-b border-primary/25 bg-primary-soft px-2"><div><span className="mx-auto block h-1 w-10 rounded-full bg-primary/35" aria-hidden="true" /><h2 className="mt-1 text-xs font-bold text-primary-strong">{mobilePanel === 'inspector' ? 'Inspector' : mobilePanel === 'widgets' ? 'Widgets' : 'Capas'}</h2></div><Button aria-label="Cerrar panel" onClick={closeMobilePanel} size="icon" variant="ghost"><Icon name="close" size={16} /></Button></div>
             <div className="min-h-0 max-h-[calc(82dvh-3rem)] overflow-y-auto">
-              {mobilePanel === 'modules' ? (
-                <div className="grid gap-1.5 p-2 sm:grid-cols-2">
-                  {navigationItems.map((item) => (
-                    <button className={`flex min-h-16 cursor-pointer items-start gap-2 rounded-lg border p-2 text-left ${item.id === activeSection ? 'border-primary bg-primary-soft' : 'border-border bg-surface hover:bg-muted'}`} key={item.id} onClick={() => navigateSection(item.id)} type="button">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-canvas text-primary"><Icon name={item.icon} size={14} /></span>
-                      <span className="min-w-0 flex-1"><span className="flex items-center justify-between gap-1"><strong className="truncate text-xs">{item.label}</strong><span className={`size-2 shrink-0 rounded-full ${item.state === 'active' ? 'bg-success' : item.state === 'development' ? 'bg-warning' : 'bg-muted-foreground/45'}`} /></span><span className="mt-0.5 line-clamp-2 text-[0.625rem] leading-4 text-muted-foreground">{item.description}</span></span>
-                    </button>
-                  ))}
-                </div>
-              ) : mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-full border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={mobilePanel} className="h-full border-0" onTabChange={setLibraryTab} />}
+              {mobilePanel === 'inspector' ? <InspectorPanel activeTab={inspectorTab} className="h-full border-0" onTabChange={setInspectorTab} /> : <LibraryPanel activeTab={mobilePanel} className="h-full border-0" onTabChange={setLibraryTab} />}
             </div>
           </div>
         </div>

@@ -23,12 +23,6 @@
   line-height: 1rem;
 }
 
-.product-demo-workspace [class*="text-[0.5625rem]"],
-.product-demo-workspace [class*="text-[0.625rem]"] {
-  font-size: 0.6875rem !important;
-  line-height: 1rem;
-}
-
 /* Main navigation: persistent, unmistakable active state across every theme. */
 .editor-shell .app-navigation .nav-option {
   min-height: var(--ui-row-touch) !important;
@@ -148,17 +142,8 @@
   box-shadow: none;
 }
 
-/* Product/demo surfaces had 28px filter controls and 9px labels. Keep high density without tiny targets. */
-.product-demo-workspace :where(button, input, select) {
-  min-height: 2.125rem;
-}
-
-.product-demo-workspace [role="group"] > button {
-  min-height: 2.125rem !important;
-}
-
 /* Protect compact grids from text and select overflow. */
-.editor-shell :where(.library-panel, .inspector-panel, .product-demo-workspace) :where(button, label, div) {
+.editor-shell :where(.library-panel, .inspector-panel) :where(button, label, div) {
   min-width: 0;
 }
 

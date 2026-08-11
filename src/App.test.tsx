@@ -10,11 +10,13 @@ function firePointer(target: Element | Window, type: string, clientX: number, cl
 }
 
 describe('App', () => {
-  it('presenta el editor visual sin habilitar la ejecución de la app', () => {
+  it('presenta únicamente el editor construido', () => {
     render(<App />)
 
     expect(screen.getByText(/ElectroCMS/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /run/i })).toBeDisabled()
+    expect(screen.getAllByText('Proyecto local').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /run/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/demo final/i)).not.toBeInTheDocument()
   })
 
   it('expone navegación, canvas y paneles con regiones semánticas', () => {
@@ -29,13 +31,13 @@ describe('App', () => {
     render(<App />)
 
     const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
-    fireEvent.click(within(library).getByRole('tab', { name: /componentes/i }))
-    const search = within(library).getByRole('searchbox', { name: /buscar elementos/i })
+    fireEvent.click(within(library).getByRole('tab', { name: /widgets/i }))
+    const search = within(library).getByRole('searchbox', { name: /buscar widgets registrados/i })
     expect(search).toBeInTheDocument()
-    expect(within(library).getByRole('button', { name: /contenedor/i })).toBeInTheDocument()
+    expect(within(library).getByText('Contenedor')).toBeInTheDocument()
     fireEvent.change(search, { target: { value: 'Formulario' } })
-    expect(within(library).queryByRole('button', { name: /contenedor/i })).not.toBeInTheDocument()
-    expect(within(library).getByRole('button', { name: /formulario/i })).toBeInTheDocument()
+    expect(within(library).queryByText('Contenedor')).not.toBeInTheDocument()
+    expect(within(library).getAllByText(/formulario/i).length).toBeGreaterThan(0)
   })
 
   it('permite colapsar y restaurar los paneles laterales en escritorio', () => {
@@ -173,15 +175,13 @@ describe('App', () => {
   it('conecta pestañas y paneles con semántica accesible y selección explícita', () => {
     render(<App />)
 
-    const pagesTab = screen.getByRole('tab', { name: /páginas/i })
-    expect(pagesTab).toHaveAttribute('aria-controls', 'library-panel-layers')
-    expect(screen.getByRole('tabpanel', { name: /páginas/i })).toHaveAttribute('id', 'library-panel-layers')
-    expect(screen.getAllByRole('button', { name: /^inicio/i }).find((button) => button.getAttribute('aria-current') === 'page')).toBeInTheDocument()
-    expect(screen.getByRole('treeitem', { name: /contenido hero/i })).toHaveAttribute('aria-selected', 'true')
-
-    const propertiesTab = screen.getByRole('tab', { name: /propiedades/i })
-    expect(propertiesTab).toHaveAttribute('aria-controls', 'inspector-active-panel')
-    expect(screen.getByRole('tabpanel', { name: /propiedades/i })).toHaveAttribute('id', 'inspector-active-panel')
+    const layersTab = screen.getByRole('tab', { name: /capas/i })
+    expect(layersTab).toHaveAttribute('aria-controls', 'library-panel-layers')
+    expect(screen.getByRole('tabpanel', { name: /capas/i })).toHaveAttribute('id', 'library-panel-layers')
+    expect(screen.getAllByText('Página inicial').length).toBeGreaterThan(0)
+    expect(screen.getByRole('treeitem', { name: /contenedor/i })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toHaveTextContent('Contenedor')
+    expect(screen.getByRole('heading', { name: /propiedades canónicas/i })).toBeInTheDocument()
   })
 
   it('aplica el tema Bento Motion desde los ajustes del header sin sustituir Studio', () => {

@@ -25,6 +25,20 @@ export default defineConfig({
     },
   ],
   build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/node_modules/@dnd-kit/')) return 'dnd-kit'
+          if (id.includes('/node_modules/dexie/')) return 'local-storage'
+          if (
+            id.includes('/src/domain/widgets/')
+            || id.includes('/src/renderers/react/registered-widget-adapters')
+            || id.includes('/src/renderers/react/content-dynamic-widget-adapters')
+            || id.includes('/src/renderers/react/commerce-form-filter-widget-adapters')
+          ) return 'widget-catalog'
+        },
+      },
+    },
     sourcemap: true,
   },
 })

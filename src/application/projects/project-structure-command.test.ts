@@ -14,6 +14,7 @@ import { parseProjectHistoryEntryId, type ProjectHistoryState } from '../../doma
 import type { ProjectRecord } from '../../domain/project/project-record'
 import { ProjectStructureSchema, type Node, type ProjectStructure } from '../../domain/project/structure-schema'
 import { moveNodes, renameNode, type TreeOwner } from '../../domain/project/tree-operations'
+import { resizeNode } from '../../domain/project/direct-manipulation'
 import { ProjectCommandBus } from './project-command-bus'
 import { ProjectStructureCommand } from './project-structure-command'
 
@@ -155,5 +156,25 @@ describe('M05.1 ProjectStructureCommand', () => {
     })
     expect(projects.entities.get(PROJECT_ID)?.project.revision).toBe(0)
     expect(histories.entities.get(PROJECT_ID)).toBeUndefined()
+  })
+
+  it('hace resize canónico reversible mediante el mismo historial persistente', async () => {
+    const { projects, histories, bus } = createBus()
+    const breakpointId = DEFAULT_BREAKPOINTS[0]?.id
+    if (!breakpointId) throw new Error('Falta breakpoint desktop.')
+    const command = new ProjectStructureCommand('canvas.resize', 'Redimensionar nodo', (current) => resizeNode(
+      current,
+      { breakpointId, nodeId: FIRST_ID, owner: OWNER },
+      { height: 160, width: 320 },
+    ))
+
+    await expect(bus.execute(command, PROJECT_ID)).resolves.toMatchObject({ ok: true, value: { cursor: 1 } })
+    expect(projects.entities.get(PROJECT_ID)?.project.payload.documents[DOCUMENT_ID]?.nodes[FIRST_ID]?.responsive[breakpointId]?.styles).toMatchObject({ height: 160, width: 320 })
+    expect(histories.entities.get(PROJECT_ID)?.entries[0]?.commandIds).toEqual(['canvas.resize'])
+
+    await bus.undo(PROJECT_ID)
+    expect(projects.entities.get(PROJECT_ID)?.project.payload.documents[DOCUMENT_ID]?.nodes[FIRST_ID]?.responsive).toEqual({})
+    await bus.redo(PROJECT_ID)
+    expect(projects.entities.get(PROJECT_ID)?.project.payload.documents[DOCUMENT_ID]?.nodes[FIRST_ID]?.responsive[breakpointId]?.styles).toMatchObject({ height: 160, width: 320 })
   })
 })
