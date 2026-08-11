@@ -1,6 +1,6 @@
 # Sistema de layout UI/UX — ElectroCMS
 
-Estado de implementación: `M04.1 — Shell desktop`, `M04.2 — Shell tablet`, `M04.3 — Shell móvil` y `M04.4 — Navegación, rutas y shortcuts` completadas. El shell de `src/editor-ui/editor/` ya es implementación formal de F04 para escritorio, tablet, móvil y navegación profunda, conservando una sola jerarquía funcional y una sola selección visual. Los temas del editor continúan en M04.5; las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
+Estado de implementación: `F04 — Application shell, navegación y workspaces responsive` `COMPLETADA`. M04.1–M04.5 formalizan escritorio, tablet, móvil, navegación profunda/shortcuts y apariencia del editor con una sola jerarquía funcional. F05 está activa y las capacidades funcionales posteriores F05–F07/F19 no se consideran cerradas por esta UI.
 
 ## Decisión de producto
 
@@ -66,6 +66,20 @@ Estado: `M04.4` `COMPLETADA`.
 - Shortcuts visibles/documentados: `Alt+Shift+E` Editor, `Alt+Shift+H` Inicio y `Alt+Shift+P` Páginas; no sustituyen controles visibles ni se activan en campos editables.
 - Rail desktop, navegación móvil, command palette y shortcuts convergen en el mismo flujo `onSectionChange`.
 
+## Temas del editor
+
+Estado: `M04.5` `COMPLETADA`.
+
+- `appearance.v1` es un contrato local versionado independiente de `workspace.v1` y del modelo canónico del proyecto.
+- Preset visual y modo de color son dimensiones separadas: `Studio / Bento Motion / Flow Builder` y `Claro / Oscuro / Automático`.
+- El selector usa dos `radiogroup` accesibles y soporta clic, flechas, `Home`, `End`, `Escape` y restauración de foco.
+- `Automático` sigue `prefers-color-scheme` mediante `matchMedia` y reacciona a cambios del sistema sin recargar.
+- La preferencia se aplica en `main.tsx` antes de montar React para reducir flash de apariencia; defaults compatibles: Studio + claro.
+- JSON corrupto, versión futura o payload con campos extra se descarta y recupera defaults seguros.
+- Studio, Bento Motion y Flow Builder reutilizan tokens semánticos; no se creó una segunda paleta CSS paralela para claro/oscuro.
+- Gate WCAG AA automatizado para seis combinaciones: tres presets × dos colores resueltos.
+- `theme-color` HTML y manifest están alineados al azul de marca `#2563EB`.
+
 ## Responsive basado en contenedor
 
 - Los breakpoints globales gobiernan el shell.
@@ -101,7 +115,7 @@ Estado: `M04.4` `COMPLETADA`.
 - Todos los targets críticos alcanzan 44 × 44 CSS px en superficies touch; escritorio de alta densidad admite controles compactos con foco visible y operación por puntero/teclado.
 - Drag, resize y reordenar tienen alternativa de una sola activación y teclado.
 - `prefers-reduced-motion`, modo oscuro y alto zoom conservan operación y contraste.
-- Las preferencias del workspace nunca deben impedir abrir el editor; corrupción, versiones futuras o geometría fuera de pantalla se recuperan con defaults/clamping.
+- Las preferencias del workspace/apariencia nunca deben impedir abrir el editor; corrupción o versiones futuras recuperan defaults seguros.
 - Back/forward debe restaurar navegación sin perder estado del workspace.
 
 ## Implementación vigente
@@ -109,16 +123,16 @@ Estado: `M04.4` `COMPLETADA`.
 - Desktop desde 1024 px: header/toolbar de 40 px, rail redimensionable, páginas/capas, canvas, inspector y barra de estado de 24 px simultáneos.
 - Paneles desktop: movimiento y resize, dock izquierda/derecha/rail, pestañas verticales minimizadas, pin, orden de apilado y restauración por puntero o teclado dentro de límites explícitos.
 - Persistencia M04.1: `src/editor-ui/editor/workspace-preferences.ts` + `workspace.v1`.
-- Tablet 768–1023: `ResponsiveEditorShell`, rail visualmente contraído, canvas + un panel persistente y overlay lateral secundario accesible/redimensionable.
-- Móvil 320–767: canvas prioritario, bottom dock de cinco destinos, sheets accesibles, safe areas, guardrails de overflow y transición explícita a tablet.
+- Tablet 768–1023: `ResponsiveEditorShell`, rail contraído, canvas + un panel persistente y overlay lateral secundario accesible/redimensionable.
+- Móvil 320–767: canvas prioritario, bottom dock de cinco destinos, sheets accesibles, safe areas y guardrails de overflow.
 - Navegación M04.4: `navigation-routing.ts`, `CommandPalette.tsx` y sincronización History API en `ResponsiveEditorShell`.
+- Apariencia M04.5: `appearance-preferences.ts`, preaplicación en `main.tsx` y selector dual en `TopBar.tsx`.
 - Evidencia M04.2: PR #8 / run `31453249710`, 27 archivos / 107 pruebas.
 - Evidencia M04.3: PR #9 / run `31454024650`, 28 archivos / 112 pruebas.
-- Evidencia M04.4: PR #10 / run `31454811218`, 30 archivos / 120 pruebas, lint/typecheck/build verdes y sin warnings React del nuevo flujo.
-- Interacciones habilitadas: búsqueda de widgets, tabs, viewport del documento, navegación profunda, command palette, tema y sheets con `Escape` y restauración de foco.
+- Evidencia M04.4: PR #10 / run `31454811218`, 30 archivos / 120 pruebas.
+- Evidencia M04.5: PR #11 / run `31455514122`, 32 archivos / 132 pruebas, lint/typecheck/build verdes y contraste AA de seis variantes.
 - Lenguaje visual vigente: superficies blancas/gris frío, azul `#2563EB` dominante en iconos, selección y navegación; rojo/ámbar/verde solo para errores, advertencias y éxito.
 - Acciones de fases posteriores que aún no tienen motor funcional permanecen deshabilitadas o identificadas como planificadas.
-- Presets visuales existentes: Studio, Bento Motion y Flow Builder; M04.5 debe formalizar su relación con light/dark/system y tokens.
 
 ## Fuentes
 
