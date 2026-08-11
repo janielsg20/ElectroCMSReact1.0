@@ -4,8 +4,12 @@ import { App } from '../../App'
 
 vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" /> }))
 
-function setViewportWidth(width: number): void {
+function assignViewportWidth(width: number): void {
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width })
+}
+
+function setViewportWidth(width: number): void {
+  assignViewportWidth(width)
   fireEvent(window, new Event('resize'))
 }
 
@@ -16,11 +20,11 @@ function builderDock() {
 describe('M04.3 shell móvil', () => {
   beforeEach(() => {
     window.localStorage.clear()
-    setViewportWidth(320)
+    assignViewportWidth(320)
   })
 
   afterEach(() => {
-    setViewportWidth(1024)
+    assignViewportWidth(1024)
     window.localStorage.clear()
   })
 
@@ -38,7 +42,7 @@ describe('M04.3 shell móvil', () => {
   })
 
   it('abre sheets accesibles a 375 px, cierra con Escape y restaura foco', async () => {
-    setViewportWidth(375)
+    assignViewportWidth(375)
     render(<App />)
 
     const trigger = within(builderDock()).getByRole('button', { name: 'Widgets' })
@@ -70,8 +74,8 @@ describe('M04.3 shell móvil', () => {
 
     fireEvent.click(within(dock).getByRole('button', { name: 'Más' }))
     const modules = await screen.findByRole('dialog', { name: 'Módulos del producto' })
-    expect(within(modules).getByRole('button', { name: /editor/i })).toBeInTheDocument()
-    expect(within(modules).getByRole('button', { name: /inicio/i })).toBeInTheDocument()
+    expect(within(modules).getByRole('button', { name: /^Editor\b/i })).toBeInTheDocument()
+    expect(within(modules).getByRole('button', { name: /^Inicio\b/i })).toBeInTheDocument()
   })
 
   it('evita un Canvas muerto fuera del editor y conserva el camino de regreso', async () => {
@@ -80,14 +84,14 @@ describe('M04.3 shell móvil', () => {
 
     fireEvent.click(within(dock).getByRole('button', { name: 'Más' }))
     const modules = await screen.findByRole('dialog', { name: 'Módulos del producto' })
-    fireEvent.click(within(modules).getByRole('button', { name: /inicio/i }))
+    fireEvent.click(within(modules).getByRole('button', { name: /^Inicio\b/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(within(dock).getByRole('button', { name: 'Más' })).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(within(dock).getByRole('button', { name: 'Canvas' }))
     const navigation = await screen.findByRole('dialog', { name: 'Módulos del producto' })
-    fireEvent.click(within(navigation).getByRole('button', { name: /editor/i }))
+    fireEvent.click(within(navigation).getByRole('button', { name: /^Editor\b/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(within(dock).getByRole('button', { name: 'Canvas' })).toHaveAttribute('aria-current', 'page')
