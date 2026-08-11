@@ -18,6 +18,10 @@ import type {
   ProjectTheme,
   ProjectThemeScope,
   Result,
+  Taxonomy,
+  TaxonomyId,
+  TaxonomyTerm,
+  TaxonomyTermId,
   TemplateCondition,
   ThemePackage,
   ThemePackageId,
@@ -26,6 +30,10 @@ import type {
   ThemePackageRouteConflictPolicy,
 } from '../../domain'
 import type { ContentTypeEditablePatch } from '../../domain/project/content-type-engine'
+import type {
+  TaxonomyEditablePatch,
+  TaxonomyTermEditablePatch,
+} from '../../domain/project/taxonomy-engine'
 import type { ProjectStructureRenderStore } from '../../renderers'
 
 export interface WidgetInsertionTemplate {
@@ -88,6 +96,22 @@ export interface ContentTypeSession {
   updateContentType(contentTypeId: ContentTypeId, patch: ContentTypeEditablePatch): Promise<Result<ProjectStructure, string>>
 }
 
+export interface TaxonomySession {
+  createTaxonomy(taxonomy: Taxonomy, archiveTemplateId?: DocumentId | null): Promise<Result<ProjectStructure, string>>
+  updateTaxonomy(
+    taxonomyId: TaxonomyId,
+    patch: TaxonomyEditablePatch,
+    archiveTemplateId?: DocumentId | null,
+  ): Promise<Result<ProjectStructure, string>>
+  deleteTaxonomy(taxonomyId: TaxonomyId): Promise<Result<ProjectStructure, string>>
+  createTaxonomyTerm(term: TaxonomyTerm): Promise<Result<ProjectStructure, string>>
+  updateTaxonomyTerm(
+    termId: TaxonomyTermId,
+    patch: TaxonomyTermEditablePatch,
+  ): Promise<Result<ProjectStructure, string>>
+  deleteTaxonomyTerm(termId: TaxonomyTermId): Promise<Result<ProjectStructure, string>>
+}
+
 export interface EditorSelection {
   readonly getSelectedNodeId: () => NodeId | null
   readonly selectNode: (nodeId: NodeId) => void
@@ -134,6 +158,25 @@ export function requireContentTypeSession(session: EditorProjectSession): Editor
 
 export function useContentTypeSession(): ContentTypeSession {
   return requireContentTypeSession(useEditorProject())
+}
+
+export function requireTaxonomySession(session: EditorProjectSession): EditorProjectSession & TaxonomySession {
+  const candidate = session as EditorProjectSession & Partial<TaxonomySession>
+  if (
+    typeof candidate.createTaxonomy !== 'function'
+    || typeof candidate.updateTaxonomy !== 'function'
+    || typeof candidate.deleteTaxonomy !== 'function'
+    || typeof candidate.createTaxonomyTerm !== 'function'
+    || typeof candidate.updateTaxonomyTerm !== 'function'
+    || typeof candidate.deleteTaxonomyTerm !== 'function'
+  ) {
+    throw new Error('La sesión actual no ofrece la capacidad de taxonomías.')
+  }
+  return candidate as EditorProjectSession & TaxonomySession
+}
+
+export function useTaxonomySession(): TaxonomySession {
+  return requireTaxonomySession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {
