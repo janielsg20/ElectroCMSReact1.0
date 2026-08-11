@@ -10,7 +10,6 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - Alcance base: `PROMPT_MAESTRO_ELECTROCMS.md`.
 - Ampliación funcional tipo FlutterFlow: `FLUTTERFLOW_PARITY_ADDENDUM.md`.
-- La ampliación añade F19–F31 sin renumerar ni reabrir F00–F18.
 - FlutterFlow se usa como referencia de capacidades y flujos profesionales, no como fuente de código/branding/activos propietarios.
 - Toda capacidad faltante del Addendum se registra como `PARITY_GAP` y se implementa solo en su fase propietaria.
 
@@ -18,84 +17,87 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - React 19 + TypeScript estricto + Tailwind 4 + Vite + PWA local-first.
 - F00–F04 completadas.
-- F03 dejó repositorios locales, ciclo de proyecto, autosave/recuperación y Command Bus/historial reversibles con persistencia IndexedDB.
-- F04 cerró shell desktop/tablet/móvil, navegación profunda, command palette/shortcuts y apariencia del editor.
+- F03 dejó repositorios locales, autosave/recovery y `ProjectCommandBus`/history persistente.
+- F04 cerró shell responsive, navegación profunda, command palette/shortcuts y apariencia.
 - Fase activa: `F05 — Motor de documentos, nodos y canvas`.
-- Microfase actual: `M05.1 — Operaciones del árbol` `EN_CURSO`.
+- `M05.1 — Operaciones del árbol`: `COMPLETADA`.
+- Microfase actual: `M05.2 — Canvas y renderer` `EN_CURSO`.
 - F06–F18 siguen `NO_INICIADA`; F19–F31 continúan `NO_INICIADA`.
 
 ## Decisiones vigentes
 
-- Núcleo web local-first/PWA; envolturas desktop/móvil desacopladas.
-- Dominio/modelo canónico independientes de React, Tailwind, almacenamiento y exportadores.
+- Núcleo web local-first/PWA; dominio/modelo canónico independientes de React, Tailwind, almacenamiento y exportadores.
 - Modelo, preview y exportación deben compartir una sola fuente de verdad.
-- Toda mutación relevante de F05 debe integrarse con `ProjectCommandBus`/`ProjectHistoryState` cuando aplique.
+- Toda mutación relevante de F05 usa `ProjectCommandBus`/`ProjectHistoryState`; prohibido crear otro history.
+- El árbol funcional vive en `ProjectStructure`; la UI nunca mantiene un árbol paralelo como fuente de verdad.
+- `tree-operations.ts` valida cada mutación con `validateProjectStructure` antes de devolverla.
+- Selección múltiple de M05.1 es solo un input de operaciones; no sustituye el Selection Manager formal reservado para F19.
+- `hidden` es estado base canónico del nodo con default `false`; overrides responsive pueden sobrescribirlo.
+- Copy/paste/duplicate profundo debe remapear IDs, slots y referencias internas `node-property`.
+- Nodos bloqueados no pueden moverse ni recibir hijos mediante operaciones estructurales hasta desbloquearse.
 - Undo/redo restaura estados lógicos anteriores creando revisiones nuevas; la revisión persistente nunca retrocede.
-- No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History o exportadores.
-- Integraciones externas son adapters/providers opcionales.
-- AI Agents futuros no persisten directamente; producen comandos validados.
-- Custom Code futuro requiere aislamiento, diagnostics, typecheck y seguridad.
-- `workspace.v1` y `appearance.v1` son preferencias locales de UI y no forman parte del modelo canónico del proyecto.
-- `activeSection` continúa siendo la única selección visual de navegación; la URL `#/sección` la refleja mediante History API, no mediante un segundo router/estado React.
+- `workspace.v1` y `appearance.v1` son preferencias locales de UI, no datos del proyecto.
+- No crear implementaciones paralelas de Selection, State, Action Flow, DataProvider, Auth, Components, History o Export.
 
 ## UI/UX vigente
 
 - Dirección visual: High Density + Minimal Clean + builder/IDE profesional.
-- Desktop: rail compacto, Page/Widget Tree, canvas central y Properties Panel; paneles docked/floating/minimized/pinned y resize.
-- Tablet 768–1023: rail 44 px, canvas prioritario, un panel persistente y secundario overlay accesible/redimensionable.
-- Móvil 320–767: Topbar compacta + Canvas + bottom navigation `Widgets / Páginas / Canvas / Props / Más`, sheets, safe areas y targets táctiles de 44 px.
-- Navegación profunda: `#/editor`, `#/dashboard`, `#/pages`, etc.; URL inválida cae en Editor.
-- Command palette visible + `Ctrl/⌘+K`; shortcuts directos `Alt+Shift+E/H/P`; no se disparan en campos editables.
-- Apariencia: preset visual y modo de color están separados. Presets `Studio / Bento Motion / Flow Builder`; modos `Claro / Oscuro / Automático`.
-- `appearance.v1` persiste `{ version, uiTheme, colorMode }`; Automático sigue `prefers-color-scheme` en vivo.
-- La apariencia se aplica antes de montar React para reducir flash; fallback seguro sigue Studio + claro.
-- Contraste WCAG AA automatizado para Studio/Bento/Flow en claro y oscuro.
-- Azul reservado principalmente para selección, foco, active y primary actions; `theme-color`/manifest usan `#2563EB`/`#2563eb`.
-- `src/ui-integrity-v11.css` actúa como guardrail cross-theme; la consolidación de capas CSS continúa incrementalmente al formalizar fases propietarias.
+- Desktop, tablet y móvil formalizados por F04.
+- Navegación profunda `#/sección`, command palette y shortcuts formalizados.
+- Presets `Studio / Bento Motion / Flow Builder`; modos `Claro / Oscuro / Automático` mediante `appearance.v1`.
+- Contraste WCAG AA automatizado para los tres presets en claro/oscuro.
+- El árbol visual/canvas actual sigue siendo una superficie anticipada hasta que F05 conecte el motor canónico a la representación.
+
+## M05.1 — contrato implementado
+
+- `src/domain/project/tree-operations.ts`: insert, move, nest, group, copy, paste, duplicate, lock, hide y rename.
+- `TreeOwner` permite operar documentos o componentes globales mediante el mismo motor.
+- `NodePlacement` representa raíz o `parentId + slot + index`.
+- Move/nest rechazan ciclos obvios, destinos inválidos y locked state antes del validator global.
+- Group requiere hermanos, preserva orden e inserta el grupo donde estaba el primer seleccionado.
+- Copy genera `TreeClipboard` serializable; paste/duplicate crea IDs nuevos y remapea referencias internas.
+- `ProjectStructureCommand` implementa `ReversibleProjectCommand<ProjectStructure>` y usa el bus de F03.
+- Tests nuevos: 13 de operaciones de árbol + 3 de integración Command Bus.
+- Evidencia: PR #12 / run `31456269215`, 34 archivos / 150 pruebas, lint/typecheck/build Vite 7.3.6 verdes.
 
 ## Roadmap ampliado F19–F31
 
 - F19: Visual Builder avanzado, Selection Manager, Pages/Tree/Canvas/Workspace/mobile builder.
 - F20: Component System, Component Studio y Design System.
-- F21: Data Types, State, Set From Variable y Conditional Values.
-- F22: Action Flow, Action Graph y App Events.
-- F23: DataProvider, Database Builder y Backend Queries.
-- F24: API Manager/Tester/Response Mapping.
-- F25: Authentication, sessions, RBAC y security.
-- F26: Media, Routing, Storyboard, Responsive, Animations, Localization, SEO.
-- F27: Custom Code, Dependencies, Environments, Integrations.
-- F28: Test Mode, Debug, State Inspector y Automated Tests.
-- F29: Versioning, checkpoints, branching, comments/collaboration.
-- F30: AI Builder, Agents y Command Palette avanzado.
-- F31: Project Settings, export ampliado, Deployment Center y pre-deploy validation.
+- F21: Data Types, State, Variables y condiciones.
+- F22: Action Flow/Graph y App Events.
+- F23: Database Builder y Backend Queries.
+- F24: API Manager/Tester/Mapping.
+- F25: Authentication/RBAC/Security.
+- F26: Media/Routing/Storyboard/Responsive/Localization/SEO.
+- F27: Custom Code/Dependencies/Environments/Integrations.
+- F28: Test Mode/Debug/Automated Tests.
+- F29: Versioning/Branching/Collaboration.
+- F30: AI Builder/Agents/Command Palette avanzado.
+- F31: Export ampliado/Deployment/Production validation.
 
 ## Próximo paso exacto
 
-Implementar `M05.1 — Operaciones del árbol`: insertar, mover, anidar, agrupar, copiar, pegar, duplicar, bloquear, ocultar y renombrar nodos; preservar invariantes estructurales; integrar mutaciones con Command Bus/history; probar ciclos, padres inválidos, orden, duplicación profunda y operaciones multi-nodo.
+Implementar `M05.2 — Canvas y renderer`: consumir `ProjectStructure` canónico, aislar errores por nodo, resolver responsive/hidden y asegurar actualizaciones granulares para que cambios locales no rerendericen todo el árbol.
 
-No adelantar M05.2 ni F19 hasta cerrar M05.1 con evidencia reproducible.
+No adelantar M05.3 ni F19 hasta cerrar M05.2 con evidencia reproducible.
 
 ## Riesgos abiertos
 
-- F05 debe construir sobre el modelo canónico y Command Bus existentes; prohibido crear un árbol UI independiente como fuente de verdad.
-- La selección múltiple necesaria en M05.1 debe mantenerse acotada a las operaciones de árbol y no sustituir prematuramente el Selection Manager formal de F19.
-- La UI anticipada debe consolidarse gradualmente para evitar acumulación indefinida de CSS/overrides.
+- F05 debe conectar el canvas anticipado al modelo canónico sin duplicar datos en estado React de presentación.
+- El renderer debe evitar que un nodo defectuoso derribe el canvas completo.
+- El renderer debe medir y probar granularidad de rerender antes de declararse optimizado.
 - Collaboration/AI/integraciones remotas deben mantener funcionamiento local completo.
 - Secrets nunca deben aparecer en frontend, logs o exports.
-- Cada export target debe diagnosticar capacidades no soportadas; prohibida la pérdida silenciosa.
 
 ## Evidencia técnica base conservada
 
-- CI/CD y Cloudflare Pages existen y han sido verificados.
-- PWA offline, manifest y Service Worker están implementados.
-- Modelo canónico v1, schemas Zod, migraciones v0→v1, breakpoints, CMS models y relaciones están implementados y probados.
-- Dexie/IndexedDB, ProjectRecord, import/export, recovery journal y `project-history` están implementados y probados.
-- M03.4: 97/97 pruebas y build Vite 7.3.6 verdes.
-- M04.1: run `31451142252`; 102/102 pruebas.
-- M04.2: run `31453249710`; 107/107 pruebas.
-- M04.3: run `31454024650`; 112/112 pruebas.
-- M04.4: run `31454811218`; 120/120 pruebas.
-- M04.5: PR #11 / run `31455514122`; lint, typecheck, 32 archivos / 132 pruebas, contraste AA de seis variantes y build Vite 7.3.6 verdes.
+- M04.1: 102/102 pruebas.
+- M04.2: 107/107 pruebas.
+- M04.3: 112/112 pruebas.
+- M04.4: 120/120 pruebas.
+- M04.5: 132/132 pruebas.
+- M05.1: 150/150 pruebas, lint/typecheck/build verdes.
 - Las cifras históricas y publicaciones viven en `TRACKING.md` y `CHANGELOG.md`.
 
 ## Punteros
