@@ -5,6 +5,7 @@ import {
   GlobalComponentIdSchema,
   NodeIdSchema,
 } from './identity'
+import { CmsBackendSchema } from './cms-schema'
 import { JsonValueSchema } from './project-envelope'
 import { DEFAULT_PROJECT_THEMES, ProjectThemesSchema } from './theme-schema'
 
@@ -135,6 +136,7 @@ export const GlobalComponentSchema = z.strictObject({
 
 export const ProjectStructureSchema = z.strictObject({
   breakpoints: z.array(BreakpointSchema).min(1),
+  cms: CmsBackendSchema.optional(),
   documents: z.record(DocumentIdSchema, DocumentSchema),
   globalComponents: z.record(GlobalComponentIdSchema, GlobalComponentSchema),
   themes: ProjectThemesSchema.default(() => structuredClone(DEFAULT_PROJECT_THEMES)),
