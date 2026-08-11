@@ -28,7 +28,7 @@ describe('M04.2 shell tablet', () => {
     expect(persistent).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Capas' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Props' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('main', { name: '' })).toHaveAttribute('id', 'editor-canvas')
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
     expect(document.querySelector('[data-tablet-shell="active"]')).toBeInTheDocument()
   })
 
