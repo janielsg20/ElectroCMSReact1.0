@@ -7,7 +7,11 @@ vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" 
 
 function setViewportWidth(width: number): void {
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width })
-  window.dispatchEvent(new Event('resize'))
+  fireEvent(window, new Event('resize'))
+}
+
+function restoreDesktopWidth(): void {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: 1024 })
 }
 
 describe('M04.2 shell tablet', () => {
@@ -17,7 +21,7 @@ describe('M04.2 shell tablet', () => {
   })
 
   afterEach(() => {
-    setViewportWidth(1024)
+    restoreDesktopWidth()
     window.localStorage.clear()
   })
 
