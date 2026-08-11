@@ -6,7 +6,6 @@ interface AppNavigationProps {
   readonly activeSection: NavigationSectionId
   readonly expanded: boolean
   readonly width: number
-  readonly compactMode?: boolean
   readonly onSectionChange: (section: NavigationSectionId) => void
   readonly onToggleExpanded: () => void
   readonly onResizePointerDown: (event: PointerEvent<HTMLButtonElement>) => void
@@ -27,16 +26,13 @@ function stateDotClass(state: DeliveryState): string {
   return 'bg-muted-foreground/45'
 }
 
-export function AppNavigation({ activeSection, expanded, width, compactMode = false, onSectionChange, onToggleExpanded, onResizePointerDown, onResizeKeyDown }: AppNavigationProps) {
-  const toggleLabel = compactMode ? 'Abrir módulos de navegación' : expanded ? 'Contraer menú lateral' : 'Expandir menú lateral'
-  const toggleTooltip = compactMode ? 'Módulos del producto' : expanded ? 'Contraer navegación' : 'Expandir navegación'
-
+export function AppNavigation({ activeSection, expanded, width, onSectionChange, onToggleExpanded, onResizePointerDown, onResizeKeyDown }: AppNavigationProps) {
   return (
     <nav aria-label="Navegación principal" className="app-navigation relative hidden min-h-0 border-r border-border bg-surface md:block">
       <div className="flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className={`builder-rail-head flex h-12 shrink-0 items-center px-1 lg:h-9 ${expanded ? 'justify-between' : 'justify-center'}`}>
           {expanded ? <span className="truncate px-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Producto</span> : null}
-          <button aria-label={toggleLabel} aria-pressed={compactMode ? undefined : expanded} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus lg:size-8" data-tooltip={toggleTooltip} onClick={onToggleExpanded} type="button"><Icon name={compactMode ? 'menu' : 'panel-left'} size={14} /></button>
+          <button aria-label={expanded ? 'Contraer menú lateral' : 'Expandir menú lateral'} aria-pressed={expanded} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus lg:size-8" data-tooltip={expanded ? 'Contraer navegación' : 'Expandir navegación'} onClick={onToggleExpanded} type="button"><Icon name="panel-left" size={14} /></button>
         </div>
 
         {groups.map((group) => {
