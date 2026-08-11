@@ -1,6 +1,6 @@
 # PHASES — plan maestro de ElectroCMS
 
-Cada fase se divide en microfases verificables en `DETAILED_EXECUTION_PHASES.md`. No se salta una puerta de calidad.
+Cada fase se divide en microfases verificables en `DETAILED_EXECUTION_PHASES.md`. La aplicación transversal de la Sección 35 se detalla además en `DETAILED_EXECUTION_PHASES_UI_INTERNAL_COMPONENTS.md`. No se salta una puerta de calidad.
 
 `UI_INTERNAL_COMPONENT_POLICY.md` es una regla transversal: toda fase que introduzca selectores, menús, popovers, pickers, diálogos, tooltips, context menus o controles equivalentes debe utilizar componentes internos del Design System y demostrar que no delega la experiencia principal a UI nativa del sistema operativo/navegador salvo excepción documentada.
 
@@ -47,6 +47,7 @@ Cada fase se divide en microfases verificables en `DETAILED_EXECUTION_PHASES.md`
 - Capacidades anticipadas ya existentes se auditan y consolidan en su fase propietaria; no se duplican.
 - El alcance normativo ampliado se documenta en `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - La política de componentes internos se documenta en `UI_INTERNAL_COMPONENT_POLICY.md` y no requiere una fase separada para ser aplicable: entra en vigor en toda microfase visual desde su incorporación.
+- El mapeo operativo de la política a microfases vive en `DETAILED_EXECUTION_PHASES_UI_INTERNAL_COMPONENTS.md` y complementa, no sustituye, `DETAILED_EXECUTION_PHASES.md`.
 
 ## Puertas globales
 
