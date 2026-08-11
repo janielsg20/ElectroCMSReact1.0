@@ -24,7 +24,8 @@
   .m04-tablet-shell[data-tablet-shell="active"] .builder-rail-head > span,
   .m04-tablet-shell[data-tablet-shell="active"] .builder-rail-head > button,
   .m04-tablet-shell[data-tablet-shell="active"] .builder-profile > span,
-  .m04-tablet-shell[data-tablet-shell="active"] .nav-option > span.flex {
+  .m04-tablet-shell[data-tablet-shell="active"] .nav-option > span.flex,
+  .m04-tablet-shell[data-tablet-shell="active"] .app-navigation > div > div > p {
     display: none !important;
   }
 
