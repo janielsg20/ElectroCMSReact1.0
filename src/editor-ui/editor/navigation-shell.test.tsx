@@ -49,7 +49,7 @@ describe('M04.4 navegación, rutas y shortcuts', () => {
     expect(navButton('Inicio')).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(navButton('Inicio'))
-    await new Promise((resolve) => queueMicrotask(resolve))
+    await new Promise<void>((resolve) => queueMicrotask(resolve))
     expect(window.location.hash).toBe('#/dashboard')
   })
 
