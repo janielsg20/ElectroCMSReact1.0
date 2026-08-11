@@ -1,9 +1,9 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { createCompleteWidgetRegistry, type ProjectThemeScope, type WidgetCategory, type WidgetDefinition } from '../../domain'
+import { createCompleteWidgetRegistry, type WidgetCategory, type WidgetDefinition } from '../../domain'
 import { Icon } from '../primitives'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
+import { ProjectDesignPanel } from './ProjectDesignPanel'
 import { TemplateManager } from './TemplateManager'
-import { ProjectThemeControl } from './ProjectThemeControl'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
 import { WidgetLibraryCard } from './WidgetLibraryCard'
 import { useWidgetLibrary, type WidgetLibrarySource } from './widget-library-context'
@@ -78,7 +78,6 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
   const deferredQuery = useDeferredValue(query)
   const [category, setCategory] = useState<WidgetCategory | 'all'>('all')
   const [scope, setScope] = useState<LibraryScope>('all')
-  const [themeScope, setThemeScope] = useState<ProjectThemeScope>('frontend')
   const document = structure.documents[session.documentId]
   const selectedNode = selectedNodeId && document ? document.nodes[selectedNodeId] : undefined
   const canSaveSelection = selectedNode?.kind === 'widget' && definitionById.has(selectedNode.widgetType)
@@ -179,17 +178,10 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
             <CanonicalLayerTree />
           </section>
         </div>
-      ) : activeTab === 'templates' ? <div aria-labelledby="library-tab-templates" className="min-h-0 flex-1" id="library-panel-templates" role="tabpanel"><TemplateManager /></div> : (
-        <div aria-labelledby="library-tab-themes" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-themes" role="tabpanel">
-          <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-2">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="palette" size={15} /></span>
-            <div><h2 className="text-xs font-bold">Temas de proyecto</h2><p className="text-[0.625rem] leading-4 text-muted-foreground">Frontend y backend forman parte del proyecto exportable; la apariencia del editor se configura arriba.</p></div>
-          </div>
-          <div aria-label="Ámbito de tema de proyecto" className="mt-2 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/30 p-1" role="tablist">
-            {(['frontend', 'backend'] as const).map((scopeId) => <button aria-controls={`project-theme-${scopeId}`} aria-selected={themeScope === scopeId} className={`min-h-11 rounded px-2 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${themeScope === scopeId ? 'bg-surface text-primary shadow-sm' : 'text-muted-foreground hover:bg-surface/70 hover:text-foreground'}`} key={scopeId} onClick={() => setThemeScope(scopeId)} role="tab" type="button">{scopeId === 'frontend' ? 'Frontend' : 'Backend'}</button>)}
-          </div>
-          <div aria-labelledby={`project-theme-${themeScope}`} className="mt-2" id={`project-theme-${themeScope}`} role="tabpanel"><ProjectThemeControl scope={themeScope} theme={structure.themes[themeScope]} /></div>
-        </div>
+      ) : activeTab === 'templates' ? (
+        <div aria-labelledby="library-tab-templates" className="min-h-0 flex-1" id="library-panel-templates" role="tabpanel"><TemplateManager /></div>
+      ) : (
+        <div aria-labelledby="library-tab-themes" className="min-h-0 flex-1" id="library-panel-themes" role="tabpanel"><ProjectDesignPanel /></div>
       )}
     </aside>
   )
