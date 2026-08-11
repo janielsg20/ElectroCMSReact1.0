@@ -1,0 +1,36 @@
+.library-panel {
+  container-name: library-panel;
+  container-type: inline-size;
+}
+
+.library-primary-tab__compact {
+  display: none;
+}
+
+@container library-panel (max-width: 260px) {
+  .library-primary-tab {
+    gap: 0;
+    padding-inline: 0.125rem;
+    font-size: 0.625rem;
+  }
+
+  .library-primary-tab > svg,
+  .library-primary-tab__full {
+    display: none;
+  }
+
+  .library-primary-tab__compact {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@container library-panel (max-width: 196px) {
+  .library-primary-tab > svg {
+    display: block;
+  }
+
+  .library-primary-tab__compact {
+    display: none;
+  }
+}
