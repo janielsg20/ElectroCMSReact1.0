@@ -35,8 +35,16 @@ function firstDiagnosticMessage(result: { readonly error: readonly { readonly me
 }
 
 function safeFileName(value: string): string {
-  const normalized = value.trim().toLocaleLowerCase('es').replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '')
+  const normalized = value
+    .trim()
+    .toLocaleLowerCase('es')
+    .replace(/[^a-z0-9-_]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
   return normalized || 'electrocms-theme'
+}
+
+function newestPackage(packages: readonly ThemePackage[]): ThemePackage | undefined {
+  return [...packages].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
 }
 
 export function ThemePackageManager() {
@@ -90,13 +98,30 @@ export function ThemePackageManager() {
     setPackages(result.value)
     const next = result.value.find((themePackage) => themePackage.packageId === preferredId)
       ?? result.value.find((themePackage) => themePackage.packageId === selectedId)
-      ?? [...result.value].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
+      ?? newestPackage(result.value)
     selectPackage(next)
   }, [selectPackage, selectedId, session])
 
   useEffect(() => {
-    void reload()
-  }, [reload])
+    let cancelled = false
+    void session.listThemePackages().then((result) => {
+      if (cancelled) return
+      if (!result.ok) {
+        setMessage(result.error)
+        return
+      }
+      setPackages(result.value)
+      const initial = newestPackage(result.value)
+      if (initial) {
+        setSelectedId(initial.packageId)
+        setName(initial.name)
+        setDescription(initial.description)
+        setVersion(initial.version)
+        setApplySelection(selectionForPackage(initial))
+      }
+    })
+    return () => { cancelled = true }
+  }, [session])
 
   function toggleSelection(
     current: ThemePackagePartSelection,
@@ -209,7 +234,11 @@ export function ThemePackageManager() {
     }
     setPending(true)
     const removed = await session.removeThemePackage(selectedPackage.packageId)
-    setMessage(removed.ok && removed.value ? 'Paquete local eliminado.' : removed.ok ? 'El paquete ya no existía.' : removed.error)
+    setMessage(removed.ok && removed.value
+      ? 'Paquete local eliminado.'
+      : removed.ok
+        ? 'El paquete ya no existía.'
+        : removed.error)
     setDeleteArmedId(null)
     if (removed.ok) await reload()
     setPending(false)
