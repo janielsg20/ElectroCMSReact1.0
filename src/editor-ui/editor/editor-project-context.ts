@@ -94,8 +94,7 @@ export function useEditorProject(): EditorProjectSession {
   return session
 }
 
-export function useThemePackageSession(): ThemePackageSession {
-  const session = useEditorProject()
+export function requireThemePackageSession(session: EditorProjectSession): EditorProjectSession & ThemePackageSession {
   const candidate = session as EditorProjectSession & Partial<ThemePackageSession>
   if (
     typeof candidate.applyThemePackage !== 'function'
@@ -106,6 +105,10 @@ export function useThemePackageSession(): ThemePackageSession {
     throw new Error('La sesión actual no ofrece la capacidad de paquetes de tema.')
   }
   return candidate as EditorProjectSession & ThemePackageSession
+}
+
+export function useThemePackageSession(): ThemePackageSession {
+  return requireThemePackageSession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {
