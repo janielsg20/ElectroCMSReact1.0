@@ -3,6 +3,7 @@ import { Button, Icon } from '../primitives'
 import { EditorShell } from './EditorShell'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
+import './responsive-mobile-shell.css'
 import './responsive-tablet-shell.css'
 
 type TabletPanel = 'library' | 'inspector'
@@ -16,6 +17,10 @@ const TABLET_MIN_WIDTH = 768
 const DESKTOP_MIN_WIDTH = 1024
 const TABLET_OVERLAY_MIN = 280
 const TABLET_OVERLAY_MAX = 420
+
+function isMobileViewport(): boolean {
+  return window.innerWidth < TABLET_MIN_WIDTH
+}
 
 function isTabletViewport(): boolean {
   return window.innerWidth >= TABLET_MIN_WIDTH && window.innerWidth < DESKTOP_MIN_WIDTH
@@ -31,6 +36,7 @@ function panelTitle(panel: TabletPanel): string {
 }
 
 export function ResponsiveEditorShell() {
+  const [mobileViewport, setMobileViewport] = useState(() => isMobileViewport())
   const [tabletViewport, setTabletViewport] = useState(() => isTabletViewport())
   const [editorVisible, setEditorVisible] = useState(true)
   const [persistentPanel, setPersistentPanel] = useState<TabletPanel>('library')
@@ -55,10 +61,15 @@ export function ResponsiveEditorShell() {
 
   useEffect(() => {
     function handleResize(): void {
+      const nextMobile = isMobileViewport()
       const nextTablet = isTabletViewport()
+      setMobileViewport(nextMobile)
       setTabletViewport(nextTablet)
       setOverlayWidth((current) => clampOverlayWidth(current))
       if (!nextTablet && overlayPanel) closeOverlay()
+      if (!nextMobile) {
+        frameRef.current?.querySelector<HTMLButtonElement>('.mobile-sheet button[aria-label="Cerrar panel"]')?.click()
+      }
     }
 
     window.addEventListener('resize', handleResize)
@@ -174,6 +185,7 @@ export function ResponsiveEditorShell() {
   return (
     <div
       className="m04-tablet-shell"
+      data-mobile-shell={mobileViewport ? 'active' : 'inactive'}
       data-tablet-shell={tabletActive ? 'active' : 'inactive'}
       ref={frameRef}
       style={{ '--tablet-context-width': `${persistentWidth}px` } as CSSProperties}
