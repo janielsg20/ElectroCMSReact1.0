@@ -150,27 +150,34 @@ export function EditorShell() {
   useEffect(() => {
     const store = new BrowserWorkspacePreferencesStore(window.localStorage)
     workspacePreferencesRef.current = store
-    const saved = store.load()
-    if (saved) {
-      const restoredRailWidth = clamp(saved.railWidth, 44, 168)
-      setRailWidth(restoredRailWidth)
-      setLibraryWidth(clampPanelWidth('library', saved.libraryWidth))
-      setInspectorWidth(clampPanelWidth('inspector', saved.inspectorWidth))
-      setPanelOrder(saved.panelOrder)
-      setWorkspace({
-        library: {
-          ...saved.workspace.library,
-          pinned: saved.workspace.library.mode === 'floating' && saved.workspace.library.pinned,
-          bounds: fitBoundsToViewport('library', saved.workspace.library.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
-        },
-        inspector: {
-          ...saved.workspace.inspector,
-          pinned: saved.workspace.inspector.mode === 'floating' && saved.workspace.inspector.pinned,
-          bounds: fitBoundsToViewport('inspector', saved.workspace.inspector.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
-        },
-      })
-    }
-    setWorkspacePreferencesReady(true)
+    let cancelled = false
+
+    queueMicrotask(() => {
+      if (cancelled) return
+      const saved = store.load()
+      if (saved) {
+        const restoredRailWidth = clamp(saved.railWidth, 44, 168)
+        setRailWidth(restoredRailWidth)
+        setLibraryWidth(clampPanelWidth('library', saved.libraryWidth))
+        setInspectorWidth(clampPanelWidth('inspector', saved.inspectorWidth))
+        setPanelOrder(saved.panelOrder)
+        setWorkspace({
+          library: {
+            ...saved.workspace.library,
+            pinned: saved.workspace.library.mode === 'floating' && saved.workspace.library.pinned,
+            bounds: fitBoundsToViewport('library', saved.workspace.library.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
+          },
+          inspector: {
+            ...saved.workspace.inspector,
+            pinned: saved.workspace.inspector.mode === 'floating' && saved.workspace.inspector.pinned,
+            bounds: fitBoundsToViewport('inspector', saved.workspace.inspector.bounds, restoredRailWidth, window.innerWidth, window.innerHeight),
+          },
+        })
+      }
+      setWorkspacePreferencesReady(true)
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
