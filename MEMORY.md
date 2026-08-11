@@ -2,8 +2,6 @@
 
 Actualizado: 2026-08-11.
 
-> La auditoría visual F04/M04.1 quedó cerrada: Biblioteca responde a su ancho real, el canvas evita colisiones, Apariencia permanece local al editor y `Diseño` concentra recursos exportables. M08.4 quedó implementada y validada después de esa auditoría.
-
 ## Objetivo
 
 Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual y exportadores Local, React, LAMP y WordPress.
@@ -12,108 +10,102 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - Alcance: `PROMPT_MAESTRO_ELECTROCMS.md` y `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - Estado: `TRACKING.md`; plan: `PHASES.md` y `DETAILED_EXECUTION_PHASES.md`.
-- Reglas: `RULES.md`; arquitectura aceptada: `ARCHITECTURE.md`.
+- Reglas: `RULES.md`; arquitectura: `ARCHITECTURE.md`.
 - FlutterFlow es referencia de capacidades, no fuente de código, branding ni activos.
 
 ## Estado real
 
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F08 completadas.
-- Auditoría extraordinaria F04/M04.1 cerrada sin invalidar su cierre histórico.
 - Fase activa: `F09 — Contenido dinámico, CPT, taxonomías y campos`.
-- Microfase activa: `M09.1 — CPT`.
-- F10–F18 y F19–F31 permanecen `NO_INICIADA` salvo contratos/documentación anticipados que no cuentan como implementación formal.
-- Puerta de cierre M08.4: GitHub Actions run `31543564627`; lint, typecheck, suite completa y build verdes. Producción no se desplegó porque el trabajo sigue en PR draft.
+- M09.1 CPT: `COMPLETADA`.
+- M09.2 Taxonomías: `COMPLETADA`.
+- Microfase activa: `M09.3 — Campos personalizados`.
+- M09.4–M09.5, F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- Puerta M09.1: run `31544864623`, lint/typecheck/suite/build verdes.
+- Puerta M09.2: run `31546741841`, lint/typecheck, 304/304 pruebas y build verdes.
+- Producción no se despliega desde este PR draft.
 
 ## Decisiones vigentes
 
-- Dominio y modelo canónico independientes de React, Tailwind, almacenamiento y exportadores.
-- Modelo, preview y exportación comparten una sola fuente de verdad.
-- Toda mutación persistente del editor usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro historial.
-- Árbol y canvas consumen `ProjectStructure`; la UI no mantiene árboles ni documentos paralelos.
+- `ProjectStructure` es la única fuente de verdad de proyecto; `ProjectStructure.cms` contiene el backend CMS.
+- Dominio/modelo independientes de React, Tailwind, almacenamiento y exportadores.
+- Toda mutación persistente usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro history.
 - Undo/redo crea revisiones monotónicas nuevas y persiste en IndexedDB.
-- `workspace.v1`, `appearance.v1`, `library.v1` y `theme-packages.v1` son datos locales de producto/preferencias; solo aplicar un paquete modifica el proyecto.
+- Árbol, renderer, temas, documentos y CMS convergen en el mismo `ProjectStructure`.
+- Capacidades específicas del editor se segregan (`ThemePackageSession`, `ContentTypeSession`, `TaxonomySession`) para no ensanchar el contrato base.
+- `workspace.v1`, `appearance.v1`, `library.v1` y `theme-packages.v1` son estado local de producto/preferencias, no una segunda copia del proyecto.
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
-- Funciones futuras no se muestran como activas; se registran como `PARITY_GAP` en su fase propietaria.
+- Funciones futuras no se muestran como activas.
 
 ## UI/UX vigente
 
 - Dirección: High Density + Minimal Clean + builder/IDE profesional.
-- Desktop usa rail, paneles dock/float/minimize y canvas prioritario; tablet y móvil conservan las funciones construidas mediante paneles adaptados.
-- La navegación expone solo áreas funcionales; dashboard, IA, preview/run y controles aspiracionales permanecen fuera hasta sus fases reales.
-- Apariencia del editor vive en TopBar y nunca se confunde con temas exportables.
-- `Biblioteca → Diseño` usa dos superficies: `Tema` para frontend/backend y `Paquetes` para recursos reutilizables.
-- Canvas mantiene selección compartida, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco entre regiones.
-- La barra del canvas se distribuye en tres regiones y adapta controles por container width; se eliminó el estado inferior redundante.
-- Popovers/paneles respetan el bottom dock móvil; targets interactivos son aproximadamente 44 px en touch y 36 px en escritorio denso.
-- Las cuatro pestañas de Biblioteca adaptan iconos/etiquetas al ancho real; `Documentos` puede mostrarse visualmente como `Docs` sin perder su nombre accesible.
+- Targets aproximados: 44 px en touch y 36 px en escritorio denso.
+- Desktop usa paneles dock/float/minimize; tablet/móvil conservan las funciones construidas mediante paneles adaptados.
+- Biblioteca tiene cinco áreas funcionales: Capas, Widgets, Documentos, Datos y Diseño; responde al ancho real mediante container queries.
+- `Datos` usa tabs secundarios y solo expone superficies ya construidas.
+- Actualmente `Datos → Tipos | Taxonomías`.
+- Los tabpanels inactivos usan el atributo HTML `hidden`, no solo ocultación visual CSS.
+- Apariencia del editor permanece local en TopBar; temas/paquetes viven en Diseño.
+- Canvas mantiene selección, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco entre regiones.
 
-## F05 — motor canónico completado
+## F05–F08 resumidas
 
-- `tree-operations.ts`: insert, move, nest, group, copy/paste, duplicate, lock, hide y rename con validación integral.
-- `CanonicalProjectRenderer` y `ProjectStructureRenderStore` renderizan roots/slots/componentes globales con snapshots granulares por nodo y error boundaries locales.
-- Capas usa sensores DnD pointer/touch/teclado, autoscroll, anuncios y menú antes/después/dentro.
-- Direct manipulation persiste tamaño y espaciado responsive mediante Command Bus; locked rechaza mutaciones.
-- `workspace.v1` persiste zoom 25–200 %, pan, fit, viewport, orientación y paneles.
+- F05: árbol canónico, renderer granular, DnD accesible, manipulación directa, selección y viewport.
+- F06: catálogo único de 115 widgets, adapters y biblioteca con favoritos/recientes/presets/DnD.
+- F07: inspector generado, controles tipados, motor de estilos seguro, breakpoints, bindings, condiciones y ARIA.
+- F08: tres ámbitos de tema, presets, motor de documentos/plantillas y paquetes theme versionados/importables.
 
-## F06 — widgets y biblioteca completados
+## M09.1 completada — CPT
 
-- `WidgetDefinition` declara ID/versión, schema/defaults, renderer, inspector, icono SVG, migraciones, accesibilidad y soporte Local/React/LAMP/WordPress.
-- Catálogo único: 15 estructurales, 20 básicos, 20 de contenido, 14 dinámicos, 15 de comercio, 20 de formulario y 11 filtros; total 115.
-- `ReactWidgetAdapterRegistry` vive fuera del dominio; adapters sensibles muestran estados honestos sin ejecutar backend, queries, pagos ni envíos.
-- HTML/iframes/destinos inseguros se aíslan o bloquean; controles usan semántica nativa.
-- Biblioteca: búsqueda diferida, categorías, favoritos, recientes, guardados, miniaturas y DnD pointer/touch/teclado.
-- `library.v1` persiste preferencias y hasta 50 presets locales; un preset conserva propiedades, estilos y responsive, nunca hijos/bindings/condiciones.
-- `insertWidget` valida contra el registro, genera ID, inserta dentro del contenedor seleccionado o después de la selección y pasa por Command Bus.
+- `content-type-engine.ts`: list/create/update/delete con ID/slug únicos e integridad.
+- Campos reales: singular/plural, descripción, icono, capacidades, soportes, público, menú, orden, Single y Archive.
+- Soportes: title/editor/author/thumbnail/excerpt/revisions/custom-fields.
+- Single solo acepta `single|template`; Archive solo `archive|template`.
+- Borrado bloquea dependencias de campos, taxonomías, registros, relaciones, queries, forms, backend screens y roles.
+- `ContentTypeSession` usa Command Bus/IndexedDB/undo/redo.
+- UI: `Datos → Tipos`.
+- Documento: `CONTENT_TYPE_SYSTEM.md`.
 
-## F07 — inspector, estilos y responsive completados
+## M09.2 completada — Taxonomías
 
-- Inspector generado desde `WidgetDefinition.inspector`: Contenido, Estilo, Layout, Responsive, Datos, Condiciones, Animaciones, Accesibilidad y Avanzado.
-- Controles tipados, JSON estructurado, errores inline, defaults seguros y reset; update/reset pasan por Command Bus.
-- `style-engine.ts` resuelve tokens/herencia y CSS seguro; bloquea CSS arbitrario, `url()`, `expression`, ciclos e inyección.
-- Breakpoints canónicos son editables y heredables; reset elimina solo el override activo y es reversible.
-- Bindings literales/rutas/referencias de nodo, condiciones y ARIA comparten contrato entre inspector, renderer, persistencia y undo.
+- `taxonomy-engine.ts` reutiliza `TaxonomySchema` y `TaxonomyTermSchema` sin inventar propiedades paralelas.
+- Taxonomías: ID/slug únicos, singular/plural, descripción, jerárquica/plana, asociaciones múltiples CPT, `fieldIds` preservados y Archive opcional.
+- `Taxonomy.contentTypeIds` y `ContentType.taxonomyIds` se sincronizan bidireccionalmente.
+- Archive solo acepta `archive|template`.
+- Términos: slug único por taxonomía, descripción y padre opcional.
+- Plana no admite padres; padre debe ser de la misma taxonomía; ciclos se rechazan.
+- No se convierte a plana con hijos existentes.
+- Borrado de taxonomía bloqueado por términos/campos/queries; borrado de términos bloqueado por hijos/registros/queries.
+- `TaxonomySession` usa Command Bus/IndexedDB/undo/redo real.
+- UI: `Datos → Taxonomías`, con CPT múltiples, Archive y términos.
+- Documento: `TAXONOMY_SYSTEM.md`.
 
-## M08.1 completada — tres ámbitos de tema
+## M09.3 activa — Campos personalizados
 
-- Editor es preferencia local `appearance.v1`; frontend/backend viven en `ProjectStructure.themes`.
-- Cada tema usa schema v1 y tokens semánticos estrictos; update/reset pasan por Command Bus, IndexedDB y undo/redo.
-- El renderer consume frontend por defecto y backend explícito sin compartir tokens.
+Usar el contrato anticipado `FieldDefinitionSchema` como fuente canónica y formalizarlo mediante:
 
-## M08.2 completada — presets visuales
-
-- Nueve presets normativos del editor y once presets inmutables de proyecto.
-- Frontend/backend permanecen independientes y editables después de aplicar.
-- 20 variantes del editor y 11 temas de proyecto verifican contraste WCAG AA automáticamente.
-
-## M08.3 completada — motor de plantillas
-
-- Documentos canónicos: page, template, header, footer, single, archive y 404.
-- Composición determinista por prioridad/especificidad/ID, rutas únicas y condiciones tipadas.
-- Crear documentos y actualizar condiciones pasan por `ProjectStructureCommand`, IndexedDB y undo/redo.
-- `TEMPLATE_SYSTEM.md` conserva el contrato y límites.
-
-## M08.4 completada — paquetes theme
-
-- `ThemePackageSchema`: `electrocms.theme-package`, schema v1, ID UUID y SemVer.
-- Partes actuales: tema frontend, tema backend, documentos, componentes globales y breakpoints dependientes.
-- Biblioteca local `theme-packages.v1`: crear, editar, duplicar, versionar, importar, exportar y borrar no modifica `ProjectStructure`.
-- Importar nunca aplica automáticamente; aplicar exige selección explícita de partes.
-- Aplicación remapea IDs, slots, bindings, responsive y referencias de componentes; la estructura candidata completa se valida antes de persistir.
-- Conflictos de rutas: `abort` o renombrado determinista de la copia importada mediante `suffix`; nunca sobrescritura silenciosa.
-- Aplicar entra al historial mediante `ProjectStructureCommand` + `ProjectCommandBus`; undo real está cubierto por integración.
-- UI: `Biblioteca → Diseño → Paquetes`, con SemVer, import/export, confirmación de borrado en dos pasos, selección de partes y política de rutas.
-- `THEME_PACKAGE_SYSTEM.md` conserva el contrato completo.
+- CRUD de campos para propietarios CPT y taxonomía.
+- Todos los tipos exigidos: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
+- default, placeholder, descripción, required, validation, options y conditions.
+- childFieldIds para group/repeater sin ciclos.
+- relationId, taxonomyId, allowedRoleIds, calculatedExpression, group y order.
+- Sincronización con `ContentType.fieldIds` / `Taxonomy.fieldIds`.
+- Integridad al modificar/eliminar.
+- Persistencia/historial canónicos.
+- UI funcional en Datos sin adelantar M09.4/M09.5.
+- No avanzar hasta gate completo verde.
 
 ## Riesgos y límites
 
-- F09 debe reutilizar `CmsBackendSchema`/`validateCmsBackend` existentes como contratos anticipados, pero su existencia no significa que CPT/taxonomías/campos estén implementados.
-- M09.1 debe formalizar CRUD de tipos de contenido, capacidades, soportes, visibilidad y vínculo single/archive con persistencia e historial reales antes de avanzar a M09.2.
-- El inspector debe usar el registro existente y no duplicar schemas ni defaults.
-- Ediciones futuras deben converger en Command Bus y resolver overrides por breakpoint.
-- Collaboration, AI e integraciones remotas nunca degradan el modo offline/local.
+- Schemas CMS anticipados no cuentan como implementación hasta tener motor, integridad, persistencia, UI y tests.
+- M09.3 debe reutilizar `validateCmsBackend`; no duplicar validadores ni defaults.
+- Relaciones completas pertenecen M09.4; en M09.3 un campo `relation` puede referenciar únicamente una `Relation` canónica existente, nunca simular crearla.
+- Roles se formalizan funcionalmente en F12; `allowedRoleIds` solo puede usar roles canónicos existentes y no debe inventar permisos.
+- Collaboration, IA e integraciones remotas nunca degradan el modo offline/local.
 - Secrets no aparecen en frontend, logs, exports ni bundles.
 
 ## Próximo paso exacto
 
-Implementar `M09.1 — CPT`: CRUD canónico de tipos de contenido, capacidades, soportes, visibilidad y plantillas single/archive; integrar persistencia/historial y UI funcional, probar invariantes y no avanzar a M09.2 hasta una puerta completa verde.
+Implementar `M09.3 — Campos personalizados` desde el dominio: CRUD, validación específica por tipo, sincronización con propietarios, integridad y tests; luego Command Bus, UI `Datos → Campos`, suite completa y build antes de M09.4.
