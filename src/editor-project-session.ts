@@ -9,6 +9,7 @@ import {
   mergeEditableVisualStyles,
   moveNodes,
   parseBreakpointId,
+  parseContentRecordRevisionId,
   parseDocumentId,
   parseGlobalComponentId,
   parseNodeId,
@@ -32,6 +33,9 @@ import {
   type BreakpointId,
   type BreakpointInput,
   type BreakpointPatch,
+  type ContentRecord,
+  type ContentRecordId,
+  type ContentRecordRevisionId,
   type ContentType,
   type ContentTypeId,
   type Document,
@@ -50,6 +54,10 @@ import {
   type ProjectStructure,
   type ProjectTheme,
   type ProjectThemeScope,
+  type Relation,
+  type RelationEntry,
+  type RelationEntryId,
+  type RelationId,
   type Result,
   type Taxonomy,
   type TaxonomyId,
@@ -74,6 +82,21 @@ import {
   updateCustomField as updateCustomFieldInStructure,
   type FieldDefinitionEditablePatch,
 } from './domain/project/custom-field-engine'
+import {
+  createContentRecord as createContentRecordInStructure,
+  createRelation as createRelationInStructure,
+  createRelationEntry as createRelationEntryInStructure,
+  deleteContentRecord as deleteContentRecordInStructure,
+  deleteRelation as deleteRelationInStructure,
+  deleteRelationEntry as deleteRelationEntryInStructure,
+  restoreContentRecordRevision as restoreContentRecordRevisionInStructure,
+  updateContentRecord as updateContentRecordInStructure,
+  updateRelation as updateRelationInStructure,
+  updateRelationEntry as updateRelationEntryInStructure,
+  type ContentRecordEditablePatch,
+  type RelationEditablePatch,
+  type RelationEntryEditablePatch,
+} from './domain/project/record-relation-engine'
 import {
   createTaxonomy as createTaxonomyInStructure,
   createTaxonomyTerm as createTaxonomyTermInStructure,
@@ -205,6 +228,19 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return created.ok ? success({ breakpointId, structure: created.value }) : created
   }
 
+  async createContentRecord(record: ContentRecord): Promise<Result<ProjectStructure, string>> {
+    const timestamp = now()
+    const normalized: ContentRecord = { ...structuredClone(record), createdAt: timestamp, updatedAt: timestamp }
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-content-record',
+      'Crear registro de contenido',
+      (structure) => {
+        const created = createContentRecordInStructure(structure, normalized)
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El registro no es válido.' })
+      },
+    ))
+  }
+
   async createContentType(contentType: ContentType): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
       'cms.create-content-type',
@@ -238,6 +274,28 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     ))
   }
 
+  async createRelation(relation: Relation): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-relation',
+      `Crear relación ${relation.name}`,
+      (structure) => {
+        const created = createRelationInStructure(structure, relation)
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'La relación no es válida.' })
+      },
+    ))
+  }
+
+  async createRelationEntry(entry: RelationEntry): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.create-relation-entry',
+      'Conectar registros',
+      (structure) => {
+        const created = createRelationEntryInStructure(structure, entry)
+        return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'La conexión no es válida.' })
+      },
+    ))
+  }
+
   async createTaxonomy(taxonomy: Taxonomy): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
       'cms.create-taxonomy',
@@ -260,6 +318,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     ))
   }
 
+  async deleteContentRecord(recordId: ContentRecordId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-content-record',
+      'Eliminar registro de contenido',
+      (structure) => {
+        const deleted = deleteContentRecordInStructure(structure, recordId)
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El registro no se puede eliminar.' })
+      },
+    ))
+  }
+
   async deleteContentType(contentTypeId: ContentTypeId): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand(
       'cms.delete-content-type',
@@ -278,6 +347,28 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       (structure) => {
         const deleted = deleteCustomFieldInStructure(structure, fieldId)
         return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El campo personalizado no se puede eliminar.' })
+      },
+    ))
+  }
+
+  async deleteRelation(relationId: RelationId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-relation',
+      'Eliminar relación',
+      (structure) => {
+        const deleted = deleteRelationInStructure(structure, relationId)
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'La relación no se puede eliminar.' })
+      },
+    ))
+  }
+
+  async deleteRelationEntry(entryId: RelationEntryId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.delete-relation-entry',
+      'Desconectar registros',
+      (structure) => {
+        const deleted = deleteRelationEntryInStructure(structure, entryId)
+        return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'La conexión no se puede eliminar.' })
       },
     ))
   }
@@ -398,11 +489,37 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     ))
   }
 
+  async restoreContentRecordRevision(revisionId: ContentRecordRevisionId): Promise<Result<ProjectStructure, string>> {
+    const timestamp = now()
+    const backupRevisionId = parseContentRecordRevisionId(crypto.randomUUID())
+    return this.#execute(new ProjectStructureCommand(
+      'cms.restore-content-record-revision',
+      'Restaurar revisión de contenido',
+      (structure) => {
+        const restored = restoreContentRecordRevisionInStructure(structure, revisionId, { now: timestamp, revisionId: backupRevisionId })
+        return restored.ok ? success(restored.value) : failure({ code: 'invalid-tree' as const, message: restored.error[0]?.message ?? 'La revisión no se puede restaurar.' })
+      },
+    ))
+  }
+
   async saveThemePackage(themePackage: ThemePackage): Promise<Result<void, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
     const saved = await this.#themePackages.save(themePackage)
     return saved.ok ? success(undefined) : failure(saved.error.message)
+  }
+
+  async updateContentRecord(recordId: ContentRecordId, patch: ContentRecordEditablePatch): Promise<Result<ProjectStructure, string>> {
+    const timestamp = now()
+    const revisionId = parseContentRecordRevisionId(crypto.randomUUID())
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-content-record',
+      'Editar registro de contenido',
+      (structure) => {
+        const updated = updateContentRecordInStructure(structure, recordId, patch, { now: timestamp, revisionId })
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El registro no es válido.' })
+      },
+    ))
   }
 
   async updateContentType(contentTypeId: ContentTypeId, patch: ContentTypeEditablePatch): Promise<Result<ProjectStructure, string>> {
@@ -421,6 +538,28 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       (structure) => {
         const updated = updateCustomFieldInStructure(structure, fieldId, patch)
         return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El campo personalizado no es válido.' })
+      },
+    ))
+  }
+
+  async updateRelation(relationId: RelationId, patch: RelationEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-relation',
+      'Editar relación',
+      (structure) => {
+        const updated = updateRelationInStructure(structure, relationId, patch)
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'La relación no es válida.' })
+      },
+    ))
+  }
+
+  async updateRelationEntry(entryId: RelationEntryId, patch: RelationEntryEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'cms.update-relation-entry',
+      'Editar conexión entre registros',
+      (structure) => {
+        const updated = updateRelationEntryInStructure(structure, entryId, patch)
+        return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'La conexión no es válida.' })
       },
     ))
   }
