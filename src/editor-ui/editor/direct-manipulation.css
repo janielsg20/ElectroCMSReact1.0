@@ -57,16 +57,45 @@
   background-image: repeating-linear-gradient(to bottom, transparent 0 7px, rgb(100 116 139 / 0.55) 7px 8px);
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 47.999rem) {
   .direct-resize-handle {
-    width: 20px;
-    height: 20px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .direct-resize-handle[data-corner='north-west'] { left: -11px; top: -11px; }
-  .direct-resize-handle[data-corner='north-east'] { right: -11px; top: -11px; }
-  .direct-resize-handle[data-corner='south-east'] { bottom: -11px; right: -11px; }
-  .direct-resize-handle[data-corner='south-west'] { bottom: -11px; left: -11px; }
+  .direct-resize-handle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    border: 2px solid white;
+    border-radius: 5px;
+    background: var(--color-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary), black 18%);
+    pointer-events: none;
+  }
+
+  .direct-resize-handle[data-corner='north-west'] { left: -23px; top: -23px; }
+  .direct-resize-handle[data-corner='north-east'] { right: -23px; top: -23px; }
+  .direct-resize-handle[data-corner='south-east'] { bottom: -23px; right: -23px; }
+  .direct-resize-handle[data-corner='south-west'] { bottom: -23px; left: -23px; }
+
+  .direct-node-frame [aria-label^='Abrir menú contextual de'] {
+    position: relative;
+  }
+
+  .direct-node-frame [aria-label^='Abrir menú contextual de']::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
