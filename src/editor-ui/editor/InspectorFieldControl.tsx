@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { JsonValueSchema, type JsonValue, type Node, type WidgetDefinition } from '../../domain'
 import { useEditorProject } from './editor-project-context'
 import { formatInspectorValue, type GeneratedInspectorField } from './inspector-schema-model'
@@ -45,6 +45,34 @@ function parseDraft(field: GeneratedInspectorField, source: string): { readonly 
   return parsed.success ? { ok: true, value: parsed.data } : { error: parsed.error.issues[0]?.message ?? 'Valor no válido.', ok: false }
 }
 
+function QueryChoice({
+  active,
+  contentType,
+  disabled,
+  name,
+  onSelect,
+}: {
+  readonly active: boolean
+  readonly contentType: string
+  readonly disabled: boolean
+  readonly name: string
+  readonly onSelect: () => void
+}) {
+  return (
+    <button
+      aria-selected={active}
+      className={`min-h-11 min-w-0 rounded-md border px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${active ? 'border-primary/50 bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:bg-muted'}`}
+      disabled={disabled}
+      onClick={onSelect}
+      role="option"
+      type="button"
+    >
+      <strong className="block truncate text-[0.625rem]">{name}</strong>
+      <span className="block truncate text-[0.5625rem] text-muted-foreground">{contentType}</span>
+    </button>
+  )
+}
+
 export function InspectorFieldControl({ definition, field, node }: InspectorFieldControlProps) {
   const session = useEditorProject()
   const [draft, setDraft] = useState(() => serializeDraft(field.value))
@@ -52,6 +80,12 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   const [status, setStatus] = useState('')
   const [pending, setPending] = useState(false)
   const isComplex = Array.isArray(field.value) || (typeof field.value === 'object' && field.value !== null)
+  const isQueryBinding = field.control === 'binding' && field.key === 'queryId'
+  const cms = session.store.structure.cms
+  const queries = useMemo(
+    () => Object.values(cms?.queries ?? {}).sort((left, right) => left.name === right.name ? 0 : left.name < right.name ? -1 : 1),
+    [cms],
+  )
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -80,6 +114,7 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   }
 
   const inputId = `inspector-${node.id}-${field.key}`
+  const disabled = node.locked || pending
   return (
     <form className="rounded-md border border-border bg-surface px-2 py-1.5" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
       <div className="flex items-start justify-between gap-2">
@@ -88,13 +123,69 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
       </div>
 
       {field.control === 'boolean' ? (
-        <label className="mt-1 flex min-h-9 cursor-pointer items-center gap-2 rounded bg-muted/45 px-2 text-xs text-foreground" htmlFor={inputId}><input checked={draft === 'true'} disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(String(event.target.checked))} type="checkbox" /><span>{draft === 'true' ? 'Activado' : 'Desactivado'}</span></label>
+        <button
+          aria-checked={draft === 'true'}
+          className="mt-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-border bg-muted/25 px-2 text-left text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9"
+          disabled={disabled}
+          id={inputId}
+          onClick={() => setDraft((current) => current === 'true' ? 'false' : 'true')}
+          role="switch"
+          type="button"
+        >
+          <span>{draft === 'true' ? 'Activado' : 'Desactivado'}</span>
+          <span aria-hidden="true" className={`relative h-5 w-9 rounded-full border transition-colors ${draft === 'true' ? 'border-primary bg-primary' : 'border-border bg-muted'}`}>
+            <span className={`absolute top-0.5 size-3.5 rounded-full bg-surface shadow-sm transition-transform ${draft === 'true' ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          </span>
+        </button>
+      ) : isQueryBinding ? (
+        queries.length > 0 ? (
+          <div aria-label="Consultas guardadas" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+            {queries.map((query) => (
+              <QueryChoice
+                active={draft === query.id}
+                contentType={cms?.contentTypes[query.contentTypeId]?.pluralName ?? 'Tipo no disponible'}
+                disabled={disabled}
+                key={query.id}
+                name={query.name}
+                onSelect={() => setDraft(query.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-1 rounded-md border border-dashed border-border bg-muted/15 p-2 text-[0.625rem] leading-4 text-muted-foreground" id={inputId} role="status">No hay consultas guardadas. Créala primero desde Contenido → Consultas.</div>
+        )
       ) : field.control === 'select' && field.options ? (
-        <select className="mt-1 min-h-9 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft}>{field.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+        <div aria-label={field.label} className="mt-1 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+          {field.options.map((option) => (
+            <button
+              aria-selected={draft === String(option)}
+              className={`min-h-11 rounded-md px-2 text-[0.625rem] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${draft === String(option) ? 'bg-primary text-on-primary' : 'bg-surface text-foreground hover:bg-muted'}`}
+              disabled={disabled}
+              key={option}
+              onClick={() => setDraft(String(option))}
+              role="option"
+              type="button"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       ) : isComplex || field.control === 'textarea' || field.control === 'spacing' ? (
-        <textarea className="mt-1 min-h-20 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft} />
+        <textarea className="mt-1 min-h-20 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={disabled} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft} />
       ) : (
-        <input className="mt-1 min-h-9 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} type={field.control === 'number' ? 'number' : field.control === 'color' ? 'color' : 'text'} value={draft} />
+        <div className="relative mt-1">
+          {field.control === 'color' ? <span aria-hidden="true" className="absolute left-2 top-1/2 size-4 -translate-y-1/2 rounded border border-border" style={{ backgroundColor: /^#[0-9a-f]{6}$/i.test(draft) ? draft : 'transparent' }} /> : null}
+          <input
+            className={`min-h-11 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${field.control === 'color' ? 'pl-8 font-mono' : ''}`}
+            disabled={disabled}
+            id={inputId}
+            inputMode={field.control === 'number' ? 'decimal' : 'text'}
+            onChange={(event) => setDraft(event.target.value)}
+            required={field.required}
+            type="text"
+            value={draft}
+          />
+        </div>
       )}
 
       {field.options && field.control !== 'select' ? <p className="mt-1 truncate text-[0.5625rem] text-muted-foreground">Opciones: {field.options.join(', ')}</p> : null}
@@ -102,8 +193,8 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
       {error ? <p className="mt-1 rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="mt-1.5 flex gap-1">
-        <button className="min-h-9 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={node.locked || pending} type="submit">{pending ? 'Guardando…' : 'Aplicar'}</button>
-        <button className="min-h-9 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={field.source === 'default' || node.locked || pending} onClick={() => { void reset() }} type="button">Reset</button>
+        <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={disabled} type="submit">{pending ? 'Guardando…' : 'Aplicar'}</button>
+        <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Reset</button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
       <span className="sr-only">Schema: {definition.id}</span>
