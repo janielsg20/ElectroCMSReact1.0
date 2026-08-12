@@ -44,6 +44,22 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Browser UI audit
+        run: |
+          python3 -m http.server 4173 --directory dist >/tmp/electrocms-browser-audit.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          node scripts/browser-audit.mjs
+
+      - name: Upload browser audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electrocms-browser-audit
+          path: browser-audit
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Upload pull request preview build
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
