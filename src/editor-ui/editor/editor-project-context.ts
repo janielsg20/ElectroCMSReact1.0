@@ -3,6 +3,9 @@ import type {
   BreakpointId,
   BreakpointInput,
   BreakpointPatch,
+  ContentRecord,
+  ContentRecordId,
+  ContentRecordRevisionId,
   ContentType,
   ContentTypeId,
   Document,
@@ -19,6 +22,10 @@ import type {
   ProjectStructure,
   ProjectTheme,
   ProjectThemeScope,
+  Relation,
+  RelationEntry,
+  RelationEntryId,
+  RelationId,
   Result,
   Taxonomy,
   TaxonomyId,
@@ -33,6 +40,11 @@ import type {
 } from '../../domain'
 import type { ContentTypeEditablePatch } from '../../domain/project/content-type-engine'
 import type { FieldDefinitionEditablePatch } from '../../domain/project/custom-field-engine'
+import type {
+  ContentRecordEditablePatch,
+  RelationEditablePatch,
+  RelationEntryEditablePatch,
+} from '../../domain/project/record-relation-engine'
 import type {
   TaxonomyEditablePatch,
   TaxonomyTermEditablePatch,
@@ -112,6 +124,19 @@ export interface CustomFieldSession {
   createCustomField(field: FieldDefinition): Promise<Result<ProjectStructure, string>>
   updateCustomField(fieldId: FieldDefinitionId, patch: FieldDefinitionEditablePatch): Promise<Result<ProjectStructure, string>>
   deleteCustomField(fieldId: FieldDefinitionId): Promise<Result<ProjectStructure, string>>
+}
+
+export interface RecordRelationSession {
+  createContentRecord(record: ContentRecord): Promise<Result<ProjectStructure, string>>
+  updateContentRecord(recordId: ContentRecordId, patch: ContentRecordEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteContentRecord(recordId: ContentRecordId): Promise<Result<ProjectStructure, string>>
+  restoreContentRecordRevision(revisionId: ContentRecordRevisionId): Promise<Result<ProjectStructure, string>>
+  createRelation(relation: Relation): Promise<Result<ProjectStructure, string>>
+  updateRelation(relationId: RelationId, patch: RelationEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteRelation(relationId: RelationId): Promise<Result<ProjectStructure, string>>
+  createRelationEntry(entry: RelationEntry): Promise<Result<ProjectStructure, string>>
+  updateRelationEntry(entryId: RelationEntryId, patch: RelationEntryEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteRelationEntry(entryId: RelationEntryId): Promise<Result<ProjectStructure, string>>
 }
 
 export interface EditorSelection {
@@ -195,6 +220,29 @@ export function requireCustomFieldSession(session: EditorProjectSession): Editor
 
 export function useCustomFieldSession(): CustomFieldSession {
   return requireCustomFieldSession(useEditorProject())
+}
+
+export function requireRecordRelationSession(session: EditorProjectSession): EditorProjectSession & RecordRelationSession {
+  const candidate = session as EditorProjectSession & Partial<RecordRelationSession>
+  if (
+    typeof candidate.createContentRecord !== 'function'
+    || typeof candidate.updateContentRecord !== 'function'
+    || typeof candidate.deleteContentRecord !== 'function'
+    || typeof candidate.restoreContentRecordRevision !== 'function'
+    || typeof candidate.createRelation !== 'function'
+    || typeof candidate.updateRelation !== 'function'
+    || typeof candidate.deleteRelation !== 'function'
+    || typeof candidate.createRelationEntry !== 'function'
+    || typeof candidate.updateRelationEntry !== 'function'
+    || typeof candidate.deleteRelationEntry !== 'function'
+  ) {
+    throw new Error('La sesión actual no ofrece la capacidad de registros y relaciones.')
+  }
+  return candidate as EditorProjectSession & RecordRelationSession
+}
+
+export function useRecordRelationSession(): RecordRelationSession {
+  return requireRecordRelationSession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {
