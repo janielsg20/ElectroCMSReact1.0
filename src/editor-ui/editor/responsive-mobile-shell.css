@@ -54,10 +54,15 @@
   }
 
   .m04-tablet-shell[data-mobile-shell="active"] .app-topbar button,
-  .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar button {
+  .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar button,
+  .m04-tablet-shell[data-mobile-shell="active"] .theme-settings-trigger {
     min-width: 44px;
     min-height: 44px;
     touch-action: manipulation;
+  }
+
+  .m04-tablet-shell[data-mobile-shell="active"] .theme-settings-trigger {
+    height: 44px;
   }
 
   .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar {
