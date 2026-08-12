@@ -12,14 +12,14 @@ describe('arquitectura de navegación CMS/builder', () => {
     const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
     expect(within(library).getByRole('tab', { name: 'Capas' })).toBeInTheDocument()
     expect(within(library).getByRole('tab', { name: 'Widgets' })).toBeInTheDocument()
-    expect(within(library).queryByRole('tab', { name: /documentos|datos|diseño|contenido/i })).not.toBeInTheDocument()
+    expect(within(library).queryByRole('tab', { name: /páginas|datos|diseño|contenido/i })).not.toBeInTheDocument()
   })
 
   it('expone las funciones de proyecto desde la navegación principal', () => {
     render(<App />)
     const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
     expect(within(navigation).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-current', 'page')
-    expect(within(navigation).getByRole('button', { name: 'Documentos' })).toBeInTheDocument()
+    expect(within(navigation).getByRole('button', { name: 'Páginas' })).toBeInTheDocument()
     expect(within(navigation).getByRole('button', { name: 'Contenido' })).toBeInTheDocument()
     expect(within(navigation).getByRole('button', { name: 'Diseño' })).toBeInTheDocument()
   })
@@ -30,12 +30,13 @@ describe('arquitectura de navegación CMS/builder', () => {
     expect(within(library).queryByRole('tab', { name: /datos|contenido/i })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
-    const cms = screen.getByRole('region', { name: /contenido cms · módulo principal/i })
+    const cms = screen.getByRole('region', { name: /contenido dinámico · módulo principal/i })
     expect(cms).toBeInTheDocument()
-    expect(within(cms).getByRole('tablist', { name: /datos del proyecto/i })).toBeInTheDocument()
-    expect(within(cms).getByRole('tab', { name: 'Tipos' })).toBeInTheDocument()
-    expect(within(cms).getByRole('tab', { name: 'Campos' })).toBeInTheDocument()
-    expect(within(cms).getByRole('tab', { name: /registros y relaciones/i })).toBeInTheDocument()
+    expect(within(cms).getByRole('tablist', { name: /herramientas de contenido/i })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: 'Tipos de contenido' })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: 'Campos personalizados' })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: /entradas y relaciones/i })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: 'Formularios' })).toBeInTheDocument()
   })
 
   it('mantiene el ajuste real de anchura del rail', () => {
