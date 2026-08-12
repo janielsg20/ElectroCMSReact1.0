@@ -1,5 +1,5 @@
 import { createBrowserEditorProjectSession } from './editor-project-session'
-import { AppSectionProvider } from './editor-ui/editor/app-section-context'
+import { AppSectionProvider } from './editor-ui/editor/AppSectionProvider'
 import { EditorProjectProvider } from './editor-ui/editor/EditorProjectProvider'
 import { ResponsiveEditorShell } from './editor-ui/editor/ResponsiveEditorShell'
 
