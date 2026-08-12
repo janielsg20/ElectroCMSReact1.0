@@ -62,6 +62,35 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  preview:
+    name: Deploy Cloudflare preview
+    if: github.event_name == 'pull_request'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download validated preview build
+        uses: actions/download-artifact@v4
+        with:
+          name: electrocms-pr-preview
+          path: dist
+
+      - name: Deploy pull request preview
+        id: cloudflare-preview
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=electrocms-react --branch=preview-pr-${{ github.event.pull_request.number }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: "4.120.0"
+
   deploy:
     name: Deploy production
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
