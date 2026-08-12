@@ -44,9 +44,9 @@ export function InspectorPanel({ className = '' }: InspectorPanelProps) {
         {node ? (
           <div>
             <section className="border-b border-border px-2 py-1.5 lg:px-1.5" aria-labelledby="node-state-title">
-              <div className="flex items-center gap-1.5">
-                <h2 className="min-w-0 flex-1 text-[0.625rem] font-bold text-muted-foreground" id="node-state-title">Estado del elemento</h2>
-                <span className={`rounded px-1.5 py-0.5 text-[0.5625rem] font-semibold ${node.hidden ? 'bg-warning-soft text-warning' : 'bg-success-soft text-success'}`}>{node.hidden ? 'Oculto' : 'Visible'}</span>
+              <div className="flex flex-wrap items-center gap-1">
+                <h2 className="mr-auto min-w-0 text-[0.625rem] font-bold text-muted-foreground" id="node-state-title">Estado del elemento</h2>
+                <span className={`rounded px-1.5 py-0.5 text-[0.5625rem] font-semibold ${node.hidden ? 'bg-muted text-muted-foreground' : 'bg-primary-soft text-primary-strong'}`}>{node.hidden ? 'Oculto' : 'Visible'}</span>
                 {node.locked ? <span className="rounded bg-muted px-1.5 py-0.5 text-[0.5625rem] font-semibold text-muted-foreground">Bloqueado</span> : null}
                 {responsiveOverrides > 0 ? <span className="rounded bg-primary-soft px-1.5 py-0.5 text-[0.5625rem] font-semibold text-primary-strong">{responsiveOverrides} responsive</span> : null}
                 {persistedStyles > 0 ? <span className="rounded bg-muted px-1.5 py-0.5 text-[0.5625rem] font-semibold text-muted-foreground">{persistedStyles} estilos</span> : null}
