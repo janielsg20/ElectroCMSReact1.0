@@ -55,7 +55,7 @@
     flex: 0 0 auto;
   }
 
-  #project-data-fields fieldset[aria-label='Propietario'] {
+  #project-data-fields form > fieldset:first-of-type {
     grid-template-columns: minmax(0, 1fr);
   }
 }
