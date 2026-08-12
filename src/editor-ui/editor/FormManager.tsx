@@ -9,8 +9,9 @@ import {
 } from '../../domain'
 import { projectCmsBackend } from '../../domain/project/cms-defaults'
 import type { FormControl } from '../../domain/project/form-builder-engine'
-import { Button, Icon, TextField } from '../primitives'
+import { Button, HelpTip, Icon, TextField } from '../primitives'
 import { useEditorProjectStructure } from './editor-project-context'
+import { FORM_HELP, type FeatureHelp } from './feature-help'
 import { useFormSession } from './form-session-context'
 
 type FieldType = FieldDefinition['type']
@@ -22,33 +23,33 @@ interface ChoiceOption {
 }
 
 const fieldTypes: readonly { readonly id: FieldType; readonly label: string }[] = [
-  { id: 'text', label: 'Texto' },
-  { id: 'textarea', label: 'Textarea' },
-  { id: 'rich-text', label: 'Rich text' },
+  { id: 'text', label: 'Texto corto' },
+  { id: 'textarea', label: 'Texto largo' },
+  { id: 'rich-text', label: 'Texto enriquecido' },
   { id: 'number', label: 'Número' },
   { id: 'currency', label: 'Moneda' },
-  { id: 'email', label: 'Email' },
+  { id: 'email', label: 'Correo electrónico' },
   { id: 'phone', label: 'Teléfono' },
-  { id: 'url', label: 'URL' },
+  { id: 'url', label: 'Enlace / URL' },
   { id: 'date', label: 'Fecha' },
   { id: 'time', label: 'Hora' },
   { id: 'datetime', label: 'Fecha y hora' },
   { id: 'color', label: 'Color' },
-  { id: 'select', label: 'Selector' },
-  { id: 'radio', label: 'Radio' },
-  { id: 'checkbox', label: 'Checkbox' },
-  { id: 'switch', label: 'Switch' },
+  { id: 'select', label: 'Lista de opciones' },
+  { id: 'radio', label: 'Una opción' },
+  { id: 'checkbox', label: 'Casillas de selección' },
+  { id: 'switch', label: 'Interruptor' },
   { id: 'image', label: 'Imagen' },
   { id: 'gallery', label: 'Galería' },
   { id: 'file', label: 'Archivo' },
-  { id: 'map', label: 'Mapa' },
-  { id: 'relation', label: 'Relación' },
+  { id: 'map', label: 'Ubicación / mapa' },
+  { id: 'relation', label: 'Contenido relacionado' },
   { id: 'user', label: 'Usuario' },
-  { id: 'taxonomy', label: 'Taxonomía' },
-  { id: 'repeater', label: 'Repeater' },
-  { id: 'group', label: 'Grupo' },
-  { id: 'calculated', label: 'Calculado' },
-  { id: 'conditional', label: 'Condicional' },
+  { id: 'taxonomy', label: 'Clasificación' },
+  { id: 'repeater', label: 'Lista repetible' },
+  { id: 'group', label: 'Grupo de campos' },
+  { id: 'calculated', label: 'Valor calculado' },
+  { id: 'conditional', label: 'Campo condicional' },
 ]
 
 function lexicalCompare(left: string, right: string): number {
@@ -89,8 +90,10 @@ function ChoiceMenu({
   value,
   disabled = false,
   placeholder = 'Seleccionar',
+  help,
 }: {
   readonly disabled?: boolean
+  readonly help?: FeatureHelp
   readonly label: string
   readonly onChange: (value: string) => void
   readonly options: readonly ChoiceOption[]
@@ -113,7 +116,10 @@ function ChoiceMenu({
 
   return (
     <div className="relative grid min-w-0 gap-1">
-      <span className="text-xs font-semibold leading-4 text-muted-foreground">{label}</span>
+      <div className="flex min-h-8 items-center gap-1">
+        <span className="min-w-0 flex-1 truncate text-xs font-semibold leading-4 text-muted-foreground">{label}</span>
+        {help ? <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} /> : null}
+      </div>
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -127,11 +133,7 @@ function ChoiceMenu({
         <Icon className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} name="chevron-down" size={13} />
       </button>
       {open ? (
-        <div
-          aria-label={label}
-          className="absolute left-0 right-0 top-full z-40 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface p-1 shadow-xl"
-          role="listbox"
-        >
+        <div aria-label={label} className="absolute left-0 right-0 top-full z-40 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface p-1 shadow-xl" role="listbox">
           {options.length > 0 ? options.map((option) => (
             <button
               aria-selected={option.value === value}
@@ -159,11 +161,37 @@ function ChoiceMenu({
 
 function StatusMessage({ kind, children }: { readonly kind: 'error' | 'success'; readonly children: ReactNode }) {
   return (
-    <div
-      className={`rounded-md border px-2.5 py-2 text-xs ${kind === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-primary/20 bg-primary-soft text-primary-strong'}`}
-      role={kind === 'error' ? 'alert' : 'status'}
-    >
+    <div className={`rounded-md border px-2.5 py-2 text-xs ${kind === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-primary/20 bg-primary-soft text-primary-strong'}`} role={kind === 'error' ? 'alert' : 'status'}>
       {children}
+    </div>
+  )
+}
+
+function AdvancedOptions({ open, onToggle, children, label = 'Opciones avanzadas' }: {
+  readonly children: ReactNode
+  readonly label?: string
+  readonly onToggle: () => void
+  readonly open: boolean
+}) {
+  return (
+    <div className="rounded-md border border-border bg-muted/15">
+      <button aria-expanded={open} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md px-2 text-left text-xs font-bold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onClick={onToggle} type="button">
+        <span><span className="block">{label}</span><span className="block text-[0.625rem] font-normal text-muted-foreground">Normalmente no necesitas cambiar esto.</span></span>
+        <Icon className={open ? 'rotate-180' : ''} name="chevron-down" size={14} />
+      </button>
+      {open ? <div className="grid gap-2 border-t border-border p-2">{children}</div> : null}
+    </div>
+  )
+}
+
+function InternalKeyField({ value, onChange }: { readonly onChange: (value: string) => void; readonly value: string }) {
+  return (
+    <div className="grid gap-1">
+      <div className="flex items-center gap-1">
+        <span className="text-xs font-semibold text-muted-foreground">Clave interna</span>
+        <HelpTip description={FORM_HELP.fieldKey.description} example={FORM_HELP.fieldKey.example} label={FORM_HELP.fieldKey.label} reference={FORM_HELP.fieldKey.reference} />
+      </div>
+      <TextField hint="Letras, números, punto, guion o guion bajo. Debe empezar por una letra." label="Identificador" onChange={(event) => onChange(event.target.value)} required value={value} />
     </div>
   )
 }
@@ -177,6 +205,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
   const [controlLabel, setControlLabel] = useState('Nombre')
   const [controlName, setControlName] = useState('name')
   const [mappedFieldId, setMappedFieldId] = useState('')
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [notice, setNotice] = useState<{ readonly kind: 'error' | 'success'; readonly text: string } | null>(null)
   const matchingFields = compatibleFields(cms, contentTypeId, controlType)
@@ -187,7 +216,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
       return
     }
     if (!controlLabel.trim() || !/^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(controlName.trim())) {
-      setNotice({ kind: 'error', text: 'El primer control necesita una etiqueta y una clave válida que empiece por una letra.' })
+      setNotice({ kind: 'error', text: 'Revisa el nombre del primer campo. La clave interna debe empezar por una letra.' })
       return
     }
     const id = parseFormId(crypto.randomUUID())
@@ -231,29 +260,34 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
     <section aria-labelledby="new-form-heading" className="grid gap-3 rounded-lg border border-border bg-surface p-3 shadow-sm">
       <div className="flex items-start gap-2">
         <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="form" size={16} /></span>
-        <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground" id="new-form-heading">Crear formulario</h2>
-          <p className="mt-0.5 text-xs leading-4 text-muted-foreground">M11.1 crea un layout lineal canónico. Pasos, validación condicional y acciones se activarán en sus microfases correspondientes.</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <h2 className="text-sm font-bold text-foreground" id="new-form-heading">Crear formulario</h2>
+            <HelpTip description="Crea los campos que verá la persona y, si quieres, conecta cada respuesta con datos de tu contenido." example="Formulario de contacto, registro, solicitud o edición de contenido." label="Constructor de formularios" reference="JetFormBuilder · Elementor Forms" />
+          </div>
+          <p className="mt-0.5 text-xs leading-4 text-muted-foreground">Empieza por el nombre y el primer campo. Puedes añadir y ordenar más campos después.</p>
         </div>
       </div>
 
       {notice ? <StatusMessage kind={notice.kind}>{notice.text}</StatusMessage> : null}
-      {contentTypes.length === 0 ? <StatusMessage kind="error">Crea primero un tipo de contenido en Contenido → Tipos. También puedes crear un formulario sin mapping cuando exista al menos un CPT.</StatusMessage> : null}
+      {contentTypes.length === 0 ? <StatusMessage kind="error">Crea primero un tipo de contenido en Contenido → Tipos para habilitar el guardado de respuestas.</StatusMessage> : null}
 
       <div className="grid gap-2 md:grid-cols-2">
         <TextField label="Nombre del formulario" onChange={(event) => setName(event.target.value)} required value={name} />
         <ChoiceMenu
-          label="Tipo de contenido"
+          help={FORM_HELP.contentType}
+          label="Guardar respuestas en"
           onChange={(value) => {
             const next = cms.contentTypes[value]?.id ?? null
             setContentTypeId(next)
             setMappedFieldId('')
           }}
-          options={contentTypes.map((type) => ({ label: type.pluralName, description: type.slug, value: type.id }))}
+          options={contentTypes.map((type) => ({ label: type.pluralName, description: type.description || 'Contenido disponible', value: type.id }))}
           value={contentTypeId ?? ''}
         />
         <ChoiceMenu
-          label="Tipo del primer control"
+          help={FORM_HELP.fieldType}
+          label="Tipo del primer campo"
           onChange={(value) => {
             setControlType(fieldType(value))
             setMappedFieldId('')
@@ -262,18 +296,22 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
           value={controlType}
         />
         <ChoiceMenu
-          label="Mapear a Custom Field"
+          help={FORM_HELP.mappedField}
+          label="Guardar su valor en"
           onChange={setMappedFieldId}
-          options={[{ label: 'Sin mapear', value: '' }, ...matchingFields.map((field) => ({ label: field.label, description: field.key, value: field.id }))]}
+          options={[{ label: 'No guardar en un campo', value: '' }, ...matchingFields.map((field) => ({ label: field.label, description: typeLabel(field.type), value: field.id }))]}
           value={mappedFieldId}
         />
-        <TextField label="Etiqueta del control" onChange={(event) => {
+        <TextField label="Texto que verá el usuario" onChange={(event) => {
           const next = event.target.value
           setControlLabel(next)
           if (!controlName || controlName === keyFromLabel(controlLabel, 'field')) setControlName(keyFromLabel(next, 'field'))
         }} required value={controlLabel} />
-        <TextField hint="Letras, números, punto, guion o guion bajo. Debe empezar por una letra." label="Clave del control" onChange={(event) => setControlName(event.target.value)} required value={controlName} />
       </div>
+
+      <AdvancedOptions onToggle={() => setAdvancedOpen((current) => !current)} open={advancedOpen}>
+        <InternalKeyField onChange={setControlName} value={controlName} />
+      </AdvancedOptions>
 
       <div className="flex justify-end">
         <Button disabled={contentTypes.length === 0} isLoading={pending} loadingLabel="Creando" onClick={create}>
@@ -295,6 +333,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
   const [name, setName] = useState(control.name)
   const [type, setType] = useState<FieldType>(control.type)
   const [mappedFieldId, setMappedFieldId] = useState(control.mappedFieldId ?? '')
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [notice, setNotice] = useState<{ readonly kind: 'error' | 'success'; readonly text: string } | null>(null)
@@ -302,7 +341,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
 
   async function save() {
     if (!label.trim() || !/^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(name.trim())) {
-      setNotice({ kind: 'error', text: 'Etiqueta y clave no son válidas.' })
+      setNotice({ kind: 'error', text: 'Revisa el nombre del campo y su clave interna.' })
       return
     }
     setPending(true)
@@ -313,7 +352,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
       type,
     })
     setPending(false)
-    setNotice(result.ok ? { kind: 'success', text: 'Control actualizado.' } : { kind: 'error', text: result.error })
+    setNotice(result.ok ? { kind: 'success', text: 'Campo actualizado.' } : { kind: 'error', text: result.error })
   }
 
   async function remove() {
@@ -337,16 +376,16 @@ function ControlEditor({ cms, form, control, onDeleted }: {
       <div className="flex items-center gap-2">
         <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted text-primary"><Icon name="settings" size={14} /></span>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-xs font-bold text-foreground" id={`control-editor-${control.id}`}>Editar · {control.label}</h3>
-          <p className="text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {control.name}</p>
+          <h3 className="truncate text-xs font-bold text-foreground" id={`control-editor-${control.id}`}>Editar campo · {control.label}</h3>
+          <p className="text-[0.625rem] text-muted-foreground">{typeLabel(control.type)}</p>
         </div>
       </div>
       {notice ? <StatusMessage kind={notice.kind}>{notice.text}</StatusMessage> : null}
       <div className="grid gap-2 md:grid-cols-2">
-        <TextField label="Etiqueta" onChange={(event) => setLabel(event.target.value)} required value={label} />
-        <TextField label="Clave" onChange={(event) => setName(event.target.value)} required value={name} />
+        <TextField label="Texto que verá el usuario" onChange={(event) => setLabel(event.target.value)} required value={label} />
         <ChoiceMenu
-          label="Tipo de control"
+          help={FORM_HELP.fieldType}
+          label="Tipo de campo"
           onChange={(value) => {
             const next = fieldType(value)
             setType(next)
@@ -356,17 +395,21 @@ function ControlEditor({ cms, form, control, onDeleted }: {
           value={type}
         />
         <ChoiceMenu
-          label="Mapear a Custom Field"
+          help={FORM_HELP.mappedField}
+          label="Guardar su valor en"
           onChange={setMappedFieldId}
-          options={[{ label: 'Sin mapear', value: '' }, ...matchingFields.map((field) => ({ label: field.label, description: field.key, value: field.id }))]}
+          options={[{ label: 'No guardar en un campo', value: '' }, ...matchingFields.map((field) => ({ label: field.label, description: typeLabel(field.type), value: field.id }))]}
           value={mappedFieldId}
         />
       </div>
+      <AdvancedOptions onToggle={() => setAdvancedOpen((current) => !current)} open={advancedOpen}>
+        <InternalKeyField onChange={setName} value={name} />
+      </AdvancedOptions>
       <div className="flex flex-wrap justify-between gap-2 border-t border-border pt-2">
         <Button disabled={pending || Object.keys(form.controls).length <= 1} onClick={remove} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
-          <Icon name="close" size={12} /> {confirmDelete ? 'Confirmar eliminación' : 'Eliminar control'}
+          <Icon name="close" size={12} /> {confirmDelete ? 'Confirmar eliminación' : 'Eliminar campo'}
         </Button>
-        <Button isLoading={pending} loadingLabel="Guardando" onClick={save} size="small"><Icon name="check" size={12} /> Guardar control</Button>
+        <Button isLoading={pending} loadingLabel="Guardando" onClick={save} size="small"><Icon name="check" size={12} /> Guardar cambios</Button>
       </div>
     </section>
   )
@@ -383,6 +426,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
   const [addLabel, setAddLabel] = useState('Nuevo campo')
   const [addName, setAddName] = useState(`field_${Object.keys(form.controls).length + 1}`)
   const [addMappedFieldId, setAddMappedFieldId] = useState('')
+  const [addAdvancedOpen, setAddAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [notice, setNotice] = useState<{ readonly kind: 'error' | 'success'; readonly text: string } | null>(null)
@@ -400,7 +444,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
   async function addControl() {
     if (!firstStep) return
     if (!addLabel.trim() || !/^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(addName.trim())) {
-      setNotice({ kind: 'error', text: 'El nuevo control necesita una etiqueta y una clave válida.' })
+      setNotice({ kind: 'error', text: 'El nuevo campo necesita un nombre visible y una clave interna válida.' })
       return
     }
     const controlId = crypto.randomUUID()
@@ -424,7 +468,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
     setAddLabel('Nuevo campo')
     setAddName(`field_${Object.keys(form.controls).length + 2}`)
     setAddMappedFieldId('')
-    setNotice({ kind: 'success', text: `${control.label} añadido al layout.` })
+    setNotice({ kind: 'success', text: `${control.label} añadido al formulario.` })
   }
 
   async function move(controlId: string, target: number) {
@@ -457,7 +501,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="form" size={14} /></span>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-sm font-bold text-foreground">{form.name}</h2>
-            <p className="text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} controles · layout lineal canónico</p>
+            <p className="text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} campos · edición visual</p>
           </div>
           <Button disabled={pending} onClick={deleteForm} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
             {confirmDelete ? 'Confirmar borrar' : 'Borrar'}
@@ -467,9 +511,10 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
         <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(12rem,0.8fr)_auto] md:items-end">
           <TextField label="Nombre" onChange={(event) => setFormName(event.target.value)} value={formName} />
           <ChoiceMenu
-            label="Tipo de contenido"
+            help={FORM_HELP.contentType}
+            label="Guardar respuestas en"
             onChange={(value) => setContentTypeId(cms.contentTypes[value]?.id ?? null)}
-            options={contentTypes.map((type) => ({ label: type.pluralName, description: type.slug, value: type.id }))}
+            options={contentTypes.map((type) => ({ label: type.pluralName, description: type.description || 'Contenido disponible', value: type.id }))}
             value={contentTypeId ?? ''}
           />
           <Button isLoading={pending} loadingLabel="Guardando" onClick={saveForm} size="small"><Icon name="check" size={12} /> Guardar</Button>
@@ -478,11 +523,14 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
 
       <section aria-labelledby="form-layout-heading" className="grid gap-2 rounded-lg border border-border bg-muted/20 p-2.5">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <h3 className="text-xs font-bold text-foreground" id="form-layout-heading">Layout y orden</h3>
-            <p className="text-[0.625rem] text-muted-foreground">Mover arriba/abajo funciona con ratón, teclado y touch sin depender de drag.</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1">
+              <h3 className="text-xs font-bold text-foreground" id="form-layout-heading">Campos y orden</h3>
+              <HelpTip description={FORM_HELP.order.description} label={FORM_HELP.order.label} reference={FORM_HELP.order.reference} />
+            </div>
+            <p className="text-[0.625rem] text-muted-foreground">Selecciona un campo para editarlo o muévelo arriba/abajo. Funciona con ratón, teclado y touch.</p>
           </div>
-          <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">Paso único · M11.1</span>
+          <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">{orderedControlIds.length} campos</span>
         </div>
         <div className="grid gap-1" role="list">
           {orderedControlIds.map((controlId, index) => {
@@ -492,14 +540,9 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
             const selected = selectedControl?.id === control.id
             return (
               <div className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1 rounded-md border p-1 ${selected ? 'border-primary/40 bg-primary-soft/60' : 'border-border bg-surface'}`} key={control.id} role="listitem">
-                <button
-                  aria-current={selected ? 'true' : undefined}
-                  className="min-h-11 min-w-0 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8"
-                  onClick={() => setSelectedControlId(control.id)}
-                  type="button"
-                >
+                <button aria-current={selected ? 'true' : undefined} className="min-h-11 min-w-0 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => setSelectedControlId(control.id)} type="button">
                   <strong className="block truncate text-xs text-foreground">{index + 1}. {control.label}</strong>
-                  <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `→ ${field.label}` : 'sin mapping'}</span>
+                  <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `Guarda en ${field.label}` : 'No conectado a contenido'}</span>
                 </button>
                 <Button aria-label={`Mover arriba ${control.label}`} disabled={pending || index === 0} onClick={() => move(control.id, index - 1)} size="icon" variant="ghost"><span aria-hidden="true" className="rotate-180"><Icon name="chevron-down" size={13} /></span></Button>
                 <Button aria-label={`Mover abajo ${control.label}`} disabled={pending || index === orderedControlIds.length - 1} onClick={() => move(control.id, index + 1)} size="icon" variant="ghost"><Icon name="chevron-down" size={13} /></Button>
@@ -511,15 +554,17 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
 
       <section aria-labelledby="add-control-heading" className="grid gap-2 rounded-lg border border-border bg-surface p-2.5">
         <div>
-          <h3 className="text-xs font-bold text-foreground" id="add-control-heading">Añadir control</h3>
-          <p className="text-[0.625rem] text-muted-foreground">Los 27 tipos canónicos están disponibles. El mapping solo muestra Custom Fields compatibles.</p>
+          <h3 className="text-xs font-bold text-foreground" id="add-control-heading">Añadir campo</h3>
+          <p className="text-[0.625rem] text-muted-foreground">Elige qué pedir al usuario. Si lo conectas a contenido, solo aparecen destinos compatibles.</p>
         </div>
         <div className="grid gap-2 md:grid-cols-2">
-          <ChoiceMenu label="Tipo" onChange={(value) => { setAddType(fieldType(value)); setAddMappedFieldId('') }} options={fieldTypes.map((option) => ({ label: option.label, value: option.id }))} value={addType} />
-          <ChoiceMenu label="Mapear a Custom Field" onChange={setAddMappedFieldId} options={[{ label: 'Sin mapear', value: '' }, ...addFields.map((field) => ({ label: field.label, description: field.key, value: field.id }))]} value={addMappedFieldId} />
-          <TextField label="Etiqueta" onChange={(event) => { const next = event.target.value; setAddLabel(next); setAddName(keyFromLabel(next, 'field')) }} value={addLabel} />
-          <TextField label="Clave" onChange={(event) => setAddName(event.target.value)} value={addName} />
+          <ChoiceMenu help={FORM_HELP.fieldType} label="Tipo de campo" onChange={(value) => { setAddType(fieldType(value)); setAddMappedFieldId('') }} options={fieldTypes.map((option) => ({ label: option.label, value: option.id }))} value={addType} />
+          <ChoiceMenu help={FORM_HELP.mappedField} label="Guardar su valor en" onChange={setAddMappedFieldId} options={[{ label: 'No guardar en un campo', value: '' }, ...addFields.map((field) => ({ label: field.label, description: typeLabel(field.type), value: field.id }))]} value={addMappedFieldId} />
+          <TextField label="Texto que verá el usuario" onChange={(event) => { const next = event.target.value; setAddLabel(next); setAddName(keyFromLabel(next, 'field')) }} value={addLabel} />
         </div>
+        <AdvancedOptions label="Opciones avanzadas del campo" onToggle={() => setAddAdvancedOpen((current) => !current)} open={addAdvancedOpen}>
+          <InternalKeyField onChange={setAddName} value={addName} />
+        </AdvancedOptions>
         <div className="flex justify-end"><Button disabled={pending || !firstStep} onClick={addControl} size="small"><Icon name="plus" size={12} /> Añadir al formulario</Button></div>
       </section>
 
@@ -541,10 +586,13 @@ export function FormManager() {
 
   return (
     <div className="grid min-h-full gap-2 p-2 lg:grid-cols-[14rem_minmax(0,1fr)] lg:p-3">
-      <aside className="grid content-start gap-2 rounded-lg border border-border bg-muted/20 p-2" aria-label="Formularios guardados">
+      <aside aria-label="Formularios guardados" className="grid content-start gap-2 rounded-lg border border-border bg-muted/20 p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <strong className="block text-xs text-foreground">Formularios</strong>
+            <div className="flex items-center gap-1">
+              <strong className="block text-xs text-foreground">Formularios</strong>
+              <HelpTip description="Crea y administra formularios que pueden guardar respuestas en el contenido del proyecto." label="Formularios" reference="JetFormBuilder · Elementor Forms" />
+            </div>
             <span className="text-[0.625rem] text-muted-foreground">{forms.length} guardados</span>
           </div>
           <Button aria-label="Nuevo formulario" onClick={() => setCreating(true)} size="icon" variant="secondary"><Icon name="plus" size={13} /></Button>
@@ -560,7 +608,7 @@ export function FormManager() {
               type="button"
             >
               <strong className="block truncate text-xs">{form.name}</strong>
-              <span className="block truncate text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} controles</span>
+              <span className="block truncate text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} campos</span>
             </button>
           ))}
           {forms.length === 0 ? <p className="rounded-md border border-dashed border-border bg-surface px-2 py-3 text-xs text-muted-foreground">Todavía no hay formularios.</p> : null}
