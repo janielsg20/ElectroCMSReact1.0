@@ -16,11 +16,21 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { NodeId } from '../../domain'
-import { Icon, type IconName } from '../primitives'
+import { ChoiceField, Icon, type IconName } from '../primitives'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId, useEditorSelection } from './editor-project-context'
-import { buildLayerTreeEntries, dragPlacement, LAYER_DRAG_POLICY, placementRelativeTo, type LayerTreeEntry, type MoveRelation } from './layer-tree-model'
+import {
+  buildLayerTreeEntries,
+  dragPlacement,
+  hasLayerChildren,
+  layerAncestorIds,
+  LAYER_DRAG_POLICY,
+  placementRelativeTo,
+  visibleLayerTreeEntries,
+  type LayerTreeEntry,
+  type MoveRelation,
+} from './layer-tree-model'
 
 function nodeIcon(entry: LayerTreeEntry): IconName {
   if (entry.node.kind === 'component-instance') return 'columns'
@@ -34,13 +44,15 @@ function nodeIcon(entry: LayerTreeEntry): IconName {
 interface SortableLayerProps {
   readonly activeId: NodeId | null
   readonly entry: LayerTreeEntry
+  readonly expanded: boolean
   readonly insertion: { readonly id: NodeId; readonly edge: 'before' | 'after' } | null
   readonly selected: boolean
   readonly onOpenMove: (nodeId: NodeId) => void
   readonly onSelect: (nodeId: NodeId) => void
+  readonly onToggle: (nodeId: NodeId) => void
 }
 
-function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSelect }: SortableLayerProps) {
+function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenMove, onSelect, onToggle }: SortableLayerProps) {
   const {
     attributes,
     isDragging,
@@ -56,9 +68,11 @@ function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSel
     transition,
   }
   const isInsertionTarget = insertion?.id === entry.node.id
+  const hasChildren = hasLayerChildren(entry)
 
   return (
     <li
+      aria-expanded={hasChildren ? expanded : undefined}
       aria-level={entry.depth + 1}
       aria-selected={selected}
       className={`relative ${isInsertionTarget && insertion.edge === 'before' ? 'border-t-2 border-primary' : ''} ${isInsertionTarget && insertion.edge === 'after' ? 'border-b-2 border-primary' : ''}`}
@@ -67,30 +81,41 @@ function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSel
       style={style}
     >
       <div
-        className={`layer-option layer-option--depth-${Math.min(entry.depth, 6)} flex min-h-11 items-center gap-1 rounded-md pr-1 text-xs transition-[background-color,color,box-shadow] lg:min-h-9 ${selected ? 'layer-option--selected bg-primary-soft font-semibold text-primary-strong' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+        className={`layer-option layer-option--depth-${Math.min(entry.depth, 6)} flex min-h-11 items-center gap-0.5 rounded-md pr-1 text-xs transition-[background-color,color,box-shadow] lg:min-h-9 ${selected ? 'layer-option--selected bg-primary-soft font-semibold text-primary-strong' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
         data-selected={selected ? 'true' : 'false'}
-        style={{ paddingLeft: `${4 + entry.depth * 10}px` }}
+        style={{ paddingLeft: `${2 + entry.depth * 10}px` }}
       >
+        {hasChildren ? (
+          <button
+            aria-label={expanded ? `Contraer ${entry.node.name}` : `Expandir ${entry.node.name}`}
+            className="grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
+            onClick={() => onToggle(entry.node.id)}
+            type="button"
+          >
+            <Icon className={`transition-transform ${expanded ? '' : '-rotate-90'}`} name="chevron-down" size={13} />
+          </button>
+        ) : <span aria-hidden="true" className="block size-11 shrink-0 lg:size-8" />}
         <button
+          aria-description="Arrastra para reordenar la capa. También puedes usar el menú de acciones para moverla sin arrastrar."
           aria-label={entry.node.locked ? `${entry.node.name}, bloqueada` : `Arrastrar ${entry.node.name}`}
-          className={`grid size-9 shrink-0 place-items-center rounded touch-none focus-visible:ring-2 focus-visible:ring-focus ${entry.node.locked ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-primary-soft active:cursor-grabbing'}`}
+          className={`grid size-11 shrink-0 place-items-center rounded touch-none focus-visible:ring-2 focus-visible:ring-focus lg:size-8 ${entry.node.locked ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-primary-soft active:cursor-grabbing'}`}
           disabled={entry.node.locked}
           ref={setActivatorNodeRef}
           type="button"
           {...attributes}
           {...listeners}
         >
-          <Icon name={entry.node.locked ? 'lock' : 'more'} size={13} />
+          <Icon name={entry.node.locked ? 'lock' : 'move'} size={13} />
         </button>
-        <button className="flex min-h-9 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus" onClick={() => onSelect(entry.node.id)} type="button">
-          <Icon name={nodeIcon(entry)} size={14} />
+        <button className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => onSelect(entry.node.id)} type="button">
+          <Icon className="shrink-0" name={nodeIcon(entry)} size={14} />
           <span className="truncate">{entry.node.name}</span>
           {entry.node.hidden ? <><Icon name="eye" size={12} /><span className="sr-only">Oculta</span></> : null}
         </button>
         <button
           aria-expanded={activeId === entry.node.id}
           aria-label={`Mover ${entry.node.name} mediante menú`}
-          className="grid size-9 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus"
+          className="grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
           disabled={entry.node.locked}
           onClick={() => onOpenMove(entry.node.id)}
           type="button"
@@ -102,6 +127,12 @@ function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSel
   )
 }
 
+const relationOptions = [
+  { label: 'Antes', value: 'before' },
+  { label: 'Después', value: 'after' },
+  { label: 'Dentro de', value: 'inside' },
+] as const
+
 export function CanonicalLayerTree() {
   const session = useEditorProject()
   const selection = useEditorSelection()
@@ -110,16 +141,39 @@ export function CanonicalLayerTree() {
   const document = structure.documents[session.documentId]
   const entries = useMemo(() => document ? buildLayerTreeEntries(document) : [], [document])
   const entryById = useMemo(() => new Map(entries.map((entry) => [entry.node.id, entry])), [entries])
+  const [collapsedIds, setCollapsedIds] = useState<ReadonlySet<NodeId>>(() => new Set<NodeId>())
+  const visibleEntries = useMemo(() => visibleLayerTreeEntries(entries, collapsedIds), [collapsedIds, entries])
   const [menuNodeId, setMenuNodeId] = useState<NodeId | null>(null)
   const [targetId, setTargetId] = useState<NodeId | ''>('')
   const [relation, setRelation] = useState<MoveRelation>('after')
   const [insertion, setInsertion] = useState<{ readonly id: NodeId; readonly edge: 'before' | 'after' } | null>(null)
   const [status, setStatus] = useState('')
+  const targetOptions = useMemo(() => entries
+    .filter((entry) => entry.node.id !== menuNodeId)
+    .map((entry) => ({
+      description: `Nivel ${entry.depth + 1}`,
+      label: entry.node.name,
+      value: entry.node.id,
+    })), [entries, menuNodeId])
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: LAYER_DRAG_POLICY.pointerDistance } }),
     useSensor(TouchSensor, { activationConstraint: { delay: LAYER_DRAG_POLICY.touchDelay, tolerance: LAYER_DRAG_POLICY.touchTolerance } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
+
+  useEffect(() => {
+    if (!selectedNodeId) return
+    const selectedEntry = entryById.get(selectedNodeId)
+    if (!selectedEntry) return
+    const ancestors = layerAncestorIds(selectedEntry, entries)
+    if (ancestors.length === 0) return
+    setCollapsedIds((current) => {
+      const next = new Set(current)
+      let changed = false
+      for (const ancestorId of ancestors) changed = next.delete(ancestorId) || changed
+      return changed ? next : current
+    })
+  }, [entries, entryById, selectedNodeId])
 
   if (!document) return <p className="p-2 text-xs text-destructive">El documento activo no está disponible.</p>
 
@@ -160,6 +214,23 @@ export function CanonicalLayerTree() {
     void executeMove(menuNodeId, placementRelativeTo(target, relation)).then(() => setMenuNodeId(null))
   }
 
+  function toggleNode(nodeId: NodeId): void {
+    setCollapsedIds((current) => {
+      const next = new Set(current)
+      if (next.has(nodeId)) next.delete(nodeId)
+      else next.add(nodeId)
+      return next
+    })
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="m-2 grid min-h-32 place-items-center rounded-lg border border-dashed border-border bg-muted/25 p-4 text-center">
+        <div><Icon className="mx-auto mb-2 text-muted-foreground" name="layers" size={20} /><p className="text-xs font-bold text-foreground">No existen capas</p><p className="mt-1 text-[0.625rem] leading-4 text-muted-foreground">Añade o arrastra un widget al lienzo para comenzar la estructura de esta página.</p></div>
+      </div>
+    )
+  }
+
   return (
     <DndContext
       accessibility={{
@@ -177,16 +248,18 @@ export function CanonicalLayerTree() {
       onDragOver={handleDragOver}
       sensors={sensors}
     >
-      <SortableContext items={entries.map((entry) => entry.node.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={visibleEntries.map((entry) => entry.node.id)} strategy={verticalListSortingStrategy}>
         <ul aria-label="Árbol de capas" role="tree">
-          {entries.map((entry) => (
+          {visibleEntries.map((entry) => (
             <SortableLayer
               activeId={menuNodeId}
               entry={entry}
+              expanded={!collapsedIds.has(entry.node.id)}
               insertion={insertion}
               key={entry.node.id}
               onOpenMove={openMoveMenu}
               onSelect={(nodeId) => selection.selectNode(nodeId)}
+              onToggle={toggleNode}
               selected={entry.node.id === selectedNodeId}
             />
           ))}
@@ -194,25 +267,14 @@ export function CanonicalLayerTree() {
       </SortableContext>
 
       {menuNodeId ? (
-        <fieldset className="mx-1 mt-1 grid gap-1 rounded-md border border-primary/30 bg-primary-soft p-2" data-testid="layer-move-menu">
+        <fieldset className="mx-1 mt-1 grid gap-2 rounded-lg border border-primary/30 bg-primary-soft p-2" data-testid="layer-move-menu">
           <legend className="px-1 text-xs font-bold text-primary-strong">Mover capa sin arrastrar</legend>
-          <label className="grid gap-0.5 text-xs font-semibold text-foreground">
-            Destino
-            <select className="min-h-10 rounded border border-border bg-surface px-2 font-normal" onChange={(event) => setTargetId(event.target.value as NodeId)} value={targetId}>
-              {entries.filter((entry) => entry.node.id !== menuNodeId).map((entry) => <option key={entry.node.id} value={entry.node.id}>{entry.node.name}</option>)}
-            </select>
-          </label>
-          <label className="grid gap-0.5 text-xs font-semibold text-foreground">
-            Posición
-            <select className="min-h-10 rounded border border-border bg-surface px-2 font-normal" onChange={(event) => setRelation(event.target.value as MoveRelation)} value={relation}>
-              <option value="before">Antes</option>
-              <option value="after">Después</option>
-              <option value="inside">Dentro de</option>
-            </select>
-          </label>
+          <p className="text-[0.625rem] leading-4 text-muted-foreground">Elige otra capa y coloca la selección antes, después o dentro de ella.</p>
+          <ChoiceField label="Destino" onChange={(value) => setTargetId(value as NodeId)} options={targetOptions} value={targetId} />
+          <ChoiceField label="Posición" onChange={(value) => setRelation(value as MoveRelation)} options={relationOptions} value={relation} />
           <div className="flex justify-end gap-1">
-            <button className="min-h-10 cursor-pointer rounded px-2 text-xs font-semibold hover:bg-muted" onClick={() => setMenuNodeId(null)} type="button">Cancelar</button>
-            <button className="min-h-10 cursor-pointer rounded bg-primary px-2 text-xs font-bold text-on-primary" disabled={!targetId} onClick={submitAlternativeMove} type="button">Mover</button>
+            <button className="min-h-11 cursor-pointer rounded-md px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onClick={() => setMenuNodeId(null)} type="button">Cancelar</button>
+            <button className="min-h-11 cursor-pointer rounded-md bg-primary px-3 text-xs font-bold text-on-primary focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={!targetId} onClick={submitAlternativeMove} type="button">Mover</button>
           </div>
         </fieldset>
       ) : null}
