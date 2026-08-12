@@ -7,9 +7,9 @@ import {
 } from 'react'
 import {
   composeSmartFilteredQuery,
-  executeCmsListingQuery,
   type JsonValue,
 } from '../../domain'
+import { CmsListingRuntimeCache } from './listing-runtime-cache'
 import { ListingRecordProvider } from './ListingRecordProvider'
 import type { ProjectStructureRenderStore } from './project-structure-render-store'
 import { useSmartFilterRuntimeStore } from './smart-filter-runtime-context'
@@ -20,6 +20,8 @@ export interface ListingGridRuntimeProps {
   readonly slots: Readonly<Record<string, readonly ReactNode[]>>
   readonly store: ProjectStructureRenderStore
 }
+
+const listingRuntimeCache = new CmsListingRuntimeCache({ maxEntries: 64 })
 
 function textProperty(properties: Readonly<Record<string, JsonValue>>, key: string, fallback = ''): string {
   const value = properties[key]
@@ -56,40 +58,45 @@ export function ListingGridRuntime({ nodeId, properties, slots, store }: Listing
   const getFilters = useCallback(() => filterStore.getSnapshot(queryId), [filterStore, queryId])
   const filterSnapshot = useSyncExternalStore(subscribeFilters, getFilters, getFilters)
   const template = slotTemplate(slots)
-  const listing = useMemo(() => {
+  const execution = useMemo(() => {
     if (!cms || !queryId) return null
     const composed = composeSmartFilteredQuery(cms, queryId, filterSnapshot.activeFilters)
     if (!composed.ok) return composed
     const pageSize = Math.min(1_000, composed.value.query.pageSize * filterSnapshot.loadMoreMultiplier)
-    return executeCmsListingQuery(cms, composed.value.query, { page: filterSnapshot.page, pageSize })
+    return listingRuntimeCache.execute(cms, composed.value.query, { page: filterSnapshot.page, pageSize })
   }, [cms, filterSnapshot.activeFilters, filterSnapshot.loadMoreMultiplier, filterSnapshot.page, queryId])
 
   useEffect(() => {
-    if (!listing?.ok) return
+    if (!execution?.ok) return
+    const result = execution.value.listing
     filterStore.setResultMeta(queryId, {
-      count: listing.value.totalMatched,
-      hasNextPage: listing.value.hasNextPage,
-      page: listing.value.page,
-      pageCount: listing.value.pageCount,
-      pageSize: listing.value.pageSize,
+      count: result.totalMatched,
+      hasNextPage: result.hasNextPage,
+      page: result.page,
+      pageCount: result.pageCount,
+      pageSize: result.pageSize,
     })
-  }, [filterStore, listing, queryId])
+  }, [execution, filterStore, queryId])
 
   if (!queryId) return <RuntimeState message="Selecciona una consulta guardada para este listing." />
   if (!cms) return <RuntimeState message="El proyecto no tiene un backend CMS disponible." tone="danger" />
-  if (!listing) return <RuntimeState message={emptyMessage} />
-  if (!listing.ok) return <RuntimeState message={listing.error[0]?.message ?? 'No se pudo ejecutar el listing.'} tone="danger" />
+  if (!execution) return <RuntimeState message={emptyMessage} />
+  if (!execution.ok) return <RuntimeState message={execution.error[0]?.message ?? 'No se pudo ejecutar el listing.'} tone="danger" />
 
-  const result = listing.value
+  const { listing: result, performance } = execution.value
   const hasTemplate = template.length > 0
 
   return (
     <section
       aria-label="Listado de contenido"
       data-listing-active-filters={filterSnapshot.activeFilters.length}
+      data-listing-cache={performance.cacheHit ? 'hit' : 'miss'}
+      data-listing-candidates={performance.candidateRecords}
+      data-listing-indexed={performance.indexUsed ? 'true' : 'false'}
       data-listing-page={result.page}
       data-listing-query={result.queryId}
       data-listing-runtime={nodeId}
+      data-listing-source-records={performance.sourceRecords}
     >
       {result.records.length > 0 ? (
         hasTemplate ? (
