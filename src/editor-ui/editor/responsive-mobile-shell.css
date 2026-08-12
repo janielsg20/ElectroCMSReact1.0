@@ -89,8 +89,11 @@
   }
 
   [aria-label="Datos del proyecto"] > [role="tab"] {
-    min-width: 44px !important;
+    width: auto !important;
+    min-width: 5.75rem !important;
     min-height: 44px !important;
+    flex: 0 0 auto !important;
+    touch-action: manipulation;
   }
 }
 
