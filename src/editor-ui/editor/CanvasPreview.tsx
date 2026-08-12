@@ -47,13 +47,24 @@ function deviceProfile(breakpoint: Breakpoint, orientation: CanvasWorkspaceState
 }
 
 const viewportLabels: Record<ViewportMode, string> = {
-  desktop: 'Escritorio · 1440',
-  tablet: 'Tablet · 768',
-  mobile: 'Móvil · 390',
+  desktop: 'Escritorio',
+  tablet: 'Tablet',
+  mobile: 'Móvil',
+}
+
+const viewportTargetWidths: Record<ViewportMode, number> = {
+  desktop: 1440,
+  tablet: 768,
+  mobile: 390,
 }
 
 function breakpointForViewport(breakpoints: readonly Breakpoint[], mode: ViewportMode): Breakpoint {
-  const match = breakpoints.find((item) => viewportModeForBreakpoint(item) === mode)
+  const matches = breakpoints.filter((item) => viewportModeForBreakpoint(item) === mode)
+  const targetWidth = viewportTargetWidths[mode]
+  const match = matches.reduce<Breakpoint | undefined>((closest, current) => {
+    if (!closest) return current
+    return Math.abs(current.width - targetWidth) < Math.abs(closest.width - targetWidth) ? current : closest
+  }, undefined)
   const fallback = match ?? breakpoints[0]
   if (!fallback) throw new Error('El proyecto requiere al menos un breakpoint.')
   return fallback
