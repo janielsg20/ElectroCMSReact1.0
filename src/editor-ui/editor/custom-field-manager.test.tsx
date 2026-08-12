@@ -69,7 +69,7 @@ describe('M09.3 gestor de campos personalizados', () => {
     expect(session.store.structure.cms?.contentTypes[contentTypeId]?.fieldIds).toHaveLength(0)
   })
 
-  it('expone los 27 tipos y configuración contextual sin adelantar fases futuras', async () => {
+  it('expone los 27 tipos y mantiene aisladas las superficies de otras microfases', async () => {
     await renderFields()
 
     const typeSelect = screen.getByRole('combobox', { name: 'Tipo' })
@@ -82,7 +82,7 @@ describe('M09.3 gestor de campos personalizados', () => {
     fireEvent.change(typeSelect, { target: { value: 'relation' } })
     expect(screen.getByText(/La creación de relaciones pertenece a M09\.4/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /crear relación/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: 'Registros' })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Registros' })).toHaveAttribute('aria-selected', 'false')
     expect(screen.queryByRole('tab', { name: 'Bindings' })).not.toBeInTheDocument()
   })
 })
