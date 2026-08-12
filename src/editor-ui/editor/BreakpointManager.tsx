@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { Breakpoint, BreakpointId, BreakpointInput } from '../../domain'
-import { Button, Icon } from '../primitives'
+import { Button, Icon, Select, TextField } from '../primitives'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
 
 interface BreakpointManagerProps {
@@ -67,28 +67,36 @@ function BreakpointForm({ breakpoint, breakpoints, onCreated, onStatus }: Breakp
   }
 
   return (
-    <form className="grid gap-2" onSubmit={(event) => { void submit(event) }}>
-      <label className="grid gap-1 text-[0.625rem] font-semibold">Nombre
-        <input className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs" disabled={pending} maxLength={160} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} required value={draft.name} />
-      </label>
+    <form className="grid gap-2" data-electrocms-surface="breakpoint-form" onSubmit={(event) => { void submit(event) }}>
+      <TextField disabled={pending} label="Nombre" maxLength={160} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} required value={draft.name} />
       <div className="grid grid-cols-2 gap-2">
-        <label className="grid gap-1 text-[0.625rem] font-semibold">Ancho (px)
-          <input className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs" disabled={pending} max={10000} min={240} onChange={(event) => setDraft((current) => ({ ...current, width: event.target.value }))} required type="number" value={draft.width} />
-        </label>
-        <label className="grid gap-1 text-[0.625rem] font-semibold">Orientación
-          <select className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs" disabled={pending} onChange={(event) => setDraft((current) => ({ ...current, orientation: event.target.value as Breakpoint['orientation'] }))} value={draft.orientation}>
-            <option value="any">Cualquiera</option><option value="portrait">Vertical</option><option value="landscape">Horizontal</option>
-          </select>
-        </label>
+        <TextField disabled={pending} inputMode="numeric" label="Ancho (px)" onChange={(event) => setDraft((current) => ({ ...current, width: event.target.value }))} pattern="[0-9]*" required value={draft.width} />
+        <Select
+          controlSize="compact"
+          disabled={pending}
+          label="Orientación"
+          onValueChange={(value) => setDraft((current) => ({ ...current, orientation: value as Breakpoint['orientation'] }))}
+          options={[
+            { label: 'Cualquiera', value: 'any' },
+            { label: 'Vertical', value: 'portrait' },
+            { label: 'Horizontal', value: 'landscape' },
+          ]}
+          value={draft.orientation}
+        />
       </div>
-      <label className="grid gap-1 text-[0.625rem] font-semibold">Hereda de
-        <select className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs" disabled={pending} onChange={(event) => setDraft((current) => ({ ...current, inheritsFrom: event.target.value }))} value={draft.inheritsFrom}>
-          <option value="">Sin padre</option>
-          {breakpoints.filter((item) => item.id !== breakpoint?.id).map((item) => <option key={item.id} value={item.id}>{item.name} · {item.width}px</option>)}
-        </select>
-      </label>
+      <Select
+        controlSize="compact"
+        disabled={pending}
+        label="Hereda de"
+        onValueChange={(value) => setDraft((current) => ({ ...current, inheritsFrom: value }))}
+        options={[
+          { label: 'Sin padre', value: '' },
+          ...breakpoints.filter((item) => item.id !== breakpoint?.id).map((item) => ({ label: `${item.name} · ${item.width}px`, value: item.id })),
+        ]}
+        value={draft.inheritsFrom}
+      />
       {error ? <p className="rounded bg-danger-soft px-2 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
-      <Button disabled={pending} size="small" type="submit">{pending ? 'Guardando…' : breakpoint ? 'Guardar cambios' : 'Crear breakpoint'}</Button>
+      <Button disabled={pending} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">{breakpoint ? 'Guardar cambios' : 'Crear breakpoint'}</Button>
     </form>
   )
 }
@@ -127,7 +135,7 @@ export function BreakpointManager({ activeBreakpointId, onActiveBreakpointChange
       return
     }
     if (event.key !== 'Tab') return
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])')
+    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])')
     if (!focusable || focusable.length === 0) return
     const first = focusable[0]
     const last = focusable[focusable.length - 1]
@@ -171,26 +179,32 @@ export function BreakpointManager({ activeBreakpointId, onActiveBreakpointChange
 
   return (
     <>
-      <label className="sr-only" htmlFor="active-breakpoint">Breakpoint activo</label>
-      <select className="hidden h-8 max-w-44 rounded-md border border-border bg-surface px-1 text-[0.625rem] font-semibold text-foreground sm:block" id="active-breakpoint" onChange={(event) => onActiveBreakpointChange(event.target.value as BreakpointId)} value={activeBreakpointId}>
-        {breakpoints.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.width}px</option>)}
-      </select>
-      <button aria-label="Administrar breakpoints" className="grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:size-8" onClick={() => { setEditingId(activeBreakpointId); setOpen(true) }} ref={triggerRef} type="button"><Icon name="settings" size={14} /></button>
+      <div className="hidden w-44 sm:block">
+        <Select
+          controlSize="compact"
+          label="Breakpoint activo"
+          labelHidden
+          onValueChange={(value) => onActiveBreakpointChange(value as BreakpointId)}
+          options={breakpoints.map((item) => ({ label: `${item.name} · ${item.width}px`, value: item.id }))}
+          value={activeBreakpointId}
+        />
+      </div>
+      <button aria-label="Administrar breakpoints" className="grid size-11 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:size-8" onClick={() => { setEditingId(activeBreakpointId); setOpen(true) }} ref={triggerRef} type="button"><Icon name="settings" size={14} /></button>
       {open ? (
         <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/45 p-3" role="presentation">
-          <section aria-label="Administrador de breakpoints" aria-modal="true" className="flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-surface text-left shadow-2xl" onKeyDown={trapFocus} ref={dialogRef} role="dialog" tabIndex={-1}>
+          <section aria-label="Administrador de breakpoints" aria-modal="true" className="flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-surface text-left shadow-2xl" data-electrocms-surface="dialog" onKeyDown={trapFocus} ref={dialogRef} role="dialog" tabIndex={-1}>
             <header className="flex min-h-12 items-center justify-between border-b border-border px-3">
               <div><h2 className="text-sm font-bold">Breakpoints</h2><p className="text-[0.625rem] text-muted-foreground">Orden, herencia y preview canónicos.</p></div>
               <Button aria-label="Cerrar administrador de breakpoints" onClick={close} size="icon" variant="ghost"><Icon name="close" size={15} /></Button>
             </header>
             <div className="grid min-h-0 flex-1 md:grid-cols-[15rem_1fr]">
               <div className="min-h-0 overflow-y-auto border-b border-border p-2 md:border-b-0 md:border-r">
-                <button className={`mb-1 min-h-9 w-full rounded-md border px-2 text-left text-xs font-semibold ${editingId === 'new' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border hover:bg-muted'}`} onClick={() => setEditingId('new')} type="button">+ Nuevo breakpoint</button>
-                <ol className="grid gap-1" aria-label="Orden de breakpoints">
+                <button className={`mb-1 min-h-11 w-full cursor-pointer rounded-md border px-2 text-left text-xs font-semibold transition-colors lg:min-h-9 ${editingId === 'new' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border hover:bg-muted'}`} onClick={() => setEditingId('new')} type="button">+ Nuevo breakpoint</button>
+                <div className="grid gap-1" aria-label="Orden de breakpoints" role="list">
                   {breakpoints.map((item, index) => (
-                    <li key={item.id}><button aria-current={editingId === item.id ? 'true' : undefined} className={`min-h-11 w-full rounded-md border px-2 text-left ${editingId === item.id ? 'border-primary bg-primary-soft' : 'border-border hover:bg-muted'}`} onClick={() => { setEditingId(item.id); onActiveBreakpointChange(item.id) }} type="button"><span className="block truncate text-xs font-bold">{index + 1}. {item.name}</span><span className="text-[0.625rem] text-muted-foreground">{item.width}px · {item.orientation}</span></button></li>
+                    <div key={item.id} role="listitem"><button aria-current={editingId === item.id ? 'true' : undefined} className={`min-h-11 w-full cursor-pointer rounded-md border px-2 text-left transition-colors ${editingId === item.id ? 'border-primary bg-primary-soft' : 'border-border hover:bg-muted'}`} onClick={() => { setEditingId(item.id); onActiveBreakpointChange(item.id) }} type="button"><span className="block truncate text-xs font-bold">{index + 1}. {item.name}</span><span className="text-[0.625rem] text-muted-foreground">{item.width}px · {item.orientation}</span></button></div>
                   ))}
-                </ol>
+                </div>
               </div>
               <div className="min-h-0 overflow-y-auto p-3">
                 <div className="mb-2 flex flex-wrap gap-1">
