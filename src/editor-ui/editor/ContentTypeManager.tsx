@@ -246,7 +246,7 @@ export function ContentTypeManager() {
         <div className="flex items-center justify-between gap-2">
           <div>
             <strong className="block text-xs">{selected ? `Editar ${selected.singularName}` : 'Nuevo CPT'}</strong>
-            <span className="text-[0.625rem] text-muted-foreground">{selected ? 'Los IDs y asociaciones futuras permanecen estables.' : 'Se genera un ID canónico al guardar.'}</span>
+            <span className="text-[0.625rem] text-muted-foreground">{selected ? 'El ID y las asociaciones permanecen estables entre ediciones.' : 'Se genera un ID canónico al guardar.'}</span>
           </div>
           {selected ? <span className="max-w-28 truncate rounded bg-muted px-1.5 py-0.5 font-mono text-[0.625rem] text-muted-foreground">{selected.id}</span> : null}
         </div>
@@ -294,7 +294,7 @@ export function ContentTypeManager() {
       </form>
 
       {message ? <p aria-live="polite" className="rounded-md border border-border bg-muted/25 p-2 text-xs text-muted-foreground">{message}</p> : null}
-      <p className="text-[0.625rem] leading-4 text-muted-foreground">M09.1 implementa solo tipos de contenido. Taxonomías, campos, registros y bindings se activarán en M09.2–M09.5 cuando tengan motor, persistencia y pruebas reales.</p>
+      <p className="text-[0.625rem] leading-4 text-muted-foreground">Taxonomías, campos personalizados, registros y relaciones se gestionan en los tabs de Datos. El binding dinámico se incorpora en M09.5.</p>
     </section>
   )
 }
