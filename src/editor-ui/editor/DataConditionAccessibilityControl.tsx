@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import {
   NodeDataSettingsSchema,
+  listContentRecords,
   resolveNodeDataState,
   type BindingSource,
   type CmsRecordProperty,
@@ -9,6 +10,7 @@ import {
   type ProjectStructure,
   type WidgetDefinition,
 } from '../../domain'
+import { listCustomFields } from '../../domain/project/custom-field-engine'
 import { useEditorProject } from './editor-project-context'
 
 interface DataConditionAccessibilityControlProps {
@@ -77,7 +79,8 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
   const [status, setStatus] = useState('')
   const [pending, setPending] = useState(false)
   const targetKeys = useMemo(() => [...new Set(definition?.inspector.map((field) => field.key) ?? [])], [definition])
-  const records = useMemo(() => Object.values(structure.cms?.records ?? {}).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)), [structure.cms?.records])
+  const records = useMemo(() => listContentRecords(structure), [structure])
+  const fields = useMemo(() => listCustomFields(structure), [structure])
   const [bindingTarget, setBindingTarget] = useState(() => targetKeys[0] ?? '')
   const [recordId, setRecordId] = useState(() => records[0]?.id ?? '')
   const [sourceKind, setSourceKind] = useState<CmsSourceKind>('field')
@@ -86,20 +89,19 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
   const [previewMode, setPreviewMode] = useState<NodeDataPreviewMode>(() => session.store.getNodeDataPreviewMode(node.id))
   const resolved = resolveNodeDataState(structure, node, node.properties)
   const bindings = parseBindingMap(draft.bindings)
-  const selectedRecord = recordId ? structure.cms?.records[recordId] : undefined
+  const selectedRecord = records.find((record) => record.id === recordId)
   const recordFields = selectedRecord
-    ? (structure.cms?.contentTypes[selectedRecord.contentTypeId]?.fieldIds ?? [])
-      .map((id) => structure.cms?.fields[id])
-      .filter((field) => field !== undefined)
-      .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label, 'es'))
+    ? fields.filter((field) => field.owner.kind === 'content-type' && field.owner.contentTypeId === selectedRecord.contentTypeId)
     : []
   const hasSettings = Object.keys(node.bindings).length > 0 || node.conditions.length > 0 || Object.keys(node.accessibility ?? {}).length > 0
 
   function selectRecord(nextRecordId: string): void {
     setRecordId(nextRecordId)
-    const record = structure.cms?.records[nextRecordId]
-    const firstFieldId = record ? structure.cms?.contentTypes[record.contentTypeId]?.fieldIds[0] : undefined
-    setFieldId(firstFieldId ?? '')
+    const record = records.find((candidate) => candidate.id === nextRecordId)
+    const firstField = record
+      ? fields.find((field) => field.owner.kind === 'content-type' && field.owner.contentTypeId === record.contentTypeId)
+      : undefined
+    setFieldId(firstField?.id ?? '')
   }
 
   function applyCmsBinding(): void {
