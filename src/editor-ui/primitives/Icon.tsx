@@ -17,6 +17,7 @@ export type IconName =
   | 'form'
   | 'heading'
   | 'image'
+  | 'info'
   | 'layers'
   | 'lock'
   | 'menu'
@@ -69,6 +70,7 @@ const paths: Record<IconName, string> = {
   form: 'M5 3h14v18H5zM8 7h8M8 11h8M8 15h4',
   heading: 'M5 5v14M19 5v14M5 12h14',
   image: 'M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15 9h.01',
+  info: 'M12 17v-6M12 7h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
   layers: 'm12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5',
   lock: 'M6 10h12v10H6zM8 10V7a4 4 0 0 1 8 0v3',
   menu: 'M4 6h16M4 12h16M4 18h16',
@@ -76,7 +78,7 @@ const paths: Record<IconName, string> = {
   mobile: 'M7 2h10v20H7zM11 18h2',
   moon: 'M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5z',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
-  palette: 'M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4 9 9 0 0 0 0-5zM7.5 10h.01M10 6.5h.01M15 7h.01M17 11h.01',
+  palette: 'M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 1 1 0-4 9 9 0 0 0 0-5zM7.5 10h.01M10 6.5h.01M15 7h.01M17 11h.01',
   'panel-left': 'M3 4h18v16H3zM9 4v16',
   pin: 'm9 3 6 6-2 2 3 3-2 2-3-3-4 4-1-1 4-4-3-3zM5 19l-2 2',
   play: 'm8 5 11 7-11 7z',
