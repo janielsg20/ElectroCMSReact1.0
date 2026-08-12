@@ -1,7 +1,10 @@
 import { failure, success, type Result } from '../common/result'
-import { QuerySchema, type CmsBackend, type ContentRecord, type Query, type QueryPredicate, type QuerySort } from './cms-schema'
+import { QuerySchema, type CmsBackend, type ContentRecord, type Query } from './cms-schema'
 import type { ContentRecordId, QueryId } from './identity'
 import type { JsonValue } from './project-envelope'
+
+type QueryPredicate = Query['groups'][number]['predicates'][number]
+type QuerySort = Query['sorts'][number]
 
 export type QueryEngineDiagnosticCode =
   | 'query-not-found'
@@ -37,8 +40,8 @@ function diagnostic(code: QueryEngineDiagnosticCode, message: string, path: read
   return { code, message, path }
 }
 
-function isObject(value: JsonValue): value is { readonly [key: string]: JsonValue } {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
+function isObject(value: JsonValue | undefined): value is Readonly<Record<string, JsonValue>> {
+  return value !== undefined && value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
 function deepEqual(left: JsonValue | undefined, right: JsonValue | undefined): boolean {
@@ -48,8 +51,8 @@ function deepEqual(left: JsonValue | undefined, right: JsonValue | undefined): b
     if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false
     return left.every((item, index) => deepEqual(item, right[index]))
   }
-  if (typeof left === 'object' || typeof right === 'object') {
-    if (typeof left !== 'object' || typeof right !== 'object') return false
+  if (isObject(left) || isObject(right)) {
+    if (!isObject(left) || !isObject(right)) return false
     const leftKeys = Object.keys(left).sort()
     const rightKeys = Object.keys(right).sort()
     if (leftKeys.length !== rightKeys.length || leftKeys.some((key, index) => key !== rightKeys[index])) return false
@@ -110,7 +113,8 @@ function matchesOperator(candidate: JsonValue | undefined, operator: QueryPredic
 
 function datePredicateValue(record: ContentRecord, raw: JsonValue): PredicateValue {
   if (isObject(raw) && (raw.field === 'createdAt' || raw.field === 'updatedAt') && 'value' in raw) {
-    return { candidate: record[raw.field], operand: raw.value, collection: false }
+    const field = raw.field
+    return { candidate: record[field], operand: raw.value, collection: false }
   }
   return { candidate: record.createdAt, operand: raw, collection: false }
 }
@@ -180,7 +184,7 @@ function queryMatches(cms: CmsBackend, query: Query, record: ContentRecord): boo
     : group.predicates.some((predicate) => queryPredicateMatches(cms, query, record, predicate)))
 }
 
-function sortValue(cms: CmsBackend, record: ContentRecord, sort: QuerySort): JsonValue | undefined {
+function sortValue(record: ContentRecord, sort: QuerySort): JsonValue | undefined {
   if (sort.fieldId) return record.values[sort.fieldId]
   if (!sort.systemField) return undefined
   return record[sort.systemField]
@@ -197,9 +201,9 @@ function compareSortValues(left: JsonValue | undefined, right: JsonValue | undef
   return direction === 'asc' ? fallback : -fallback
 }
 
-function compareRecords(cms: CmsBackend, query: Query, left: ContentRecord, right: ContentRecord): number {
+function compareRecords(query: Query, left: ContentRecord, right: ContentRecord): number {
   for (const sort of query.sorts) {
-    const compared = compareSortValues(sortValue(cms, left, sort), sortValue(cms, right, sort), sort.direction)
+    const compared = compareSortValues(sortValue(left, sort), sortValue(right, sort), sort.direction)
     if (compared !== 0) return compared
   }
   return left.id.localeCompare(right.id)
@@ -294,7 +298,7 @@ export function executeCmsQuery(cms: CmsBackend, input: unknown): Result<QueryEx
   const query = validated.value
   const matched = Object.values(cms.records)
     .filter((record) => queryMatches(cms, query, record))
-    .sort((left, right) => compareRecords(cms, query, left, right))
+    .sort((left, right) => compareRecords(query, left, right))
   const records = matched.slice(query.offset, query.offset + query.limit)
   return success({
     limit: query.limit,
