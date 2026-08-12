@@ -10,34 +10,12 @@ import {
 } from 'react'
 
 const baseControlClass = 'min-h-11 min-w-0 rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm leading-5 text-foreground outline-none transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-muted-foreground hover:border-primary/30 focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 lg:min-h-8 lg:px-2 lg:py-0.5 lg:text-xs lg:leading-4'
-const compactControlClass = 'min-h-9 min-w-0 rounded-md border border-border bg-surface px-2 text-xs text-foreground outline-none transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55'
+const compactControlClass = 'min-h-11 min-w-0 rounded-md border border-border bg-surface px-2 text-xs text-foreground outline-none transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 lg:min-h-9'
 
 export type ControlSize = 'default' | 'compact'
 
 function controlClass(size: ControlSize): string {
   return size === 'compact' ? compactControlClass : baseControlClass
-}
-
-interface FieldMetaProps {
-  readonly id: string
-  readonly label: string
-  readonly labelHidden?: boolean
-  readonly hint?: string
-  readonly error?: string
-  readonly required?: boolean
-}
-
-function FieldMeta({ id, label, labelHidden = false, hint, error, required }: FieldMetaProps) {
-  return (
-    <>
-      <label className={labelHidden ? 'sr-only' : 'text-xs font-semibold leading-4 text-muted-foreground'} htmlFor={id}>
-        {label}
-        {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span> : null}
-      </label>
-      {hint ? <p className="text-xs leading-4 text-muted-foreground" id={`${id}-hint`}>{hint}</p> : null}
-      {error ? <p className="text-xs font-medium leading-4 text-destructive" id={`${id}-error`} role="alert">{error}</p> : null}
-    </>
-  )
 }
 
 function describedBy(id: string, hint?: string, error?: string, external?: string): string | undefined {
@@ -76,6 +54,7 @@ export function TextArea({ id, label, error, hint, labelHidden = false, controlS
         aria-describedby={ariaDescription}
         aria-invalid={error ? true : undefined}
         className={`${controlClass(controlSize)} min-h-20 resize-y appearance-none ${error ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20' : ''} ${className}`}
+        data-electrocms-control="textarea"
         id={areaId}
         required={required}
       />
@@ -230,16 +209,11 @@ export function Select({
           </svg>
         </button>
         {open ? (
-          <div
-            aria-label={label}
-            className="absolute z-[100] mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-xl"
-            id={listboxId}
-            role="listbox"
-          >
+          <div aria-label={label} className="absolute z-[100] mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-xl" id={listboxId} role="listbox">
             {options.map((option, index) => (
               <button
                 aria-selected={option.value === value}
-                className={`flex min-h-9 w-full cursor-pointer items-center justify-between gap-2 rounded px-2 text-left text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${index === activeIndex ? 'bg-muted' : 'hover:bg-muted/70'} ${option.value === value ? 'font-bold text-primary-strong' : 'text-foreground'} disabled:cursor-not-allowed disabled:opacity-45`}
+                className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded px-2 text-left text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${index === activeIndex ? 'bg-muted' : 'hover:bg-muted/70'} ${option.value === value ? 'font-bold text-primary-strong' : 'text-foreground'} disabled:cursor-not-allowed disabled:opacity-45`}
                 disabled={option.disabled}
                 key={option.value}
                 onClick={() => choose(index)}
@@ -249,11 +223,7 @@ export function Select({
                 type="button"
               >
                 <span className="truncate">{option.label}</span>
-                {option.value === value ? (
-                  <svg aria-hidden="true" className="size-3.5 shrink-0" fill="none" viewBox="0 0 16 16">
-                    <path d="m3.5 8.2 2.8 2.8 6.2-6.2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
-                  </svg>
-                ) : null}
+                {option.value === value ? <svg aria-hidden="true" className="size-3.5 shrink-0" fill="none" viewBox="0 0 16 16"><path d="m3.5 8.2 2.8 2.8 6.2-6.2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" /></svg> : null}
               </button>
             ))}
           </div>
@@ -279,20 +249,8 @@ export function Checkbox({ id, label, checked, onCheckedChange, disabled = false
   const generatedId = useId()
   const checkboxId = id ?? generatedId
   return (
-    <button
-      aria-checked={checked}
-      aria-describedby={description ? `${checkboxId}-description` : undefined}
-      className={`flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-xs text-foreground transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-45 lg:min-h-9 ${className}`}
-      data-electrocms-control="checkbox"
-      disabled={disabled}
-      id={checkboxId}
-      onClick={() => onCheckedChange(!checked)}
-      role="checkbox"
-      type="button"
-    >
-      <span aria-hidden="true" className={`grid size-4 shrink-0 place-items-center rounded border transition-colors duration-150 ${checked ? 'border-primary bg-primary text-on-primary' : 'border-border bg-surface'}`}>
-        {checked ? <svg className="size-3" fill="none" viewBox="0 0 16 16"><path d="m3.5 8.2 2.8 2.8 6.2-6.2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg> : null}
-      </span>
+    <button aria-checked={checked} aria-describedby={description ? `${checkboxId}-description` : undefined} className={`flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-xs text-foreground transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-45 lg:min-h-9 ${className}`} data-electrocms-control="checkbox" disabled={disabled} id={checkboxId} onClick={() => onCheckedChange(!checked)} role="checkbox" type="button">
+      <span aria-hidden="true" className={`grid size-4 shrink-0 place-items-center rounded border transition-colors duration-150 ${checked ? 'border-primary bg-primary text-on-primary' : 'border-border bg-surface'}`}>{checked ? <svg className="size-3" fill="none" viewBox="0 0 16 16"><path d="m3.5 8.2 2.8 2.8 6.2-6.2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg> : null}</span>
       <span className="min-w-0 flex-1"><span className="block font-semibold">{label}</span>{description ? <span className="block text-[0.625rem] leading-4 text-muted-foreground" id={`${checkboxId}-description`}>{description}</span> : null}</span>
     </button>
   )
@@ -306,21 +264,9 @@ export function Switch({ id, label, checked, onCheckedChange, disabled = false, 
   const generatedId = useId()
   const switchId = id ?? generatedId
   return (
-    <button
-      aria-checked={checked}
-      aria-describedby={description ? `${switchId}-description` : undefined}
-      className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-xs text-foreground transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-45 lg:min-h-9 ${className}`}
-      data-electrocms-control="switch"
-      disabled={disabled}
-      id={switchId}
-      onClick={() => onCheckedChange(!checked)}
-      role="switch"
-      type="button"
-    >
+    <button aria-checked={checked} aria-describedby={description ? `${switchId}-description` : undefined} className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-xs text-foreground transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-45 lg:min-h-9 ${className}`} data-electrocms-control="switch" disabled={disabled} id={switchId} onClick={() => onCheckedChange(!checked)} role="switch" type="button">
       <span className="min-w-0 flex-1"><span className="block font-semibold">{label}</span>{description ? <span className="block text-[0.625rem] leading-4 text-muted-foreground" id={`${switchId}-description`}>{description}</span> : null}</span>
-      <span aria-hidden="true" className={`relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-150 ${checked ? 'border-primary bg-primary' : 'border-border bg-muted'}`}>
-        <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 ${checked ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} />
-      </span>
+      <span aria-hidden="true" className={`relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-150 ${checked ? 'border-primary bg-primary' : 'border-border bg-muted'}`}><span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 ${checked ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`} /></span>
     </button>
   )
 }
@@ -343,7 +289,7 @@ export interface RadioGroupProps {
 
 export function RadioGroup({ label, value, options, onValueChange, disabled = false, className = '' }: RadioGroupProps) {
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key) || options.length === 0) return
     event.preventDefault()
     const direction = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1
     let nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : index + direction
@@ -352,8 +298,8 @@ export function RadioGroup({ label, value, options, onValueChange, disabled = fa
       const option = options[nextIndex]
       if (option && !option.disabled) {
         onValueChange(option.value)
-        event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`[data-radio-value="${CSS.escape(option.value)}"]`)?.focus()
-        break
+        event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[nextIndex]?.focus()
+        return
       }
       nextIndex += direction
     }
@@ -366,19 +312,7 @@ export function RadioGroup({ label, value, options, onValueChange, disabled = fa
         {options.map((option, index) => {
           const selected = option.value === value
           return (
-            <button
-              aria-checked={selected}
-              className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-md border px-2 text-left text-xs transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${selected ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:border-primary/30 hover:bg-muted/40'} disabled:cursor-not-allowed disabled:opacity-45`}
-              data-electrocms-control="radio"
-              data-radio-value={option.value}
-              disabled={disabled || option.disabled}
-              key={option.value}
-              onClick={() => onValueChange(option.value)}
-              onKeyDown={(event) => handleKeyDown(event, index)}
-              role="radio"
-              tabIndex={selected ? 0 : -1}
-              type="button"
-            >
+            <button aria-checked={selected} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-2 text-left text-xs transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-10 ${selected ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:border-primary/30 hover:bg-muted/40'} disabled:cursor-not-allowed disabled:opacity-45`} data-electrocms-control="radio" disabled={disabled || option.disabled} key={option.value} onClick={() => onValueChange(option.value)} onKeyDown={(event) => handleKeyDown(event, index)} role="radio" tabIndex={selected ? 0 : -1} type="button">
               <span aria-hidden="true" className={`grid size-4 shrink-0 place-items-center rounded-full border ${selected ? 'border-primary' : 'border-border'}`}><span className={`size-2 rounded-full transition-colors duration-150 ${selected ? 'bg-primary' : 'bg-transparent'}`} /></span>
               <span className="min-w-0 flex-1"><span className="block font-semibold">{option.label}</span>{option.description ? <span className="block text-[0.625rem] leading-4 text-muted-foreground">{option.description}</span> : null}</span>
             </button>
@@ -396,5 +330,5 @@ export interface ControlGroupProps {
 }
 
 export function ControlGroup({ label, children, className = '' }: ControlGroupProps) {
-  return <div className={`rounded-md border border-border bg-surface p-2 ${className}`}>{label ? <p className="mb-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{label}</p> : null}{children}</div>
+  return <div className={`rounded-md border border-border bg-surface p-2 ${className}`} data-electrocms-surface="control-group">{label ? <p className="mb-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{label}</p> : null}{children}</div>
 }
