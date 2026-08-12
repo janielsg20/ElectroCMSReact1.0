@@ -36,6 +36,7 @@ describe('M09.1 gestor de tipos de contenido', () => {
       const current = Object.values(session.store.structure.cms?.contentTypes ?? {})[0]
       expect(current?.public).toBe(false)
       expect(current?.pluralName).toBe('Publicaciones')
+      expect(screen.getByRole('button', { name: 'Eliminar' })).toBeEnabled()
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
