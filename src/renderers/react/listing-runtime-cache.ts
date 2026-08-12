@@ -1,4 +1,5 @@
-import type { CmsBackend, CmsListingPageRequest, CmsListingResult, Query } from '../../domain'
+import type { CmsBackend, CmsListingDiagnostic, CmsListingPageRequest, CmsListingResult, Query } from '../../domain'
+import { failure, success, type Result } from '../../domain/common/result'
 import { buildCmsQueryIndex } from '../../domain/project/query-index'
 import { executeCmsListingQuery } from '../../domain/project/listing-engine'
 
@@ -54,7 +55,11 @@ export class CmsListingRuntimeCache {
     this.now = options.now ?? defaultNow
   }
 
-  execute(cms: CmsBackend, query: Query, request: CmsListingPageRequest = {}): ListingRuntimeCacheResult {
+  execute(
+    cms: CmsBackend,
+    query: Query,
+    request: CmsListingPageRequest = {},
+  ): Result<ListingRuntimeCacheResult, readonly CmsListingDiagnostic[]> {
     const state = this.stateFor(cms)
     const key = stableKey(query, request)
     const started = this.now()
@@ -62,7 +67,7 @@ export class CmsListingRuntimeCache {
     if (cached) {
       state.entries.delete(key)
       state.entries.set(key, cached)
-      return {
+      return success({
         listing: cached.listing,
         performance: {
           cacheHit: true,
@@ -72,18 +77,18 @@ export class CmsListingRuntimeCache {
           indexUsed: cached.listing.metrics.indexUsed,
           sourceRecords: cached.listing.metrics.sourceRecords,
         },
-      }
+      })
     }
 
     const executed = executeCmsListingQuery(cms, query, request, { index: state.index })
-    if (!executed.ok) throw new Error(executed.error.map((item) => item.message).join(' '))
+    if (!executed.ok) return failure(executed.error)
     state.entries.set(key, { listing: executed.value })
     while (state.entries.size > this.maxEntries) {
       const oldest = state.entries.keys().next().value as string | undefined
       if (oldest === undefined) break
       state.entries.delete(oldest)
     }
-    return {
+    return success({
       listing: executed.value,
       performance: {
         cacheHit: false,
@@ -93,7 +98,7 @@ export class CmsListingRuntimeCache {
         indexUsed: executed.value.metrics.indexUsed,
         sourceRecords: executed.value.metrics.sourceRecords,
       },
-    }
+    })
   }
 
   private stateFor(cms: CmsBackend): CmsCacheState {
