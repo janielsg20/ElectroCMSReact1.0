@@ -80,7 +80,7 @@ describe('M06.5 UX de biblioteca', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Insertar Contenedor guardado' }))
     await waitFor(() => expect(insertWidget).toHaveBeenCalledWith('layout.container', STARTER_SELECTED_NODE_ID, expect.objectContaining({ name: 'Contenedor guardado', properties: { maxWidth: 1200 } })))
 
-    const library = screen.getByRole('complementary', { name: 'Capas y widgets del editor' })
+    const library = screen.getByRole('complementary', { name: 'Biblioteca y capas' })
     fireEvent.click(within(library).getByRole('button', { name: 'Eliminar Contenedor guardado de guardados' }))
     expect(screen.queryByText('Contenedor guardado')).not.toBeInTheDocument()
   })
