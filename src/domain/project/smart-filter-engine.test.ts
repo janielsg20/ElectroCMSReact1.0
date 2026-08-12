@@ -50,7 +50,7 @@ function fixture() {
     allowedRoleIds: [], calculatedExpression: null, childFieldIds: [], conditions: [], defaultValue: 0, description: '', group: '', id: priceFieldId, key: 'price', label: 'Precio', options: [], order: 2,
     owner: { contentTypeId, kind: 'content-type' }, placeholder: '', relationId: null, required: false, taxonomyId: null, type: 'number', validation: { max: null, maxLength: null, min: null, minLength: null, pattern: null },
   }
-  cms.taxonomies[taxonomyId] = { archiveTemplateId: null, contentTypeIds: [contentTypeId], description: '', fieldIds: [], hierarchical: false, id: taxonomyId, name: 'Categorías', slug: 'categories' }
+  cms.taxonomies[taxonomyId] = { archiveTemplateId: null, contentTypeIds: [contentTypeId], description: '', fieldIds: [], hierarchical: false, id: taxonomyId, pluralName: 'Categorías', singularName: 'Categoría', slug: 'categories' }
   cms.taxonomyTerms[newsTermId] = { description: '', id: newsTermId, name: 'Noticias', parentId: null, slug: 'news', taxonomyId, values: {} }
   cms.taxonomyTerms[guideTermId] = { description: '', id: guideTermId, name: 'Guías', parentId: null, slug: 'guides', taxonomyId, values: {} }
   const records = [
