@@ -2,6 +2,7 @@ import { failure, success, type Result } from '../common/result'
 import { QuerySchema, type CmsBackend, type ContentRecord, type Query } from './cms-schema'
 import type { ContentRecordId, QueryId } from './identity'
 import type { JsonValue } from './project-envelope'
+import { selectQueryCandidates, type CmsQueryIndex } from './query-index'
 
 type QueryPredicate = Query['groups'][number]['predicates'][number]
 type QuerySort = Query['sorts'][number]
@@ -19,6 +20,16 @@ export interface QueryEngineDiagnostic {
   readonly path: readonly (string | number)[]
 }
 
+export interface QueryExecutionMetrics {
+  readonly candidateRecords: number
+  readonly indexUsed: boolean
+  readonly sourceRecords: number
+}
+
+export interface QueryExecutionOptions {
+  readonly index?: CmsQueryIndex
+}
+
 export interface QueryExecutionResult {
   readonly queryId: QueryId
   readonly records: readonly ContentRecord[]
@@ -26,6 +37,7 @@ export interface QueryExecutionResult {
   readonly offset: number
   readonly limit: number
   readonly pageSize: number
+  readonly metrics: QueryExecutionMetrics
 }
 
 interface PredicateValue {
@@ -277,19 +289,60 @@ export function validateQueryDefinition(cms: CmsBackend, input: unknown): Result
   return diagnostics.length > 0 ? failure(diagnostics) : success(query)
 }
 
-export function executeCmsQuery(cms: CmsBackend, input: unknown): Result<QueryExecutionResult, readonly QueryEngineDiagnostic[]> {
+function executionCandidates(cms: CmsBackend, query: Query, options: QueryExecutionOptions): {
+  readonly indexUsed: boolean
+  readonly records: readonly ContentRecord[]
+  readonly sourceRecords: number
+} {
+  if (options.index?.source === cms) {
+    const selected = selectQueryCandidates(options.index, query)
+    return {
+      indexUsed: selected.indexUsed,
+      records: selected.candidateIds.flatMap((id) => {
+        const record = cms.records[id]
+        return record ? [record] : []
+      }),
+      sourceRecords: selected.sourceRecords,
+    }
+  }
+  const records = Object.values(cms.records).filter((record) => record.contentTypeId === query.contentTypeId)
+  return { indexUsed: false, records, sourceRecords: records.length }
+}
+
+export function executeCmsQuery(
+  cms: CmsBackend,
+  input: unknown,
+  options: QueryExecutionOptions = {},
+): Result<QueryExecutionResult, readonly QueryEngineDiagnostic[]> {
   const validated = validateQueryDefinition(cms, input)
   if (!validated.ok) return validated
   const query = validated.value
-  const matched = Object.values(cms.records)
+  const candidates = executionCandidates(cms, query, options)
+  const matched = candidates.records
     .filter((record) => queryMatches(cms, query, record))
     .sort((left, right) => compareRecords(query, left, right))
   const records = matched.slice(query.offset, query.offset + query.limit)
-  return success({ limit: query.limit, offset: query.offset, pageSize: query.pageSize, queryId: query.id, records, totalMatched: matched.length })
+  return success({
+    limit: query.limit,
+    metrics: {
+      candidateRecords: candidates.records.length,
+      indexUsed: candidates.indexUsed,
+      sourceRecords: candidates.sourceRecords,
+    },
+    offset: query.offset,
+    pageSize: query.pageSize,
+    queryId: query.id,
+    records,
+    totalMatched: matched.length,
+  })
 }
 
-export function executeSavedCmsQuery(cms: CmsBackend, queryId: QueryId): Result<QueryExecutionResult, readonly QueryEngineDiagnostic[]> {
+export function executeSavedCmsQuery(
+  cms: CmsBackend,
+  queryId: QueryId,
+  options: QueryExecutionOptions = {},
+): Result<QueryExecutionResult, readonly QueryEngineDiagnostic[]> {
   const query = cms.queries[queryId]
   if (!query) return failure([diagnostic('query-not-found', `La consulta ${queryId} no existe.`, ['queries', queryId])])
-  return executeCmsQuery(cms, query)
+  return executeCmsQuery(cms, query, options)
 }
