@@ -365,7 +365,13 @@
 /* La biblioteca usa el ancho real del panel, no el del viewport. Dos tarjetas
    aparecen solo cuando ambas conservan una anchura legible. */
 .widget-library-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container library-panel (min-width: 300px) {
+  .widget-library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .layer-option[class*="layer-option--depth-"]::before {

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-12 — Reauditoría UX/UI de Widgets y workspace
+
+- La biblioteca desktop abre a 360 px y admite hasta 400 px; el antiguo valor predeterminado de 216 px se migra automáticamente sin sobrescribir anchos personalizados.
+- La cuadrícula cambia por ancho real del panel: dos columnas desde 300 px útiles y una columna cuando el panel se estrecha, preservando el lienzo y la legibilidad.
+- El icono ambiguo de `pin` se sustituyó por una estrella reconocible para Favoritos, con descripción accesible y tooltip nativo; la ayuda de la biblioteca explica Insertar, Favoritos y Arrastrar.
+- Las tarjetas dejan de mostrar IDs técnicos en el flujo principal y priorizan nombre, categoría y explicación breve, conforme al modelo mental Elementor/WordPress.
+- Validación: lint, typecheck y build verdes; 14 pruebas focalizadas verdes; auditoría Chromium sobre producción con 20 estados, cero overflow horizontal, targets touch menores de 44 px, errores de arquitectura, excepciones o consola.
+
 ## 2026-08-12 — Auditoría UX/UI M11.1 (editor, Capas y Widgets)
 
 - Formularios expone ahora `Campo obligatorio` al crear, añadir y editar campos; el contrato canónico `FormControlEditablePatch` admite esa mutación y continúa pasando por sesión, Command Bus, persistencia e historial.

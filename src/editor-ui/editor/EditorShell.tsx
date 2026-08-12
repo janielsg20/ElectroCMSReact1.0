@@ -25,9 +25,12 @@ type PointerInteraction =
 type DockTarget = DockSide | null
 
 const panelLimits = {
-  library: { min: 184, max: 300 },
+  library: { min: 184, max: 400 },
   inspector: { min: 248, max: 360 },
 } as const
+
+const LEGACY_LIBRARY_DEFAULT_WIDTH = 216
+const LIBRARY_DEFAULT_WIDTH = 360
 
 const floatingLimits = {
   library: { minWidth: 232, minHeight: 260 },
@@ -40,7 +43,7 @@ const initialWorkspace: WorkspaceState = {
     restoreMode: 'docked',
     dockSide: 'left',
     pinned: false,
-    bounds: { x: 60, y: 64, width: 268, height: 540 },
+    bounds: { x: 60, y: 64, width: 360, height: 540 },
   },
   inspector: {
     mode: 'docked',
@@ -115,7 +118,7 @@ export function EditorShell() {
   const [canvasWorkspace, setCanvasWorkspace] = useState<CanvasWorkspaceState>(DEFAULT_CANVAS_WORKSPACE)
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace)
-  const [libraryWidth, setLibraryWidth] = useState(216)
+  const [libraryWidth, setLibraryWidth] = useState(LIBRARY_DEFAULT_WIDTH)
   const [inspectorWidth, setInspectorWidth] = useState(288)
   const [railWidth, setRailWidth] = useState(44)
   const [panelOrder, setPanelOrder] = useState<readonly WorkspacePanel[]>(['library', 'inspector'])
@@ -162,7 +165,7 @@ export function EditorShell() {
       if (saved) {
         const restoredRailWidth = clamp(saved.railWidth, 44, 168)
         setRailWidth(restoredRailWidth)
-        setLibraryWidth(clampPanelWidth('library', saved.libraryWidth))
+        setLibraryWidth(clampPanelWidth('library', saved.libraryWidth === LEGACY_LIBRARY_DEFAULT_WIDTH ? LIBRARY_DEFAULT_WIDTH : saved.libraryWidth))
         setInspectorWidth(clampPanelWidth('inspector', saved.inspectorWidth))
         setPanelOrder(saved.panelOrder)
         setCanvasWorkspace(saved.canvas)
@@ -184,7 +187,7 @@ export function EditorShell() {
           schemaVersion: EDITOR_WORKSPACE_PREFERENCES_VERSION,
           canvas: DEFAULT_CANVAS_WORKSPACE,
           railWidth: 44,
-          libraryWidth: 216,
+          libraryWidth: LIBRARY_DEFAULT_WIDTH,
           inspectorWidth: 288,
           workspace: initialWorkspace,
           panelOrder: ['library', 'inspector'],

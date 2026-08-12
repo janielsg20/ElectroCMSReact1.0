@@ -22,6 +22,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Microfase activa: `M11.1 — Builder y campos`.
 - F12–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - M11.1 incorpora edición canónica de `required` y orden de campos mediante drag pointer/touch/teclado, conservando botones subir/bajar. El diálogo de tamaños usa portal al body; no colocarlo dentro de superficies transformadas del canvas.
+- Widgets usa 360 px como ancho desktop inicial y dos columnas desde 300 px útiles; migra exclusivamente el default histórico de 216 px y respeta cualquier ancho personalizado. La estrella significa Favoritos y el control de cuatro direcciones significa arrastrar; ambos conservan explicación accesible.
 - Puerta final F10: run `31608617420`, 88 archivos / 364 pruebas, lint/typecheck/build/browser audit verdes.
 - Producción no se despliega desde este PR draft.
 

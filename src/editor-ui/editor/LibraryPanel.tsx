@@ -161,7 +161,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
         <div aria-labelledby="library-tab-widgets" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-widgets" role="tabpanel">
           <div className="mb-2 flex items-start justify-between gap-1 lg:mb-1.5">
             <span className="min-w-0">
-              <span className="flex items-center gap-0.5"><strong className="block text-xs leading-4 text-primary">Widgets</strong><HelpTip description="Elige una pieza para añadirla al elemento seleccionado del lienzo. Puedes insertarla con el botón o arrastrarla usando el control de cuatro direcciones." example="Añade un Contenedor antes de colocar un título, una imagen y un botón dentro." label="Biblioteca de widgets" reference="Elementor — Panel de widgets" /></span>
+              <span className="flex items-center gap-0.5"><strong className="block text-xs leading-4 text-primary">Widgets</strong><HelpTip description="Elige una pieza para añadirla al elemento seleccionado del lienzo. Insertar la añade directamente; el control de cuatro direcciones permite arrastrarla; la estrella la guarda en Favoritos." example="Añade un Contenedor y marca con estrella los widgets que utilizas con frecuencia." label="Biblioteca de widgets" reference="Elementor — Panel de widgets" /></span>
               <span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} elementos disponibles por categoría</span>
             </span>
             <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button">Guardar</button>
@@ -200,7 +200,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
                   onRemove={item.preset ? () => library.removeSaved(item.preset?.id ?? '') : undefined}
                   onToggleFavorite={item.preset ? undefined : () => library.toggleFavorite(item.definition.id)}
                   source={item.source}
-                  subtitle={`${categoryLabels[item.definition.category]} · ${item.preset ? 'Preset local' : item.definition.id}`}
+                  subtitle={item.preset ? `${categoryLabels[item.definition.category]} · Guardado local` : categoryLabels[item.definition.category]}
                 />
               ))}
             </ul>

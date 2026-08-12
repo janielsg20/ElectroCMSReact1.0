@@ -27,8 +27,8 @@ export function WidgetLibraryCard({ definition, description, favorite, label, on
 
   return (
     <li className={`semantic-option widget-library-card rounded-md border border-border bg-surface p-1.5 ${isDragging ? 'opacity-40' : ''}`} ref={setNodeRef} style={style}>
-      <div className="flex min-w-0 items-start gap-1.5">
-        <span className="widget-thumbnail grid size-9 shrink-0 place-items-center rounded-md border border-border bg-primary-soft text-primary" role="img" aria-label={`Miniatura de ${label}`}>
+      <div className="relative flex min-w-0 items-start gap-1 pr-7">
+        <span className="widget-thumbnail grid size-8 shrink-0 place-items-center rounded-md border border-border bg-primary-soft text-primary" role="img" aria-label={`Miniatura de ${label}`}>
           <svg aria-hidden="true" fill="none" focusable="false" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" viewBox={definition.icon.viewBox} width="20"><path d={definition.icon.path} /></svg>
         </span>
         <span className="min-w-0 flex-1">
@@ -36,7 +36,7 @@ export function WidgetLibraryCard({ definition, description, favorite, label, on
           <span className="block truncate text-[0.625rem] text-muted-foreground">{subtitle}</span>
         </span>
         {onToggleFavorite ? (
-          <button aria-label={favorite ? `Quitar ${label} de favoritos` : `Añadir ${label} a favoritos`} aria-pressed={favorite} className={`grid size-8 shrink-0 cursor-pointer place-items-center rounded focus-visible:ring-2 focus-visible:ring-focus ${favorite ? 'bg-primary-soft text-primary-strong' : 'text-muted-foreground hover:bg-muted'}`} onClick={onToggleFavorite} type="button"><Icon name="pin" size={13} /></button>
+          <button aria-description="Guarda este widget en la vista Favoritos para encontrarlo rápidamente. No modifica el widget ni el lienzo." aria-label={favorite ? `Quitar ${label} de favoritos` : `Añadir ${label} a favoritos`} aria-pressed={favorite} className={`absolute right-0 top-0 grid size-7 cursor-pointer place-items-center rounded focus-visible:ring-2 focus-visible:ring-focus ${favorite ? 'bg-primary-soft text-primary-strong' : 'text-muted-foreground hover:bg-muted'}`} onClick={onToggleFavorite} title={favorite ? 'Quitar de Favoritos' : 'Guardar en Favoritos'} type="button"><Icon name="star" size={14} /></button>
         ) : null}
         {onRemove ? <button aria-label={`Eliminar ${label} de guardados`} className="grid size-8 shrink-0 cursor-pointer place-items-center rounded text-muted-foreground hover:bg-danger-soft hover:text-danger focus-visible:ring-2 focus-visible:ring-focus" onClick={onRemove} type="button"><Icon name="close" size={12} /></button> : null}
       </div>

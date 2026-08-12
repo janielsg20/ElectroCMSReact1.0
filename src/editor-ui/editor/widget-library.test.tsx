@@ -48,6 +48,7 @@ describe('M06.5 UX de biblioteca', () => {
     expect(screen.getByRole('button', { name: 'Insertar Título H1–H6' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Información: Biblioteca de widgets' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Arrastrar Título H1–H6 al canvas' })).toHaveAttribute('aria-description', expect.stringContaining('cuatro direcciones'))
+    expect(screen.getByRole('button', { name: 'Añadir Contenedor a favoritos' })).toHaveAttribute('aria-description', expect.stringContaining('vista Favoritos'))
   })
 
   it('filtra por búsqueda, categoría y favoritos con miniaturas declarativas', () => {
