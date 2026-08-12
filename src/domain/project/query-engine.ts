@@ -72,16 +72,18 @@ function orderedCompare(left: JsonValue | undefined, right: JsonValue | undefine
   return null
 }
 
+function lexicalCompare(left: string, right: string): number {
+  return left === right ? 0 : left < right ? -1 : 1
+}
+
 function collectionContains(candidate: JsonValue | undefined, operand: JsonValue): boolean {
   return Array.isArray(candidate) && candidate.some((item) => deepEqual(item, operand))
 }
 
 function matchesOperator(candidate: JsonValue | undefined, operator: QueryPredicate['operator'], operand: JsonValue, collection: boolean): boolean {
   if (operator === 'exists') return collection ? Array.isArray(candidate) && candidate.length > 0 : exists(candidate)
-
   if (collection && (operator === 'equals' || operator === 'contains')) return collectionContains(candidate, operand)
   if (collection && operator === 'not-equals') return !collectionContains(candidate, operand)
-
   if (operator === 'equals') return deepEqual(candidate, operand)
   if (operator === 'not-equals') return !deepEqual(candidate, operand)
   if (operator === 'contains') {
@@ -101,7 +103,6 @@ function matchesOperator(candidate: JsonValue | undefined, operator: QueryPredic
     const upper = orderedCompare(candidate, operand[1])
     return lower !== null && upper !== null && lower >= 0 && upper <= 0
   }
-
   const compared = orderedCompare(candidate, operand)
   if (compared === null) return false
   if (operator === 'greater-than') return compared > 0
@@ -143,11 +144,10 @@ function repeaterPredicateValue(record: ContentRecord, predicate: QueryPredicate
   return { candidate: raw, operand: predicate.value, collection: Array.isArray(raw) }
 }
 
-function relationRecordIds(cms: CmsBackend, query: Query, record: ContentRecord, predicate: QueryPredicate): readonly ContentRecordId[] {
+function relationRecordIds(cms: CmsBackend, query: Query, record: ContentRecord, predicate: QueryPredicate): ContentRecordId[] {
   if (!predicate.relationId) return []
   const relation = cms.relations[predicate.relationId]
   if (!relation) return []
-
   const related: ContentRecordId[] = []
   for (const entry of Object.values(cms.relationEntries)) {
     if (entry.relationId !== relation.id) continue
@@ -195,9 +195,7 @@ function compareSortValues(left: JsonValue | undefined, right: JsonValue | undef
   if (right === undefined || right === null) return -1
   const compared = orderedCompare(left, right)
   if (compared !== null) return direction === 'asc' ? compared : -compared
-  const leftText = JSON.stringify(left)
-  const rightText = JSON.stringify(right)
-  const fallback = leftText.localeCompare(rightText)
+  const fallback = lexicalCompare(JSON.stringify(left), JSON.stringify(right))
   return direction === 'asc' ? fallback : -fallback
 }
 
@@ -206,7 +204,7 @@ function compareRecords(query: Query, left: ContentRecord, right: ContentRecord)
     const compared = compareSortValues(sortValue(left, sort), sortValue(right, sort), sort.direction)
     if (compared !== 0) return compared
   }
-  return left.id.localeCompare(right.id)
+  return lexicalCompare(left.id, right.id)
 }
 
 function validateOperandShape(predicate: QueryPredicate, path: readonly (string | number)[]): readonly QueryEngineDiagnostic[] {
@@ -215,7 +213,6 @@ function validateOperandShape(predicate: QueryPredicate, path: readonly (string 
     : predicate.source === 'repeater' && isObject(predicate.value) && 'value' in predicate.value
       ? predicate.value.value
       : predicate.value
-
   if ((predicate.operator === 'in' || predicate.operator === 'not-in') && !Array.isArray(raw)) {
     return [diagnostic('invalid-predicate', `${predicate.operator} requiere una lista como valor.`, path)]
   }
@@ -234,7 +231,6 @@ export function validateQueryDefinition(cms: CmsBackend, input: unknown): Result
       ['query', ...issue.path.map((segment) => typeof segment === 'symbol' ? (segment.description ?? segment.toString()) : segment)],
     )))
   }
-
   const query = parsed.data
   const diagnostics: QueryEngineDiagnostic[] = []
   if (!cms.contentTypes[query.contentTypeId]) diagnostics.push(diagnostic('missing-content-type', `El tipo ${query.contentTypeId} no existe.`, ['query', 'contentTypeId']))
@@ -242,7 +238,6 @@ export function validateQueryDefinition(cms: CmsBackend, input: unknown): Result
   query.groups.forEach((group, groupIndex) => group.predicates.forEach((predicate, predicateIndex) => {
     const path = ['query', 'groups', groupIndex, 'predicates', predicateIndex] as const
     diagnostics.push(...validateOperandShape(predicate, path))
-
     const field = predicate.fieldId ? cms.fields[predicate.fieldId] : undefined
     if (predicate.source === 'field' || predicate.source === 'repeater') {
       if (!field || field.owner.kind !== 'content-type' || field.owner.contentTypeId !== query.contentTypeId) {
@@ -250,23 +245,17 @@ export function validateQueryDefinition(cms: CmsBackend, input: unknown): Result
       } else if (predicate.source === 'repeater' && field.type !== 'repeater') {
         diagnostics.push(diagnostic('invalid-predicate', 'El predicado repeater requiere un campo de tipo repeater.', [...path, 'fieldId']))
       }
-    } else if (predicate.fieldId !== null) {
-      diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar fieldId.`, [...path, 'fieldId']))
-    }
+    } else if (predicate.fieldId !== null) diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar fieldId.`, [...path, 'fieldId']))
 
     if (predicate.source === 'taxonomy') {
       const taxonomy = predicate.taxonomyId ? cms.taxonomies[predicate.taxonomyId] : undefined
       if (!taxonomy || !taxonomy.contentTypeIds.includes(query.contentTypeId)) diagnostics.push(diagnostic('invalid-predicate', 'La taxonomía debe estar asociada al tipo consultado.', [...path, 'taxonomyId']))
-    } else if (predicate.taxonomyId !== null) {
-      diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar taxonomyId.`, [...path, 'taxonomyId']))
-    }
+    } else if (predicate.taxonomyId !== null) diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar taxonomyId.`, [...path, 'taxonomyId']))
 
     if (predicate.source === 'relation') {
       const relation = predicate.relationId ? cms.relations[predicate.relationId] : undefined
       if (!relation || (relation.sourceContentTypeId !== query.contentTypeId && relation.targetContentTypeId !== query.contentTypeId)) diagnostics.push(diagnostic('invalid-predicate', 'La relación debe conectar el tipo consultado.', [...path, 'relationId']))
-    } else if (predicate.relationId !== null) {
-      diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar relationId.`, [...path, 'relationId']))
-    }
+    } else if (predicate.relationId !== null) diagnostics.push(diagnostic('invalid-predicate', `${predicate.source} no debe declarar relationId.`, [...path, 'relationId']))
 
     if (predicate.source === 'date' && isObject(predicate.value) && 'field' in predicate.value && predicate.value.field !== 'createdAt' && predicate.value.field !== 'updatedAt') {
       diagnostics.push(diagnostic('invalid-predicate', 'El predicado date solo admite createdAt o updatedAt.', [...path, 'value', 'field']))
@@ -281,14 +270,10 @@ export function validateQueryDefinition(cms: CmsBackend, input: unknown): Result
     }
     if (sort.fieldId) {
       const field = cms.fields[sort.fieldId]
-      if (!field || field.owner.kind !== 'content-type' || field.owner.contentTypeId !== query.contentTypeId) {
-        diagnostics.push(diagnostic('invalid-sort', 'El campo de orden debe pertenecer al tipo consultado.', [...path, 'fieldId']))
-      } else if (COMPLEX_SORT_TYPES.has(field.type)) {
-        diagnostics.push(diagnostic('invalid-sort', `El campo ${field.label} no tiene un orden escalar determinista.`, [...path, 'fieldId']))
-      }
+      if (!field || field.owner.kind !== 'content-type' || field.owner.contentTypeId !== query.contentTypeId) diagnostics.push(diagnostic('invalid-sort', 'El campo de orden debe pertenecer al tipo consultado.', [...path, 'fieldId']))
+      else if (COMPLEX_SORT_TYPES.has(field.type)) diagnostics.push(diagnostic('invalid-sort', `El campo ${field.label} no tiene un orden escalar determinista.`, [...path, 'fieldId']))
     }
   })
-
   return diagnostics.length > 0 ? failure(diagnostics) : success(query)
 }
 
@@ -300,14 +285,7 @@ export function executeCmsQuery(cms: CmsBackend, input: unknown): Result<QueryEx
     .filter((record) => queryMatches(cms, query, record))
     .sort((left, right) => compareRecords(query, left, right))
   const records = matched.slice(query.offset, query.offset + query.limit)
-  return success({
-    limit: query.limit,
-    offset: query.offset,
-    pageSize: query.pageSize,
-    queryId: query.id,
-    records,
-    totalMatched: matched.length,
-  })
+  return success({ limit: query.limit, offset: query.offset, pageSize: query.pageSize, queryId: query.id, records, totalMatched: matched.length })
 }
 
 export function executeSavedCmsQuery(cms: CmsBackend, queryId: QueryId): Result<QueryExecutionResult, readonly QueryEngineDiagnostic[]> {
