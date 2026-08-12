@@ -95,6 +95,15 @@ async function waitForReady(client) {
   throw new Error('ElectroCMS no terminó de renderizar en el navegador de auditoría.')
 }
 
+async function waitForSelector(client, selector, attempts = 60) {
+  for (let index = 0; index < attempts; index += 1) {
+    const found = await evaluate(client, `Boolean(document.querySelector(${JSON.stringify(selector)}))`)
+    if (found) return
+    await sleep(100)
+  }
+  throw new Error(`No apareció el selector esperado: ${selector}`)
+}
+
 async function setViewport(client, width, height, touch = false) {
   await client.send('Emulation.setTouchEmulationEnabled', {
     enabled: touch,
@@ -144,8 +153,8 @@ async function metrics(client, label, width, height, touch = false) {
           effectiveHeight = Math.max(effectiveHeight, 44);
         }
         if (element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(element.type)) {
-          const label = element.closest('label');
-          const labelRect = label?.getBoundingClientRect();
+          const labelElement = element.closest('label');
+          const labelRect = labelElement?.getBoundingClientRect();
           if (labelRect) {
             effectiveWidth = Math.max(effectiveWidth, labelRect.width);
             effectiveHeight = Math.max(effectiveHeight, labelRect.height);
@@ -185,6 +194,7 @@ async function metrics(client, label, width, height, touch = false) {
       mobileTargetsUnder44: ${touch ? 'targetRows.filter((row) => row.effectiveWidth < 44 || row.effectiveHeight < 44).slice(0, 80)' : '[]'},
       offscreen,
       visibleText: document.body.innerText.slice(0, 5000),
+      primaryModule: document.querySelector('[data-primary-module]')?.getAttribute('data-primary-module') ?? null,
     };
   })()`)
 }
@@ -192,14 +202,38 @@ async function metrics(client, label, width, height, touch = false) {
 async function clickNamed(client, name) {
   return evaluate(client, `(() => {
     const normalize = (value) => String(value || '').trim().replace(/\\s+/g, ' ').toLocaleLowerCase('es');
+    const visible = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
     const expected = normalize(${JSON.stringify(name)});
-    const elements = [...document.querySelectorAll('button,[role="tab"],a')];
+    const elements = [...document.querySelectorAll('button,[role="tab"],a')].filter(visible);
     const exact = elements.find((element) => normalize(element.getAttribute('aria-label') || element.textContent) === expected);
     const partial = exact || elements.find((element) => normalize(element.getAttribute('aria-label') || element.textContent).includes(expected));
     if (!partial) return false;
     partial.click();
     return true;
   })()`)
+}
+
+async function requireClickNamed(client, name) {
+  if (!await clickNamed(client, name)) throw new Error(`No se encontró un control visible llamado: ${name}`)
+  await sleep(250)
+}
+
+async function assertEditorLibraryScope(client) {
+  const result = await evaluate(client, `(() => {
+    const library = document.querySelector('.library-panel');
+    if (!library) return { present: false, tabs: [] };
+    return {
+      present: true,
+      tabs: [...library.querySelectorAll('[role="tab"]')].map((tab) => (tab.getAttribute('aria-label') || tab.textContent || '').trim()),
+    };
+  })()`)
+  if (!result.present) throw new Error('No se encontró el panel contextual Capas/Widgets.')
+  const unexpected = result.tabs.filter((tab) => !['Capas', 'Widgets'].includes(tab))
+  if (unexpected.length > 0) throw new Error(`Capas/Widgets contiene módulos globales inesperados: ${unexpected.join(', ')}`)
 }
 
 const report = {
@@ -265,38 +299,63 @@ try {
     await capture(client, name)
   }
 
+  // Desktop: los módulos globales se alcanzan desde el sidebar, nunca desde Capas.
   await setViewport(client, 1440, 1000, false)
-  if (await clickNamed(client, 'Datos')) {
-    await sleep(300)
-    for (const tab of ['Tipos', 'Taxonomías', 'Campos', 'Registros y relaciones']) {
-      if (await clickNamed(client, tab)) {
-        await sleep(250)
-        const slug = tab.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        report.states.push(await metrics(client, `data-${slug}`, 1440, 1000, false))
-        await capture(client, `data-${slug}`)
-      }
-    }
-  } else {
-    report.console.push({ type: 'warning', text: 'No se encontró el destino Datos en desktop.' })
+  await assertEditorLibraryScope(client)
+  await requireClickNamed(client, 'Contenido')
+  await waitForSelector(client, '[data-primary-module="content"]')
+  report.states.push(await metrics(client, 'cms-desktop', 1440, 1000, false))
+  await capture(client, 'cms-desktop')
+
+  for (const tab of ['Tipos', 'Taxonomías', 'Campos', 'Registros y relaciones']) {
+    await requireClickNamed(client, tab)
+    const slug = tab.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    report.states.push(await metrics(client, `cms-${slug}`, 1440, 1000, false))
+    await capture(client, `cms-${slug}`)
   }
 
-  if (await clickNamed(client, 'Inspector')) {
-    await sleep(250)
-    report.states.push(await metrics(client, 'inspector-desktop', 1440, 1000, false))
-    await capture(client, 'inspector-desktop')
-  }
+  await requireClickNamed(client, 'Volver al Editor')
+  await waitForSelector(client, '.library-panel')
+  await assertEditorLibraryScope(client)
+
+  await requireClickNamed(client, 'Documentos')
+  await waitForSelector(client, '[data-primary-module="documents"]')
+  report.states.push(await metrics(client, 'documents-desktop', 1440, 1000, false))
+  await capture(client, 'documents-desktop')
+  await requireClickNamed(client, 'Volver al Editor')
+
+  await requireClickNamed(client, 'Diseño')
+  await waitForSelector(client, '[data-primary-module="design"]')
+  report.states.push(await metrics(client, 'design-desktop', 1440, 1000, false))
+  await capture(client, 'design-desktop')
+  await requireClickNamed(client, 'Volver al Editor')
+
+  // Móvil: los módulos globales se alcanzan mediante Más, manteniendo cinco destinos.
+  await setViewport(client, 375, 812, true)
+  await requireClickNamed(client, 'Más')
+  await waitForSelector(client, '[aria-label="Más módulos"]')
+  report.states.push(await metrics(client, 'mobile-more', 375, 812, true))
+  await capture(client, 'mobile-more')
+  await requireClickNamed(client, 'Contenido')
+  await waitForSelector(client, '[data-primary-module="content"]')
+  report.states.push(await metrics(client, 'cms-mobile', 375, 812, true))
+  await capture(client, 'cms-mobile')
+  await requireClickNamed(client, 'Canvas')
+  await waitForSelector(client, '#editor-canvas')
 
   writeFileSync(resolve(auditDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`)
   const horizontalOverflow = report.states.filter((state) => state.documentWidth > state.clientWidth + 2)
+  const architectureErrors = report.states.filter((state) => state.label.startsWith('cms-') && state.primaryModule !== 'content')
   console.log(JSON.stringify({
     states: report.states.length,
     horizontalOverflow: horizontalOverflow.map((state) => state.label),
     touchTargetsUnder44: report.states.filter((state) => state.viewport.touch).map((state) => ({ label: state.label, count: state.mobileTargetsUnder44.length })),
+    architectureErrors: architectureErrors.map((state) => state.label),
     exceptions: report.exceptions,
     console: report.console,
   }, null, 2))
   client.close()
-  if (report.exceptions.length > 0) process.exitCode = 1
+  if (report.exceptions.length > 0 || horizontalOverflow.length > 0 || architectureErrors.length > 0) process.exitCode = 1
 } catch (error) {
   report.infrastructureError = error instanceof Error ? error.message : String(error)
   report.chromeStderr = chromeStderr
