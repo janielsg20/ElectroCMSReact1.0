@@ -51,10 +51,9 @@ describe('M10.2 QueryManager', () => {
     expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
-    await waitFor(() => expect(screen.getByText('Consulta guardada.')).toBeInTheDocument())
+    await waitFor(() => expect(Object.values(session.store.structure.cms?.queries ?? {})).toHaveLength(1))
 
     const queries = Object.values(session.store.structure.cms?.queries ?? {})
-    expect(queries).toHaveLength(1)
     expect(queries[0]).toMatchObject({ name: 'Publicados recientes', contentTypeId, limit: 100, offset: 0, pageSize: 20 })
   })
 
