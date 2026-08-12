@@ -3,7 +3,6 @@ import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_BREAKPOINTS,
-  EMPTY_CMS_BACKEND,
   parseContentRecordId,
   parseContentTypeId,
   parseDocumentId,
@@ -13,6 +12,7 @@ import {
   ProjectStructureSchema,
   type ProjectStructure,
 } from '../../domain'
+import { EMPTY_CMS_BACKEND } from '../../domain/project/cms-defaults'
 import { CanonicalProjectRenderer } from './CanonicalProjectRenderer'
 import { ProjectStructureRenderStore } from './project-structure-render-store'
 
