@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { failure, success, type Result } from '../common/result'
+import type { ContentRecord } from './cms-schema'
 import { JsonValueSchema, type JsonValue } from './project-envelope'
 import {
   BindingSourceSchema,
@@ -74,9 +75,16 @@ function readPath(root: unknown, path: readonly string[]): Result<JsonValue, Dat
     : failure({ code: 'non-json-value', message: `La ruta ${path.join('.')} no produce un valor JSON.`, path })
 }
 
-function recordPropertyValue(record: NonNullable<ProjectStructure['cms']>['records'][string], property: CmsRecordProperty): JsonValue {
-  if (property === 'taxonomyTermIds') return [...record.taxonomyTermIds]
-  return record[property]
+function recordPropertyValue(record: ContentRecord, property: CmsRecordProperty): JsonValue {
+  switch (property) {
+    case 'id': return record.id
+    case 'status': return record.status
+    case 'contentTypeId': return record.contentTypeId
+    case 'authorId': return record.authorId
+    case 'createdAt': return record.createdAt
+    case 'updatedAt': return record.updatedAt
+    case 'taxonomyTermIds': return [...record.taxonomyTermIds]
+  }
 }
 
 function resolveCmsSource(structure: ProjectStructure, source: Extract<BindingSource, { kind: 'cms-record-field' | 'cms-record-property' }>): Result<JsonValue, DataConditionDiagnostic> {
