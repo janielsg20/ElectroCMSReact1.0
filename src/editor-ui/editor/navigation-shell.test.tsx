@@ -9,7 +9,7 @@ describe('arquitectura de navegación CMS/builder', () => {
 
   it('reserva Capas para estructura y Widgets para inserción', () => {
     render(<App />)
-    const library = screen.getByRole('complementary', { name: /capas y widgets del editor/i })
+    const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
     expect(within(library).getByRole('tab', { name: 'Capas' })).toBeInTheDocument()
     expect(within(library).getByRole('tab', { name: 'Widgets' })).toBeInTheDocument()
     expect(within(library).queryByRole('tab', { name: /documentos|datos|diseño|contenido/i })).not.toBeInTheDocument()
@@ -26,7 +26,7 @@ describe('arquitectura de navegación CMS/builder', () => {
 
   it('abre Contenido como módulo principal sin contaminar el panel de capas', () => {
     render(<App />)
-    const library = screen.getByRole('complementary', { name: /capas y widgets del editor/i })
+    const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
     expect(within(library).queryByRole('tab', { name: /datos|contenido/i })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
