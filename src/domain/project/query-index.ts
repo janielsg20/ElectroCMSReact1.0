@@ -29,6 +29,11 @@ function scalarKey(value: JsonValue | undefined): string | null {
   return null
 }
 
+function authorKey(value: JsonValue): string | null {
+  if (value === null) return 'null:'
+  return typeof value === 'string' ? value : null
+}
+
 function addToNestedIndex<K>(map: Map<K, Set<ContentRecordId>>, key: K, recordId: ContentRecordId): void {
   const bucket = map.get(key) ?? new Set<ContentRecordId>()
   bucket.add(recordId)
@@ -104,11 +109,10 @@ function predicateCandidates(index: CmsQueryIndex, predicate: QueryPredicate): R
     return buckets ? union(buckets) : null
   }
   if (predicate.source === 'author') {
-    const operand = predicate.value === null ? 'null:' : predicate.value
-    const values = Array.isArray(operand) ? operand : [operand]
-    if (values.some((value) => value !== null && typeof value !== 'string')) return null
-    const buckets = values.map((value) => index.byAuthor.get(value === null ? 'null:' : String(value)) ?? new Set<ContentRecordId>())
-    return union(buckets)
+    const values = Array.isArray(predicate.value) ? predicate.value : [predicate.value]
+    const keys = values.map(authorKey)
+    if (keys.some((key) => key === null)) return null
+    return union(keys.map((key) => index.byAuthor.get(key ?? 'null:') ?? new Set<ContentRecordId>()))
   }
   if (predicate.source === 'field' && predicate.fieldId) {
     // Complex values are intentionally not indexed. Validate indexability before
