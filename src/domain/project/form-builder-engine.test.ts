@@ -185,7 +185,7 @@ describe('M11.1 form builder engine', () => {
     }
     if (!candidate.cms) throw new Error('Falta CMS de prueba.')
     candidate.cms.backendScreens[screenId] = {
-      allowedRoleIds: [], contentTypeId, documentId, formId, id: screenId, kind: 'form', name: 'Editar solicitud', queryId: null, routePath: '/admin/request',
+      allowedRoleIds: [], contentTypeId, documentId, formId, id: screenId, kind: 'form', name: 'Editar solicitud', queryId: null, route: '/admin/request',
     }
     const validated = ProjectStructureSchema.parse(candidate)
     expect(deleteForm(validated, formId)).toMatchObject({ ok: false, error: [{ code: 'form-in-use' }] })
