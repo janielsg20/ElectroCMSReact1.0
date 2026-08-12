@@ -89,7 +89,7 @@ describe('M04.5 temas del editor', () => {
     const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
     fireEvent.click(within(navigation).getByRole('button', { name: 'Diseño' }))
 
-    expect(screen.getByRole('region', { name: /diseño · módulo principal/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /diseño global · módulo principal/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Diseño del proyecto' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Tema' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tab', { name: 'Paquetes' })).toHaveAttribute('aria-selected', 'false')

@@ -1,10 +1,11 @@
 import type { KeyboardEvent, PointerEvent } from 'react'
-import { Icon } from '../primitives'
+import { HelpTip, Icon } from '../primitives'
 import { ProjectDataPanel } from './ProjectDataPanel'
 import { ProjectDesignPanel } from './ProjectDesignPanel'
 import { TemplateManager } from './TemplateManager'
 import { useAppSection } from './app-section-context'
 import { APP_SECTIONS, type AppSection } from './app-sections'
+import { SECTION_HELP } from './feature-help'
 
 interface AppNavigationProps {
   readonly expanded: boolean
@@ -20,14 +21,21 @@ interface NavigationGroup {
 }
 
 const groups: readonly NavigationGroup[] = [
-  { label: 'Builder', sections: ['editor', 'documents'] },
-  { label: 'CMS', sections: ['content'] },
-  { label: 'Proyecto', sections: ['design'] },
+  { label: 'Crear', sections: ['editor', 'documents'] },
+  { label: 'Administrar', sections: ['content'] },
+  { label: 'Apariencia', sections: ['design'] },
 ]
+
+function sectionCategory(section: Exclude<AppSection, 'editor'>): string {
+  if (section === 'content') return 'Administrar'
+  if (section === 'documents') return 'Crear'
+  return 'Apariencia'
+}
 
 function ModuleWorkspace({ section }: { readonly section: Exclude<AppSection, 'editor'> }) {
   const { setSection } = useAppSection()
   const item = APP_SECTIONS[section]
+  const help = SECTION_HELP[section]
 
   return (
     <section
@@ -39,10 +47,11 @@ function ModuleWorkspace({ section }: { readonly section: Exclude<AppSection, 'e
       <header className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border bg-surface px-2 md:px-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-primary-soft text-primary"><Icon name={item.icon} size={16} /></span>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.5625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">{section === 'content' ? 'CMS' : section === 'documents' ? 'Builder' : 'Proyecto'}</p>
+          <p className="text-[0.5625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">{sectionCategory(section)}</p>
           <h1 className="truncate text-sm font-bold text-foreground">{item.panelTitle}</h1>
         </div>
         <p className="hidden max-w-xl truncate text-[0.625rem] text-muted-foreground xl:block">{item.description}</p>
+        <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} />
         <button
           aria-label={`Volver al Editor desde ${item.panelTitle}`}
           className="grid size-11 shrink-0 place-items-center rounded-md border border-border bg-surface text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus md:size-9"
@@ -81,28 +90,31 @@ export function AppNavigation({ expanded, width, onToggleExpanded, onResizePoint
                 <div className="grid gap-0.5">
                   {group.sections.map((section) => {
                     const item = APP_SECTIONS[section]
+                    const help = SECTION_HELP[section]
                     const selected = activeSection === section
                     return (
-                      <button
-                        aria-current={selected ? 'page' : undefined}
-                        aria-label={item.label}
-                        className={`nav-option group relative flex min-h-11 w-full items-center rounded-md px-1 text-xs focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${expanded ? 'justify-start gap-1.5' : 'justify-center'}`}
-                        data-active={selected ? 'true' : 'false'}
-                        data-navigation-section={section}
-                        key={section}
-                        onClick={() => setSection(section)}
-                        title={item.description}
-                        type="button"
-                      >
-                        {selected ? <span aria-hidden="true" className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-primary" /> : null}
-                        <span className={`nav-accent-icon grid size-8 shrink-0 place-items-center rounded-md ${selected ? 'bg-primary-soft text-primary-strong' : ''}`}><Icon name={item.icon} size={15} /></span>
-                        {expanded ? (
-                          <span className="min-w-0 text-left">
-                            <span className="block truncate text-xs font-semibold">{item.label}</span>
-                            <span className="block truncate text-[0.5625rem] text-muted-foreground">{item.shortLabel}</span>
-                          </span>
-                        ) : <span className="sr-only">{item.label}</span>}
-                      </button>
+                      <div className="flex min-w-0 items-center gap-0.5" key={section}>
+                        <button
+                          aria-current={selected ? 'page' : undefined}
+                          aria-label={item.label}
+                          className={`nav-option group relative flex min-h-11 min-w-0 flex-1 items-center rounded-md px-1 text-xs focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${expanded ? 'justify-start gap-1.5' : 'justify-center'}`}
+                          data-active={selected ? 'true' : 'false'}
+                          data-navigation-section={section}
+                          onClick={() => setSection(section)}
+                          title={item.description}
+                          type="button"
+                        >
+                          {selected ? <span aria-hidden="true" className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-primary" /> : null}
+                          <span className={`nav-accent-icon grid size-8 shrink-0 place-items-center rounded-md ${selected ? 'bg-primary-soft text-primary-strong' : ''}`}><Icon name={item.icon} size={15} /></span>
+                          {expanded ? (
+                            <span className="min-w-0 text-left">
+                              <span className="block truncate text-xs font-semibold">{item.label}</span>
+                              <span className="block truncate text-[0.5625rem] text-muted-foreground">{item.shortLabel}</span>
+                            </span>
+                          ) : <span className="sr-only">{item.label}</span>}
+                        </button>
+                        {expanded ? <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} /> : null}
+                      </div>
                     )
                   })}
                 </div>
@@ -112,7 +124,7 @@ export function AppNavigation({ expanded, width, onToggleExpanded, onResizePoint
 
           <div className={`flex min-h-10 items-center border-t border-border px-1.5 text-[0.625rem] text-muted-foreground ${expanded ? 'gap-1.5' : 'justify-center'}`}>
             <span aria-hidden="true" className="size-2 rounded-full bg-success" />
-            {expanded ? <span>Proyecto local</span> : <span className="sr-only">Proyecto local disponible</span>}
+            {expanded ? <span>Guardado local</span> : <span className="sr-only">Proyecto guardado localmente</span>}
           </div>
         </div>
         <button aria-label="Redimensionar menú lateral" aria-orientation="vertical" aria-valuemax={168} aria-valuemin={44} aria-valuenow={width} className="group absolute -right-3 inset-y-0 z-30 hidden w-6 cursor-col-resize touch-none place-items-center lg:grid" onKeyDown={onResizeKeyDown} onPointerDown={onResizePointerDown} role="separator" type="button"><span className="h-full w-px bg-transparent group-hover:bg-primary group-focus-visible:bg-primary" /></button>

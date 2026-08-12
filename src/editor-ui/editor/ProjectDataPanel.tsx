@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState, type ComponentType, type LazyExoticComponent } from 'react'
+import { HelpTip, Icon } from '../primitives'
+import { DATA_HELP, type DataHelpId } from './feature-help'
 
-type DataTab = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries'
+type DataTab = DataHelpId
 
 interface DataTabDefinition {
   readonly compact: string
@@ -16,13 +18,15 @@ const TaxonomyManager = lazy(() => import('./TaxonomyManager').then((module) => 
 const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((module) => ({ default: module.CustomFieldManager })))
 const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
 const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
+const FormManager = lazy(() => import('./FormManager').then((module) => ({ default: module.FormManager })))
 
 const tabs: readonly DataTabDefinition[] = [
-  { id: 'content-types', label: 'Tipos', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
-  { id: 'taxonomies', label: 'Taxonomías', compact: 'Tax.', title: 'Taxonomías', overflow: 'auto', panel: TaxonomyManager },
-  { id: 'fields', label: 'Campos', compact: 'Campos', title: 'Campos personalizados', overflow: 'auto', panel: CustomFieldManager },
-  { id: 'records', label: 'Registros y relaciones', compact: 'Reg.', title: 'Registros y relaciones', overflow: 'auto', panel: RecordRelationManager },
-  { id: 'queries', label: 'Consultas', compact: 'Queries', title: 'Consultas', overflow: 'hidden', panel: QueryManager },
+  { id: 'content-types', label: 'Tipos de contenido', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
+  { id: 'taxonomies', label: 'Clasificaciones', compact: 'Clasificar', title: 'Categorías y clasificaciones', overflow: 'auto', panel: TaxonomyManager },
+  { id: 'fields', label: 'Campos personalizados', compact: 'Campos', title: 'Campos personalizados', overflow: 'auto', panel: CustomFieldManager },
+  { id: 'records', label: 'Entradas y relaciones', compact: 'Entradas', title: 'Entradas y relaciones', overflow: 'auto', panel: RecordRelationManager },
+  { id: 'queries', label: 'Qué contenido mostrar', compact: 'Consultas', title: 'Consultas de contenido', overflow: 'hidden', panel: QueryManager },
+  { id: 'forms', label: 'Formularios', compact: 'Formularios', title: 'Formularios', overflow: 'auto', panel: FormManager },
 ]
 
 function DataPanelFallback({ label }: { readonly label: string }) {
@@ -30,7 +34,7 @@ function DataPanelFallback({ label }: { readonly label: string }) {
     <div aria-live="polite" className="grid min-h-32 place-items-center p-4 text-center text-xs text-muted-foreground" role="status">
       <span>
         <strong className="block text-foreground">Cargando {label.toLocaleLowerCase('es')}…</strong>
-        <span className="mt-1 block text-[0.625rem]">Solo se carga el módulo activo para mantener el editor ligero.</span>
+        <span className="mt-1 block text-[0.625rem]">Solo cargamos la herramienta que estás usando para mantener ElectroCMS rápido.</span>
       </span>
     </div>
   )
@@ -39,29 +43,40 @@ function DataPanelFallback({ label }: { readonly label: string }) {
 export function ProjectDataPanel() {
   const [activeTab, setActiveTab] = useState<DataTab>('content-types')
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
-  if (!active) throw new Error('El módulo de datos requiere al menos una pestaña.')
+  if (!active) throw new Error('El módulo de contenido requiere al menos una pestaña.')
   const ActivePanel = active.panel
+  const help = DATA_HELP[active.id]
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
-      <div className="shrink-0 overflow-x-auto border-b border-border bg-muted/40 overscroll-x-contain">
-        <div aria-label="Datos del proyecto" className="flex min-w-max gap-0.5 p-1" role="tablist">
-          {tabs.map((tab) => (
-            <button
-              aria-controls={`project-data-${tab.id}`}
-              aria-label={tab.label}
-              aria-selected={activeTab === tab.id}
-              className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-md px-2 text-xs font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:min-w-[5.25rem] ${activeTab === tab.id ? 'bg-primary-soft text-primary-strong shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-              id={`project-data-tab-${tab.id}`}
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              role="tab"
-              title={tab.title}
-              type="button"
-            >
-              {tab.compact}
-            </button>
-          ))}
+      <div className="shrink-0 border-b border-border bg-surface">
+        <div className="flex items-center gap-2 px-2 py-1.5 lg:px-3">
+          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={active.id === 'forms' ? 'form' : 'database'} size={14} /></span>
+          <div className="min-w-0 flex-1">
+            <strong className="block truncate text-xs text-foreground">{help.label}</strong>
+            <span className="block truncate text-[0.625rem] text-muted-foreground">{help.description}</span>
+          </div>
+          <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} />
+        </div>
+        <div className="overflow-x-auto border-t border-border bg-muted/30 overscroll-x-contain">
+          <div aria-label="Herramientas de contenido" className="flex min-w-max gap-0.5 p-1" role="tablist">
+            {tabs.map((tab) => (
+              <button
+                aria-controls={`project-data-${tab.id}`}
+                aria-label={tab.label}
+                aria-selected={activeTab === tab.id}
+                className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-md px-2 text-xs font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:min-w-[5.25rem] ${activeTab === tab.id ? 'bg-primary-soft text-primary-strong shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                id={`project-data-tab-${tab.id}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                title={tab.title}
+                type="button"
+              >
+                {tab.compact}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

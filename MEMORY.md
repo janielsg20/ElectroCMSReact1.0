@@ -4,13 +4,14 @@ Actualizado: 2026-08-12.
 
 ## Objetivo
 
-Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual y exportadores Local, React, LAMP y WordPress.
+Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScript + Tailwind CSS, con editor no-code, contenido dinámico, backend visual y exportadores Local, React, LAMP y WordPress. La experiencia final debe resultar familiar y sencilla para usuarios de WordPress, Elementor, ACF y la suite JetEngine, aunque la arquitectura interna sea avanzada.
 
 ## Fuentes de verdad
 
 - Alcance: `PROMPT_MAESTRO_ELECTROCMS.md` y `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - Estado: `TRACKING.md`; plan: `PHASES.md` y `DETAILED_EXECUTION_PHASES.md`.
 - Reglas: `RULES.md`; arquitectura: `ARCHITECTURE.md`.
+- UX para usuario final: `UX_SIMPLICITY_SYSTEM.md` junto a `UI_UX_LAYOUT_SYSTEM.md` y `design-system/electrocms/MASTER.md`.
 - FlutterFlow es referencia de capacidades, no fuente de código, branding ni activos.
 
 ## Estado real
@@ -40,20 +41,25 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History, Query, Forms ni Export.
 - Estado local de UI/preferencias no duplica proyecto.
 - Funciones futuras no se muestran como activas.
+- Simplificar la UX nunca crea un store/modelo alternativo ni elimina funcionalidad; flujo básico y avanzado editan el mismo estado canónico.
 
 ## UI/UX vigente
 
-- High Density + Minimal Clean + builder/IDE profesional.
+- High Density + Minimal Clean, pero orientado a tareas de CMS visual en vez de exponer un IDE al usuario final.
 - Targets: ~44 px touch / ~36 px escritorio denso.
-- Navegación global: `Editor | Documentos | Contenido | Diseño`.
+- Navegación principal visible: grupos `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
 - `Capas`: exclusivamente árbol/estructura del documento actual.
 - `Widgets`: exclusivamente biblioteca insertable.
-- `Inspector`: configuración del nodo seleccionado, incluidos bindings.
-- `Contenido`: herramientas CMS globales, incluidas Consultas; los nuevos gestores globales siguen esta arquitectura.
-- `Diseño`: temas/paquetes. `Documentos`: documentos/plantillas.
-- Móvil: `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
+- `Inspector`: propiedades del elemento seleccionado con vocabulario común, ayudas contextuales y referencias funcionales conocidas.
+- `Contenido`: tipos de contenido, clasificaciones, campos, entradas/relaciones y consultas; los gestores globales futuros siguen esta arquitectura.
+- `Diseño`: apariencia global, temas y paquetes. `Páginas`: páginas/plantillas del proyecto.
+- Móvil conserva acceso a `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
 - Tablet retira paneles contextuales al entrar a un módulo global.
 - Nunca volver a ubicar módulos globales de CMS/proyecto dentro de Capas o Widgets.
+- Divulgación progresiva obligatoria: opciones esenciales primero; parámetros técnicos o poco frecuentes dentro de `Opciones avanzadas`.
+- Toda opción no obvia debe usar ayuda contextual ElectroCMS accesible por teclado/puntero/touch.
+- Cuando exista equivalencia clara, la ayuda referencia WordPress, Elementor, ACF, JetEngine, JetFormBuilder, JetSmartFilters o JetStyleManager según `UX_SIMPLICITY_SYSTEM.md`.
+- No usar nombres de schemas, AST, stores, IDs internos, fases o microfases como lenguaje principal del producto.
 
 ## F09 completada
 
@@ -86,9 +92,17 @@ Requisitos exactos:
 - Añadir, seleccionar, reordenar y eliminar mediante teclado, puntero y touch; DnD con alternativa por una sola activación/teclado.
 - Formularios como gestor global; controles insertables en Widgets e Inspector.
 - Controles y menús de la UI del builder deben usar diseño ElectroCMS, no apariencia nativa dependiente del sistema.
+- El builder debe usar modelo mental JetFormBuilder/Elementor Forms: campo → propósito → dato relacionado → opciones avanzadas; la arquitectura interna no se expone como flujo principal.
 - >=44×44 en touch; densidad compacta en escritorio.
 - No iniciar M11.2 hasta pasar el gate completo de M11.1.
 
+## Trabajo M11.1 ya iniciado
+
+- Existe `form-builder-engine.ts` canónico con CRUD, orden y mapeo de controles y pruebas dedicadas.
+- La navegación y los gestores CMS en la rama F11 comenzaron una refactorización transversal de simplicidad sin alterar contratos.
+- Existe el primitive accesible `HelpTip` y el catálogo `feature-help.ts` para explicar opciones y equivalencias funcionales.
+- `ContentTypeManager` aplica flujo esencial + `Opciones avanzadas`; el Inspector oculta claves técnicas del lenguaje principal y explica cada propiedad con ayuda contextual.
+
 ## Próximo paso exacto
 
-Auditar `FormSchema`/`FormControlSchema`, validaciones CMS existentes y patrones de sesiones de CPT/Queries. Implementar primero un `form-engine.ts` canónico para CRUD/orden/mapeo de controles sin introducir validación/condiciones de M11.2; después exponer `FormSession`, persistencia/undo-redo y montar el gestor visual funcional con sus pruebas.
+Cerrar la refactorización UX de los gestores tocados por M11.1, montar el gestor visual de formularios sobre el motor canónico y validar lint + typecheck + suite completa + build + auditoría Chromium antes de iniciar M11.2.

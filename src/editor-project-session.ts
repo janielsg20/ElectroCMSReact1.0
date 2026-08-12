@@ -42,6 +42,8 @@ import {
   type DocumentId,
   type FieldDefinition,
   type FieldDefinitionId,
+  type Form,
+  type FormId,
   type JsonValue,
   type Node,
   type NodeDataSettings,
@@ -84,6 +86,18 @@ import {
   updateCustomField as updateCustomFieldInStructure,
   type FieldDefinitionEditablePatch,
 } from './domain/project/custom-field-engine'
+import {
+  addFormControl as addFormControlInStructure,
+  createForm as createFormInStructure,
+  deleteForm as deleteFormInStructure,
+  removeFormControl as removeFormControlInStructure,
+  reorderFormControl as reorderFormControlInStructure,
+  updateForm as updateFormInStructure,
+  updateFormControl as updateFormControlInStructure,
+  type FormControl,
+  type FormControlEditablePatch,
+  type FormEditablePatch,
+} from './domain/project/form-builder-engine'
 import {
   createContentRecord as createContentRecordInStructure,
   createRelation as createRelationInStructure,
@@ -217,6 +231,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return report ? success(report) : failure('El paquete se aplicó sin producir un informe de cambios.')
   }
 
+  async addFormControl(formId: FormId, stepId: string, control: FormControl, position?: number): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.add-form-control', `Añadir control ${control.label}`, (structure) => {
+      const added = addFormControlInStructure(structure, formId, stepId, control, position)
+      return added.ok ? success(added.value) : failure({ code: 'invalid-tree' as const, message: added.error[0]?.message ?? 'El control no es válido.' })
+    }))
+  }
+
   async createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>> {
     const breakpointId = parseBreakpointId(crypto.randomUUID())
     const created = await this.#execute(new ProjectStructureCommand(
@@ -253,6 +274,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('template.create-document', `Crear ${document.kind}: ${document.name}`, (structure) => {
       const created = addDocument(structure, document)
       return created.ok ? created : failure({ code: 'invalid-tree' as const, message: created.error.message })
+    }))
+  }
+
+  async createForm(form: Form): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.create-form', `Crear formulario ${form.name}`, (structure) => {
+      const created = createFormInStructure(structure, form)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El formulario no es válido.' })
     }))
   }
 
@@ -309,6 +337,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('cms.delete-custom-field', 'Eliminar campo personalizado', (structure) => {
       const deleted = deleteCustomFieldInStructure(structure, fieldId)
       return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El campo personalizado no se puede eliminar.' })
+    }))
+  }
+
+  async deleteForm(formId: FormId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.delete-form', 'Eliminar formulario', (structure) => {
+      const deleted = deleteFormInStructure(structure, formId)
+      return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El formulario no se puede eliminar.' })
     }))
   }
 
@@ -383,6 +418,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('tree.move', nodeIds.length === 1 ? 'Mover capa' : 'Mover capas', (structure) => moveNodes(structure, { documentId: this.documentId, kind: 'document' }, nodeIds, placement)))
   }
 
+  async removeFormControl(formId: FormId, controlId: string): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.remove-form-control', 'Eliminar control del formulario', (structure) => {
+      const removed = removeFormControlInStructure(structure, formId, controlId)
+      return removed.ok ? success(removed.value) : failure({ code: 'invalid-tree' as const, message: removed.error[0]?.message ?? 'El control no se puede eliminar.' })
+    }))
+  }
+
   async removeThemePackage(packageId: ThemePackageId): Promise<Result<boolean, string>> {
     const ready = await this.#ready
     if (!ready.ok) return ready
@@ -392,6 +434,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
 
   async reorderBreakpoint(breakpointId: BreakpointId, targetIndex: number): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand('responsive.reorder-breakpoint', 'Reordenar breakpoint', (structure) => reorderBreakpoint(structure, breakpointId, targetIndex)))
+  }
+
+  async reorderFormControl(formId: FormId, controlId: string, position: number): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.reorder-form-control', 'Reordenar control del formulario', (structure) => {
+      const reordered = reorderFormControlInStructure(structure, formId, controlId, position)
+      return reordered.ok ? success(reordered.value) : failure({ code: 'invalid-tree' as const, message: reordered.error[0]?.message ?? 'El control no se puede reordenar.' })
+    }))
   }
 
   async resetNodeBreakpointOverride(nodeId: NodeId, breakpointId: BreakpointId): Promise<Result<ProjectStructure, string>> {
@@ -457,6 +506,20 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('cms.update-custom-field', 'Editar campo personalizado', (structure) => {
       const updated = updateCustomFieldInStructure(structure, fieldId, patch)
       return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El campo personalizado no es válido.' })
+    }))
+  }
+
+  async updateForm(formId: FormId, patch: FormEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.update-form', 'Editar formulario', (structure) => {
+      const updated = updateFormInStructure(structure, formId, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El formulario no es válido.' })
+    }))
+  }
+
+  async updateFormControl(formId: FormId, controlId: string, patch: FormControlEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.update-form-control', 'Editar control del formulario', (structure) => {
+      const updated = updateFormControlInStructure(structure, formId, controlId, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El control no es válido.' })
     }))
   }
 
