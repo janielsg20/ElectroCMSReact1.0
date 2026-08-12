@@ -16,20 +16,21 @@ function renderManager() {
 }
 
 describe('M09.1 gestor de tipos de contenido', () => {
-  it('crea, edita y elimina un CPT desde la UI funcional', async () => {
+  it('crea, edita y elimina un tipo de contenido desde la UI funcional', async () => {
     const session = renderManager()
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Singular' }), { target: { value: 'Artículo' } })
-    fireEvent.change(screen.getByRole('textbox', { name: 'Plural' }), { target: { value: 'Artículos' } })
-    fireEvent.change(screen.getByRole('textbox', { name: 'Slug' }), { target: { value: 'articles' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Crear tipo' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre singular' }), { target: { value: 'Artículo' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre plural' }), { target: { value: 'Artículos' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'URL amigable' }), { target: { value: 'articles' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear' }))
 
-    expect(await screen.findByText(/artículos creado y guardado/i)).toBeInTheDocument()
+    expect(await screen.findByText(/artículos creado\. ahora puedes añadir campos o entradas/i)).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /artículos/i })).toBeInTheDocument()
     expect(Object.values(session.store.structure.cms?.contentTypes ?? {})).toHaveLength(1)
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Público' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Plural' }), { target: { value: 'Publicaciones' } })
+    fireEvent.click(screen.getByRole('button', { name: /Opciones avanzadas/i }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Visible en el sitio' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre plural' }), { target: { value: 'Publicaciones' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     await waitFor(() => {
@@ -47,14 +48,15 @@ describe('M09.1 gestor de tipos de contenido', () => {
     expect(Object.values(session.store.structure.cms?.contentTypes ?? {})).toHaveLength(0)
   })
 
-  it('mantiene densidad responsive, soporte accesible y no expone fases futuras', () => {
+  it('mantiene densidad responsive, soporte accesible y oculta complejidad técnica', () => {
     renderManager()
 
-    expect(screen.getByRole('textbox', { name: 'Singular' })).toHaveClass('min-h-11', 'lg:min-h-9')
-    expect(screen.getByRole('group', { name: 'Soportes del tipo de contenido' })).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Campos personalizados' })).toBeInTheDocument()
-    expect(screen.getByText(/Taxonomías, campos personalizados, registros y relaciones se gestionan en los tabs de Datos/i)).toBeInTheDocument()
-    expect(screen.getByText(/binding dinámico se incorpora en M09\.5/i)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Nombre singular' })).toHaveClass('min-h-11', 'lg:min-h-9')
+    expect(screen.getByRole('button', { name: /Opciones avanzadas/i })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText(/Empieza por lo esencial\. ElectroCMS configura valores seguros para el resto/i)).toBeInTheDocument()
+    expect(screen.getByText(/Después de crear el tipo, usa las pestañas Campos, Clasificaciones y Entradas/i)).toBeInTheDocument()
+    expect(screen.queryByText(/M09\.5/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/CPT/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /crear taxonomía/i })).not.toBeInTheDocument()
   })
 })
