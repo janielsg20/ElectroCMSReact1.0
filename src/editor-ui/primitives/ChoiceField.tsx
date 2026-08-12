@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import { Icon } from './Icon'
 
 export interface ChoiceFieldOption {
@@ -40,7 +40,7 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
   const listboxId = useId()
   const selected = options.find((option) => option.value === value)
 
-  function updatePosition(): void {
+  const updatePosition = useCallback((): void => {
     const trigger = triggerRef.current
     if (!trigger || typeof window === 'undefined') return
     const rect = trigger.getBoundingClientRect()
@@ -58,34 +58,30 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
     const maxTop = Math.max(VIEWPORT_PADDING, window.innerHeight - VIEWPORT_PADDING - maxHeight)
     const top = Math.min(Math.max(VIEWPORT_PADDING, rawTop), maxTop)
     setPosition({ left, maxHeight, top, width })
-  }
+  }, [compact])
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPosition(null)
-      return
-    }
+    if (!open) return
     updatePosition()
-  }, [compact, open, options.length, value])
+  }, [open, options.length, updatePosition, value])
 
   useEffect(() => {
     if (!open) return
-    function reposition(): void { updatePosition() }
     function closeOnOutsidePointer(event: globalThis.PointerEvent): void {
       const target = event.target
       if (!(target instanceof Node)) return
       if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return
       setOpen(false)
     }
-    window.addEventListener('resize', reposition)
-    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     return () => {
-      window.removeEventListener('resize', reposition)
-      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
       document.removeEventListener('pointerdown', closeOnOutsidePointer)
     }
-  }, [open])
+  }, [open, updatePosition])
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key === 'Escape') {
