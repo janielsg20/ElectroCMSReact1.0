@@ -4,7 +4,9 @@ import {
   resolveValidatedNodeResponsiveState,
   success,
   validateProjectStructure,
+  type BindingSource,
   type BreakpointId,
+  type ContentRecordId,
   type Document,
   type DocumentId,
   type GlobalComponent,
@@ -38,6 +40,7 @@ export interface NodeRenderSnapshot {
 interface CachedNodeSnapshot {
   readonly breakpointId: BreakpointId
   readonly breakpoints: ProjectStructure['breakpoints']
+  readonly contextRecordId?: ContentRecordId
   readonly node: Node
   readonly previewMode: NodeDataPreviewMode
   readonly structure: ProjectStructure
@@ -65,6 +68,39 @@ function indexNodeOwners(structure: ProjectStructure): ReadonlyMap<NodeId, Struc
   return owners
 }
 
+function contextualizeBindingSource(
+  structure: ProjectStructure,
+  source: BindingSource,
+  contextRecordId: ContentRecordId,
+): BindingSource {
+  if (source.kind !== 'cms-record-field' && source.kind !== 'cms-record-property') return source
+  const sourceRecord = structure.cms?.records[source.recordId]
+  const contextRecord = structure.cms?.records[contextRecordId]
+  if (!sourceRecord || !contextRecord || sourceRecord.contentTypeId !== contextRecord.contentTypeId) return source
+  return { ...source, recordId: contextRecordId }
+}
+
+function contextualizeNode(
+  structure: ProjectStructure,
+  node: Node,
+  contextRecordId: ContentRecordId,
+): Node {
+  const bindings = Object.fromEntries(
+    Object.entries(node.bindings).map(([key, source]) => [
+      key,
+      contextualizeBindingSource(structure, source, contextRecordId),
+    ]),
+  ) as Record<string, BindingSource>
+  const conditions = node.conditions.map((group) => ({
+    ...group,
+    predicates: group.predicates.map((predicate) => ({
+      ...predicate,
+      source: contextualizeBindingSource(structure, predicate.source, contextRecordId),
+    })),
+  }))
+  return { ...node, bindings, conditions }
+}
+
 /**
  * Adaptador observable del modelo normalizado para React.
  *
@@ -77,7 +113,8 @@ export class ProjectStructureRenderStore {
   readonly #nodeListeners = new Map<NodeId, Set<Listener>>()
   readonly #structureListeners = new Set<Listener>()
   readonly #themeListeners = new Map<ProjectThemeScope, Set<Listener>>()
-  readonly #snapshotCache = new Map<NodeId, CachedNodeSnapshot>()
+  readonly #snapshotCache = new Map<string, CachedNodeSnapshot>()
+  readonly #contextSnapshotCache = new Map<string, CachedNodeSnapshot>()
   readonly #dataPreviewModes = new Map<NodeId, NodeDataPreviewMode>()
   #nodeOwners: ReadonlyMap<NodeId, StructureTree>
   #structure: ProjectStructure
@@ -122,22 +159,27 @@ export class ProjectStructureRenderStore {
     if (mode === 'auto') this.#dataPreviewModes.delete(nodeId)
     else this.#dataPreviewModes.set(nodeId, mode)
     this.#snapshotCache.delete(nodeId)
+    this.#contextSnapshotCache.clear()
     this.#emit(this.#nodeListeners.get(nodeId))
   }
 
   getNodeSnapshot(
     nodeId: NodeId,
     breakpointId: BreakpointId,
+    contextRecordId?: ContentRecordId,
   ): NodeRenderSnapshot | undefined {
     const node = this.#nodeOwners.get(nodeId)?.nodes[nodeId]
     if (!node) return undefined
     const previewMode = this.getNodeDataPreviewMode(nodeId)
+    const cache = contextRecordId ? this.#contextSnapshotCache : this.#snapshotCache
+    const cacheKey = contextRecordId ? `${nodeId}:${breakpointId}:${contextRecordId}` : nodeId
 
-    const cached = this.#snapshotCache.get(nodeId)
+    const cached = cache.get(cacheKey)
     if (
       cached?.node === node
       && cached.breakpointId === breakpointId
       && cached.breakpoints === this.#structure.breakpoints
+      && cached.contextRecordId === contextRecordId
       && cached.previewMode === previewMode
       && (Object.keys(node.bindings).length === 0 && node.conditions.length === 0 || cached.structure === this.#structure)
     ) {
@@ -147,7 +189,8 @@ export class ProjectStructureRenderStore {
     const resolved = resolveValidatedNodeResponsiveState(this.#structure, node, breakpointId)
     if (!resolved.ok) return undefined
 
-    const data = resolveNodeDataState(this.#structure, node, resolved.value.properties)
+    const dataNode = contextRecordId ? contextualizeNode(this.#structure, node, contextRecordId) : node
+    const data = resolveNodeDataState(this.#structure, dataNode, resolved.value.properties)
     const snapshot = {
       accessibility: data.accessibility,
       dataState: previewMode === 'auto' ? data.state : previewMode,
@@ -159,9 +202,10 @@ export class ProjectStructureRenderStore {
         properties: data.properties,
       },
     } satisfies NodeRenderSnapshot
-    this.#snapshotCache.set(nodeId, {
+    cache.set(cacheKey, {
       breakpointId,
       breakpoints: this.#structure.breakpoints,
+      contextRecordId,
       node,
       previewMode,
       snapshot,
@@ -223,6 +267,7 @@ export class ProjectStructureRenderStore {
 
     this.#structure = next
     this.#nodeOwners = nextOwners
+    this.#contextSnapshotCache.clear()
     this.#emit(this.#structureListeners)
     for (const scope of ['frontend', 'backend'] as const) {
       if (previous.themes[scope] !== next.themes[scope]) this.#emit(this.#themeListeners.get(scope))
