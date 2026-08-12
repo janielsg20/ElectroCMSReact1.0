@@ -126,7 +126,7 @@ describe('M07.1 inspector declarativo', () => {
     openAdvancedDataControls()
     fireEvent.change(screen.getByRole('textbox', { name: 'Conexiones' }), { target: { value: '{' } })
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Bindings debe contener JSON válido')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Conexiones debe contener JSON válido')
     expect(updateNodeDataSettings).not.toHaveBeenCalled()
   })
 })
