@@ -307,7 +307,7 @@ try {
   report.states.push(await metrics(client, 'cms-desktop', 1440, 1000, false))
   await capture(client, 'cms-desktop')
 
-  for (const tab of ['Tipos', 'Taxonomías', 'Campos', 'Registros y relaciones']) {
+  for (const tab of ['Tipos de contenido', 'Clasificaciones', 'Campos personalizados', 'Entradas y relaciones', 'Qué contenido mostrar', 'Formularios']) {
     await requireClickNamed(client, tab)
     const slug = tab.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
     report.states.push(await metrics(client, `cms-${slug}`, 1440, 1000, false))
@@ -318,7 +318,7 @@ try {
   await waitForSelector(client, '.library-panel')
   await assertEditorLibraryScope(client)
 
-  await requireClickNamed(client, 'Documentos')
+  await requireClickNamed(client, 'Páginas')
   await waitForSelector(client, '[data-primary-module="documents"]')
   report.states.push(await metrics(client, 'documents-desktop', 1440, 1000, false))
   await capture(client, 'documents-desktop')
@@ -340,6 +340,10 @@ try {
   await waitForSelector(client, '[data-primary-module="content"]')
   report.states.push(await metrics(client, 'cms-mobile', 375, 812, true))
   await capture(client, 'cms-mobile')
+  await requireClickNamed(client, 'Formularios')
+  await waitForSelector(client, '#project-data-forms')
+  report.states.push(await metrics(client, 'forms-mobile', 375, 812, true))
+  await capture(client, 'forms-mobile')
   await requireClickNamed(client, 'Canvas')
   await waitForSelector(client, '#editor-canvas')
 
