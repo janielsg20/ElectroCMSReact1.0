@@ -4,31 +4,39 @@ import { App } from '../../App'
 
 vi.mock('lottie-react', () => ({ default: () => <span data-testid="lottie-icon" /> }))
 
-describe('shell reducido al editor construido', () => {
+describe('arquitectura de navegación CMS/builder', () => {
   beforeEach(() => window.localStorage.clear())
 
-  it('expone un único destino principal y conserva el canvas como contenido', () => {
+  it('reserva Capas para estructura y Widgets para inserción', () => {
     render(<App />)
-
-    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
-    expect(within(navigation).getByLabelText('Editor')).toHaveAttribute('aria-current', 'page')
-    expect(within(navigation).queryByText(/inicio|páginas|contenido|backend|exportar/i)).not.toBeInTheDocument()
-    expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
+    const library = screen.getByRole('complementary', { name: /estructura y widgets del documento/i })
+    expect(within(library).getByRole('tab', { name: 'Capas' })).toBeInTheDocument()
+    expect(within(library).getByRole('tab', { name: 'Widgets' })).toBeInTheDocument()
+    expect(within(library).queryByRole('tab', { name: /documentos|datos|diseño/i })).not.toBeInTheDocument()
   })
 
-  it('mantiene el ajuste real de anchura del rail sin cambiar de superficie', () => {
+  it('expone las funciones de proyecto desde la navegación principal', () => {
     render(<App />)
+    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
+    expect(within(navigation).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-current', 'page')
+    expect(within(navigation).getByRole('button', { name: 'Documentos' })).toBeInTheDocument()
+    expect(within(navigation).getByRole('button', { name: 'Contenido' })).toBeInTheDocument()
+    expect(within(navigation).getByRole('button', { name: 'Diseño' })).toBeInTheDocument()
+  })
 
+  it('abre Contenido como módulo principal sin contaminar el panel de capas', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
+    expect(screen.getByRole('region', { name: /contenido cms · módulo principal/i })).toBeInTheDocument()
+    expect(screen.getByRole('tablist', { name: /datos del proyecto/i })).toBeInTheDocument()
+    const library = screen.getByRole('complementary', { name: /estructura y widgets del documento/i })
+    expect(within(library).queryByRole('tab', { name: /datos/i })).not.toBeInTheDocument()
+  })
+
+  it('mantiene el ajuste real de anchura del rail', () => {
+    render(<App />)
     const separator = screen.getByRole('separator', { name: /redimensionar menú lateral/i })
     fireEvent.keyDown(separator, { key: 'End' })
     expect(separator).toHaveAttribute('aria-valuenow', '168')
-    expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
-  })
-
-  it('no ofrece paleta, rutas ni módulos que todavía no existen', () => {
-    render(<App />)
-
-    expect(screen.queryByRole('button', { name: /abrir paleta de comandos/i })).not.toBeInTheDocument()
-    expect(screen.queryByText(/módulos del producto|demo final|próxima fase/i)).not.toBeInTheDocument()
   })
 })
