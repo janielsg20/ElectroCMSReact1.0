@@ -42,6 +42,7 @@ export function ChoiceField({ disabled = false, help, label, onChange, options, 
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-label={label}
         className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-surface px-2 text-left text-xs text-foreground outline-none transition-colors hover:border-primary/35 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
