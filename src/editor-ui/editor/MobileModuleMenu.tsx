@@ -20,6 +20,7 @@ export function MobileModuleMenu({ onNavigate }: { readonly onNavigate: () => vo
         return (
           <button
             aria-current={active ? 'page' : undefined}
+            aria-label={item.label}
             className={`flex min-h-14 w-full items-center gap-2 rounded-lg border px-2 text-left focus-visible:ring-2 focus-visible:ring-focus ${active ? 'border-primary/35 bg-primary-soft text-primary-strong' : 'border-border bg-surface text-foreground hover:bg-muted'}`}
             key={section}
             onClick={() => navigate(section)}
