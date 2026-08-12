@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { JsonValueSchema, type JsonValue, type Node, type WidgetDefinition } from '../../domain'
+import { Button, Checkbox, ControlInput, Select, TextArea } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 import { formatInspectorValue, type GeneratedInspectorField } from './inspector-schema-model'
 
@@ -80,30 +81,87 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   }
 
   const inputId = `inspector-${node.id}-${field.key}`
+  const controlDisabled = node.locked || pending
   return (
-    <form className="rounded-md border border-border bg-surface px-2 py-1.5" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
+    <form className="rounded-md border border-border bg-surface px-2 py-1.5 shadow-sm" data-electrocms-surface="inspector-field" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
       <div className="flex items-start justify-between gap-2">
         <label className="min-w-0 flex-1" htmlFor={inputId}><strong className="block truncate text-xs text-foreground">{field.label}</strong><span className="block truncate text-[0.625rem] text-muted-foreground">{field.key} · {controlLabels[field.control]}</span></label>
         <span className={`shrink-0 rounded px-1 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wide ${field.source === 'node' ? 'bg-primary-soft text-primary-strong' : 'bg-muted text-muted-foreground'}`}>{field.source === 'node' ? 'Nodo' : 'Predeterminado'}</span>
       </div>
 
-      {field.control === 'boolean' ? (
-        <label className="mt-1 flex min-h-9 cursor-pointer items-center gap-2 rounded bg-muted/45 px-2 text-xs text-foreground" htmlFor={inputId}><input checked={draft === 'true'} disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(String(event.target.checked))} type="checkbox" /><span>{draft === 'true' ? 'Activado' : 'Desactivado'}</span></label>
-      ) : field.control === 'select' && field.options ? (
-        <select className="mt-1 min-h-9 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft}>{field.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-      ) : isComplex || field.control === 'textarea' || field.control === 'spacing' ? (
-        <textarea className="mt-1 min-h-20 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft} />
-      ) : (
-        <input className="mt-1 min-h-9 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={node.locked || pending} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} type={field.control === 'number' ? 'number' : field.control === 'color' ? 'color' : 'text'} value={draft} />
-      )}
+      <div className="mt-1">
+        {field.control === 'boolean' ? (
+          <Checkbox
+            checked={draft === 'true'}
+            className="bg-muted/30"
+            disabled={controlDisabled}
+            id={inputId}
+            label={draft === 'true' ? 'Activado' : 'Desactivado'}
+            onCheckedChange={(checked) => setDraft(String(checked))}
+          />
+        ) : field.control === 'select' && field.options ? (
+          <Select
+            controlSize="compact"
+            disabled={controlDisabled}
+            id={inputId}
+            label={field.label}
+            labelHidden
+            onValueChange={setDraft}
+            options={field.options.map((option) => ({ label: option, value: option }))}
+            required={field.required}
+            value={draft}
+          />
+        ) : isComplex || field.control === 'textarea' || field.control === 'spacing' ? (
+          <TextArea
+            className="min-h-20 font-mono"
+            controlSize="compact"
+            disabled={controlDisabled}
+            id={inputId}
+            label={field.label}
+            labelHidden
+            onChange={(event) => setDraft(event.target.value)}
+            required={field.required}
+            value={draft}
+          />
+        ) : field.control === 'color' ? (
+          <div className="flex min-w-0 items-center gap-1.5 rounded-md border border-border bg-muted/20 p-1">
+            <span aria-hidden="true" className="size-6 shrink-0 rounded border border-border shadow-sm" style={{ backgroundColor: draft || 'transparent' }} />
+            <ControlInput
+              aria-label={field.label}
+              className="flex-1 font-mono"
+              controlSize="compact"
+              disabled={controlDisabled}
+              id={inputId}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="#2563EB, rgb(…), var(…)"
+              required={field.required}
+              type="text"
+              value={draft}
+            />
+          </div>
+        ) : (
+          <ControlInput
+            aria-label={field.label}
+            className="w-full"
+            controlSize="compact"
+            disabled={controlDisabled}
+            id={inputId}
+            inputMode={field.control === 'number' ? 'decimal' : undefined}
+            onChange={(event) => setDraft(event.target.value)}
+            required={field.required}
+            type="text"
+            value={draft}
+          />
+        )}
+      </div>
 
       {field.options && field.control !== 'select' ? <p className="mt-1 truncate text-[0.5625rem] text-muted-foreground">Opciones: {field.options.join(', ')}</p> : null}
       {field.required ? <p className="mt-1 text-[0.5625rem] font-semibold text-primary-strong">Campo obligatorio</p> : null}
       {error ? <p className="mt-1 rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="mt-1.5 flex gap-1">
-        <button className="min-h-9 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={node.locked || pending} type="submit">{pending ? 'Guardando…' : 'Aplicar'}</button>
-        <button className="min-h-9 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={field.source === 'default' || node.locked || pending} onClick={() => { void reset() }} type="button">Reset</button>
+        <Button className="flex-1" disabled={node.locked} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">Aplicar</Button>
+        <Button disabled={field.source === 'default' || node.locked || pending} onClick={() => { void reset() }} size="small" variant="secondary">Reset</Button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
       <span className="sr-only">Schema: {definition.id}</span>
