@@ -45,6 +45,11 @@ function renderInspector() {
   return { resetNodeDataSettings, resetNodeVisualStyles, resetWidgetProperty, updateNodeDataSettings, updateNodeVisualStyles, updateWidgetProperty }
 }
 
+function openAdvancedDataControls(): void {
+  fireEvent.click(screen.getByText('Datos dinámicos y opciones avanzadas'))
+  fireEvent.click(screen.getByText('Opciones avanzadas (JSON)'))
+}
+
 describe('M07.1 inspector declarativo', () => {
   it('muestra solo secciones útiles y abre la primera disponible', () => {
     renderInspector()
@@ -56,6 +61,7 @@ describe('M07.1 inspector declarativo', () => {
     const details = document.querySelectorAll('[data-testid="generated-inspector-sections"] details')
     expect(details).toHaveLength(2)
     expect(details[0]).toHaveAttribute('open')
+    expect(screen.getByText('Datos dinámicos y opciones avanzadas').closest('details')).not.toHaveAttribute('open')
   })
 
   it('presenta descriptor, valor efectivo y control tipado conectado a la sesión', async () => {
@@ -101,12 +107,13 @@ describe('M07.1 inspector declarativo', () => {
     }))
   })
 
-  it('valida y aplica bindings, condiciones y atributos ARIA en una sola mutación', async () => {
+  it('valida y aplica conexiones, condiciones y atributos ARIA en una sola mutación', async () => {
     const { updateNodeDataSettings } = renderInspector()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bindings' }), { target: { value: '{"maxWidth":{"kind":"literal","value":960}}' } })
+    openAdvancedDataControls()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Conexiones' }), { target: { value: '{"maxWidth":{"kind":"literal","value":960}}' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Condiciones de visibilidad' }), { target: { value: '[{"operator":"all","negate":false,"predicates":[{"source":{"kind":"literal","value":true},"operator":"equals","value":true}]}]' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Accesibilidad ARIA' }), { target: { value: '{"label":"Contenido principal","role":"region","tabIndex":0}' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
     await waitFor(() => expect(updateNodeDataSettings).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, {
       accessibility: { label: 'Contenido principal', role: 'region', tabIndex: 0 },
       bindings: { maxWidth: { kind: 'literal', value: 960 } },
@@ -116,8 +123,9 @@ describe('M07.1 inspector declarativo', () => {
 
   it('rechaza JSON inválido junto al control sin llamar a la sesión', async () => {
     const { updateNodeDataSettings } = renderInspector()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bindings' }), { target: { value: '{' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
+    openAdvancedDataControls()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Conexiones' }), { target: { value: '{' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Bindings debe contener JSON válido')
     expect(updateNodeDataSettings).not.toHaveBeenCalled()
   })
