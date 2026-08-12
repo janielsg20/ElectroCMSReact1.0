@@ -2,8 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_BREAKPOINTS,
+  ProjectStructureSchema,
   parseContentRecordId,
   parseContentTypeId,
+  parseDocumentId,
   parseFieldDefinitionId,
   parseNodeId,
   parseQueryId,
@@ -13,8 +15,8 @@ import {
 import { EMPTY_CMS_BACKEND } from '../../domain/project/cms-defaults'
 import { CanonicalProjectRenderer } from './CanonicalProjectRenderer'
 import { ProjectStructureRenderStore } from './project-structure-render-store'
-import { TEST_DOCUMENT_ID, TEST_PROJECT_STRUCTURE } from '../../editor-ui/editor/test-project-structure'
 
+const documentId = parseDocumentId('20000000-0000-4000-8000-000000000001')
 const contentTypeId = parseContentTypeId('21000000-0000-4000-8000-000000000001')
 const fieldId = parseFieldDefinitionId('22000000-0000-4000-8000-000000000001')
 const recordAId = parseContentRecordId('23000000-0000-4000-8000-000000000001')
@@ -25,7 +27,6 @@ const listingNodeId = parseNodeId('25000000-0000-4000-8000-000000000001')
 const templateNodeId = parseNodeId('25000000-0000-4000-8000-000000000002')
 
 function fixture(): ProjectStructure {
-  const structure = structuredClone(TEST_PROJECT_STRUCTURE)
   const cms = structuredClone(EMPTY_CMS_BACKEND)
   cms.contentTypes[contentTypeId] = {
     archiveTemplateId: null,
@@ -93,40 +94,50 @@ function fixture(): ProjectStructure {
     pageSize: 2,
     sorts: [{ direction: 'asc', fieldId: null, systemField: 'id' }],
   }
-  structure.cms = cms
 
-  const document = structure.documents[TEST_DOCUMENT_ID]
-  if (!document) throw new Error('Falta el documento de prueba.')
-  document.nodes[listingNodeId] = {
-    bindings: {},
-    conditions: [],
-    hidden: false,
-    id: listingNodeId,
-    kind: 'widget',
-    locked: false,
-    name: 'Listado dinámico',
-    properties: { columns: 2, emptyMessage: 'Sin entradas', queryId },
-    responsive: {},
-    slots: { content: [templateNodeId] },
-    styles: {},
-    widgetType: 'dynamic.listing-grid',
-  }
-  document.nodes[templateNodeId] = {
-    bindings: { fallback: { fieldId, kind: 'cms-record-field', recordId: recordAId } },
-    conditions: [],
-    hidden: false,
-    id: templateNodeId,
-    kind: 'widget',
-    locked: false,
-    name: 'Título repetible',
-    properties: { binding: '', fallback: 'Preview' },
-    responsive: {},
-    slots: {},
-    styles: {},
-    widgetType: 'dynamic.field',
-  }
-  document.rootNodeIds.push(listingNodeId)
-  return structure
+  return ProjectStructureSchema.parse({
+    breakpoints: DEFAULT_BREAKPOINTS,
+    cms,
+    documents: {
+      [documentId]: {
+        id: documentId,
+        kind: 'page',
+        name: 'Listado runtime',
+        nodes: {
+          [listingNodeId]: {
+            bindings: {},
+            conditions: [],
+            hidden: false,
+            id: listingNodeId,
+            kind: 'widget',
+            locked: false,
+            name: 'Listado dinámico',
+            properties: { columns: 2, emptyMessage: 'Sin entradas', queryId },
+            responsive: {},
+            slots: { content: [templateNodeId] },
+            styles: {},
+            widgetType: 'dynamic.listing-grid',
+          },
+          [templateNodeId]: {
+            bindings: { fallback: { fieldId, kind: 'cms-record-field', recordId: recordAId } },
+            conditions: [],
+            hidden: false,
+            id: templateNodeId,
+            kind: 'widget',
+            locked: false,
+            name: 'Título repetible',
+            properties: { binding: '', fallback: 'Preview' },
+            responsive: {},
+            slots: {},
+            styles: {},
+            widgetType: 'dynamic.field',
+          },
+        },
+        rootNodeIds: [listingNodeId],
+      },
+    },
+    globalComponents: {},
+  })
 }
 
 function desktopBreakpoint() {
@@ -140,7 +151,7 @@ describe('M10.3 ListingGridRuntime', () => {
     const store = new ProjectStructureRenderStore(fixture())
     const originalQuery = structuredClone(store.structure.cms?.queries[queryId])
     const { container } = render(
-      <CanonicalProjectRenderer breakpointId={desktopBreakpoint()} documentId={TEST_DOCUMENT_ID} store={store} />,
+      <CanonicalProjectRenderer breakpointId={desktopBreakpoint()} documentId={documentId} store={store} />,
     )
 
     expect(container.querySelectorAll(`[data-listing-runtime="${listingNodeId}"] [data-listing-record]`)).toHaveLength(2)
