@@ -131,7 +131,7 @@ function valueAtPath(value: JsonValue | undefined, path: readonly string[]): Jso
 function repeaterPredicateValue(record: ContentRecord, predicate: QueryPredicate): PredicateValue {
   const raw = predicate.fieldId ? record.values[predicate.fieldId] : undefined
   if (isObject(predicate.value) && Array.isArray(predicate.value.path) && predicate.value.path.every((part) => typeof part === 'string') && 'value' in predicate.value) {
-    const path = predicate.value.path as string[]
+    const path = predicate.value.path
     const extracted = Array.isArray(raw)
       ? raw.flatMap((row) => {
           const item = valueAtPath(row, path)
