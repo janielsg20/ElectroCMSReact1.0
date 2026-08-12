@@ -98,6 +98,7 @@ export {
 export {
   BindingSourceSchema,
   BreakpointSchema,
+  CmsRecordPropertySchema,
   ConditionGroupSchema,
   ConditionPredicateSchema,
   DocumentSchema,
@@ -108,6 +109,7 @@ export {
   ProjectStructureSchema,
   type BindingSource,
   type Breakpoint,
+  type CmsRecordProperty,
   type ConditionGroup,
   type ConditionPredicate,
   type Document,
@@ -134,6 +136,9 @@ export {
   resolveNodeDataState,
   setNodeDataSettings,
   type DataConditionDiagnostic,
+  type NodeDataPreviewMode,
+  type NodeDataRenderState,
+  type NodeDataResolutionState,
   type NodeDataSettings,
   type ResolvedNodeDataState,
 } from './data-condition-engine'
