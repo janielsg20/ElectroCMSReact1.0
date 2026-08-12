@@ -25,6 +25,41 @@
   }
 }
 
+@container library-panel (max-width: 230px) {
+  #project-data-content-types > section > div:first-child,
+  #project-data-taxonomies > section > div:first-child,
+  #project-data-fields > section > div:first-child,
+  #project-data-records > section > div:first-child {
+    gap: 0.375rem;
+  }
+
+  #project-data-content-types > section > div:first-child > div:first-child,
+  #project-data-taxonomies > section > div:first-child > div:first-child,
+  #project-data-fields > section > div:first-child > div:first-child,
+  #project-data-records > section > div:first-child > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  #project-data-content-types > section > div:first-child > div:first-child p,
+  #project-data-taxonomies > section > div:first-child > div:first-child p,
+  #project-data-fields > section > div:first-child > div:first-child p,
+  #project-data-records > section > div:first-child > div:first-child p {
+    display: none;
+  }
+
+  #project-data-content-types > section > div:first-child > button,
+  #project-data-taxonomies > section > div:first-child > button,
+  #project-data-fields > section > div:first-child > button,
+  #project-data-records > section > div:first-child > button {
+    flex: 0 0 auto;
+  }
+
+  #project-data-fields fieldset[aria-label='Propietario'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @container library-panel (max-width: 196px) {
   .library-primary-tab > svg {
     display: block;
