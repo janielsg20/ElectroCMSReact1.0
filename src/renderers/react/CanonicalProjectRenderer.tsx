@@ -20,6 +20,8 @@ import {
   renderCanonicalWidget,
   type CanonicalWidgetRenderer,
 } from './canonical-widget-view'
+import { ListingGridRuntime } from './ListingGridRuntime'
+import { useListingRecordId } from './listing-runtime-context'
 import {
   ProjectStructureRenderStore,
   type NodeRenderSnapshot,
@@ -48,6 +50,7 @@ interface NodeRendererProps {
   readonly nodeId: NodeId
   readonly renderWidget: CanonicalWidgetRenderer
   readonly NodeFrame: ComponentType<CanonicalNodeFrameProps>
+  readonly runtimeListings: boolean
   readonly store: ProjectStructureRenderStore
   readonly themeTokens: ReturnType<typeof compileThemeStyleTokens>
 }
@@ -66,8 +69,10 @@ interface NodeErrorBoundaryState {
 interface CanonicalNodeViewProps {
   readonly NodeFrame: ComponentType<CanonicalNodeFrameProps>
   readonly renderWidget: CanonicalWidgetRenderer
+  readonly runtimeListings: boolean
   readonly snapshot: NodeRenderSnapshot
   readonly slots: Readonly<Record<string, readonly ReactNode[]>>
+  readonly store: ProjectStructureRenderStore
   readonly themeTokens: ReturnType<typeof compileThemeStyleTokens>
 }
 
@@ -147,9 +152,16 @@ function NodeDataStateView({ snapshot }: { readonly snapshot: NodeRenderSnapshot
   return null
 }
 
-function CanonicalNodeView({ NodeFrame, renderWidget, slots, snapshot, themeTokens }: CanonicalNodeViewProps) {
+function CanonicalNodeView({ NodeFrame, renderWidget, runtimeListings, slots, snapshot, store, themeTokens }: CanonicalNodeViewProps) {
   const compiled = compileCanonicalStyles(snapshot.responsive.styles, { scopeId: snapshot.node.id, tokens: themeTokens })
   const dataStateView = snapshot.dataState === 'ready' ? null : <NodeDataStateView snapshot={snapshot} />
+  const isListing = runtimeListings && snapshot.node.kind === 'widget' && snapshot.node.widgetType === 'dynamic.listing-grid'
+  const queryId = snapshot.responsive.properties.queryId
+  const listingKey = `${snapshot.node.id}:${typeof queryId === 'string' ? queryId : ''}`
+  const widget = isListing
+    ? <ListingGridRuntime key={listingKey} nodeId={snapshot.node.id} properties={snapshot.responsive.properties} slots={slots} store={store} />
+    : renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })
+
   return (
     <NodeFrame
       className={compiled.className}
@@ -159,7 +171,7 @@ function CanonicalNodeView({ NodeFrame, renderWidget, slots, snapshot, themeToke
       styleSheet={compiled.stateCssText}
     >
       {snapshot.node.locked ? <span className="sr-only">Nodo bloqueado.</span> : null}
-      {dataStateView ?? renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })}
+      {dataStateView ?? widget}
     </NodeFrame>
   )
 }
@@ -169,16 +181,18 @@ function SubscribedNodeRenderer({
   NodeFrame,
   nodeId,
   renderWidget,
+  runtimeListings,
   store,
   themeTokens,
 }: NodeRendererProps) {
+  const contextRecordId = useListingRecordId()
   const subscribe = useCallback(
     (listener: () => void) => store.subscribeNode(nodeId, listener),
     [nodeId, store],
   )
   const getSnapshot = useCallback(
-    () => store.getNodeSnapshot(nodeId, breakpointId),
-    [breakpointId, nodeId, store],
+    () => store.getNodeSnapshot(nodeId, breakpointId, contextRecordId),
+    [breakpointId, contextRecordId, nodeId, store],
   )
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
@@ -201,6 +215,7 @@ function SubscribedNodeRenderer({
           nodeId={childId}
           NodeFrame={NodeFrame}
           renderWidget={renderWidget}
+          runtimeListings={runtimeListings}
           store={store}
           themeTokens={themeTokens}
         />
@@ -210,7 +225,15 @@ function SubscribedNodeRenderer({
 
   return (
     <NodeErrorBoundary nodeId={nodeId} nodeName={snapshot.node.name} resetKey={snapshot}>
-      <CanonicalNodeView NodeFrame={NodeFrame} renderWidget={renderWidget} slots={slots} snapshot={snapshot} themeTokens={themeTokens} />
+      <CanonicalNodeView
+        NodeFrame={NodeFrame}
+        renderWidget={renderWidget}
+        runtimeListings={runtimeListings}
+        slots={slots}
+        snapshot={snapshot}
+        store={store}
+        themeTokens={themeTokens}
+      />
     </NodeErrorBoundary>
   )
 }
@@ -237,6 +260,7 @@ export function CanonicalProjectRenderer({
   const theme = useSyncExternalStore(subscribeTheme, getTheme, getTheme)
   const themeTokens = useMemo(() => compileThemeStyleTokens(theme.tokens), [theme.tokens])
   const document = store.getDocument(documentId)
+  const runtimeListings = renderWidget === renderCanonicalWidget
 
   if (!document) {
     return <div className="m-3 rounded-md border border-danger/40 bg-danger/10 p-3 text-sm text-danger" role="alert">El documento solicitado no existe.</div>
@@ -257,6 +281,7 @@ export function CanonicalProjectRenderer({
           nodeId={nodeId}
           NodeFrame={NodeFrame}
           renderWidget={renderWidget}
+          runtimeListings={runtimeListings}
           store={store}
           themeTokens={themeTokens}
         />
