@@ -106,10 +106,16 @@ function predicateCandidates(index: CmsQueryIndex, predicate: QueryPredicate): R
   if (predicate.source === 'author') {
     const operand = predicate.value === null ? 'null:' : predicate.value
     const values = Array.isArray(operand) ? operand : [operand]
+    if (values.some((value) => value !== null && typeof value !== 'string')) return null
     const buckets = values.map((value) => index.byAuthor.get(value === null ? 'null:' : String(value)) ?? new Set<ContentRecordId>())
     return union(buckets)
   }
   if (predicate.source === 'field' && predicate.fieldId) {
+    // Complex values are intentionally not indexed. Validate indexability before
+    // interpreting a missing field bucket as "no matches", otherwise an object
+    // equality predicate could be narrowed incorrectly to an empty result.
+    const probe = bucketsForOperand(new Map<string, ReadonlySet<ContentRecordId>>(), predicate.value)
+    if (probe === null) return null
     const fieldIndex = index.byFieldValue.get(predicate.fieldId)
     if (!fieldIndex) return new Set<ContentRecordId>()
     const buckets = bucketsForOperand(fieldIndex, predicate.value)
