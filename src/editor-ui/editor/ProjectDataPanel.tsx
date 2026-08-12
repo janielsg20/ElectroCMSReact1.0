@@ -18,6 +18,7 @@ const TaxonomyManager = lazy(() => import('./TaxonomyManager').then((module) => 
 const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((module) => ({ default: module.CustomFieldManager })))
 const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
 const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
+const FormManager = lazy(() => import('./FormManager').then((module) => ({ default: module.FormManager })))
 
 const tabs: readonly DataTabDefinition[] = [
   { id: 'content-types', label: 'Tipos de contenido', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
@@ -25,6 +26,7 @@ const tabs: readonly DataTabDefinition[] = [
   { id: 'fields', label: 'Campos personalizados', compact: 'Campos', title: 'Campos personalizados', overflow: 'auto', panel: CustomFieldManager },
   { id: 'records', label: 'Entradas y relaciones', compact: 'Entradas', title: 'Entradas y relaciones', overflow: 'auto', panel: RecordRelationManager },
   { id: 'queries', label: 'Qué contenido mostrar', compact: 'Consultas', title: 'Consultas de contenido', overflow: 'hidden', panel: QueryManager },
+  { id: 'forms', label: 'Formularios', compact: 'Formularios', title: 'Formularios', overflow: 'auto', panel: FormManager },
 ]
 
 function DataPanelFallback({ label }: { readonly label: string }) {
@@ -49,7 +51,7 @@ export function ProjectDataPanel() {
     <div className="flex h-full min-h-0 flex-col bg-surface">
       <div className="shrink-0 border-b border-border bg-surface">
         <div className="flex items-center gap-2 px-2 py-1.5 lg:px-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="database" size={14} /></span>
+          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={active.id === 'forms' ? 'form' : 'database'} size={14} /></span>
           <div className="min-w-0 flex-1">
             <strong className="block truncate text-xs text-foreground">{help.label}</strong>
             <span className="block truncate text-[0.625rem] text-muted-foreground">{help.description}</span>
