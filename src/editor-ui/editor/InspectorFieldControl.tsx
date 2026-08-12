@@ -137,14 +137,14 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   const inputId = `inspector-${node.id}-${field.key}`
   const disabled = node.locked || pending
   return (
-    <form className="rounded-md border border-border bg-surface px-2 py-1.5" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
+    <form className="border-b border-border/70 py-2 last:border-b-0" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
       <div className="flex items-start justify-between gap-1">
         <label className="min-w-0 flex-1" htmlFor={inputId}>
           <strong className="block truncate text-xs text-foreground">{field.label}</strong>
           <span className="block truncate text-[0.625rem] text-muted-foreground">{controlLabels[field.control]}</span>
         </label>
         <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} />
-        <span className={`mt-1 shrink-0 rounded px-1 py-0.5 text-[0.5625rem] font-bold ${field.source === 'node' ? 'bg-primary-soft text-primary-strong' : 'bg-muted text-muted-foreground'}`}>{field.source === 'node' ? 'Personalizado' : 'Global'}</span>
+        <span className={`mt-1 shrink-0 rounded px-1 py-0.5 text-[0.5625rem] font-bold ${field.source === 'node' ? 'bg-primary-soft text-primary-strong' : 'bg-muted text-muted-foreground'}`}>{field.source === 'node' ? 'Personalizado' : 'Predeterminado'}</span>
       </div>
 
       {field.control === 'boolean' ? (
@@ -237,7 +237,7 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
         <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Restablecer</button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
-      <span className="sr-only">Schema: {definition.id} · clave: {field.key}</span>
+      <span className="sr-only">Opciones de {definition.label}</span>
     </form>
   )
 }
