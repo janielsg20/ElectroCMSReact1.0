@@ -123,10 +123,6 @@ export function Select({
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
   }, [open])
 
-  useEffect(() => {
-    if (open) setActiveIndex(Math.max(selectedIndex, 0))
-  }, [open, selectedIndex])
-
   function enabledIndex(start: number, direction: -1 | 1): number {
     if (options.length === 0) return -1
     for (let offset = 0; offset < options.length; offset += 1) {
@@ -150,6 +146,11 @@ export function Select({
     setOpen(false)
   }
 
+  function openListbox(): void {
+    setActiveIndex(Math.max(selectedIndex, 0))
+    setOpen(true)
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>): void {
     if (disabled) return
     if (event.key === 'Escape') {
@@ -159,10 +160,8 @@ export function Select({
     }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()
-      if (!open) {
-        setOpen(true)
-        setActiveIndex(Math.max(selectedIndex, 0))
-      } else moveActive(event.key === 'ArrowDown' ? 1 : -1)
+      if (!open) openListbox()
+      else moveActive(event.key === 'ArrowDown' ? 1 : -1)
       return
     }
     if (event.key === 'Home' || event.key === 'End') {
@@ -176,7 +175,7 @@ export function Select({
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       if (open) choose(activeIndex)
-      else setOpen(true)
+      else openListbox()
     }
   }
 
@@ -198,7 +197,10 @@ export function Select({
           data-electrocms-control="select"
           disabled={disabled}
           id={selectId}
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => {
+            if (open) setOpen(false)
+            else openListbox()
+          }}
           onKeyDown={handleKeyDown}
           role="combobox"
           type="button"
