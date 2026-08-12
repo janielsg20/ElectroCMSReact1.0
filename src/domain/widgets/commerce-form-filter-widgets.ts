@@ -112,8 +112,64 @@ export const FORM_WIDGET_DEFINITIONS: readonly WidgetDefinition[] = [
   define({ category: 'forms', id: 'form.status-message', label: 'Mensajes de estado', description: 'Estado accesible de formulario.', defaults: { message: 'Formulario listo', state: 'idle' }, shape: { message: z.string().max(2_000), state: z.enum(['idle', 'success', 'error']) }, fields: [field('state', 'Estado', 'select', 'conditions', ['idle', 'success', 'error']), field('message', 'Mensaje', 'textarea', 'accessibility')], accessibility: { requiresAccessibleName: false, semanticRole: 'status' } }),
 ]
 
+const SMART_FILTER_DEFAULTS = {
+  applyMode: 'realtime',
+  persistState: false,
+  queryId: '',
+  showCount: true,
+  urlKey: '',
+} as const
+
+const SMART_FILTER_SHAPE = {
+  applyMode: z.enum(['realtime', 'apply']).default('realtime'),
+  persistState: z.boolean().default(false),
+  queryId: z.string().max(500).default(''),
+  showCount: z.boolean().default(true),
+  urlKey: z.string().max(120).default(''),
+} satisfies z.ZodRawShape
+
+const SMART_FILTER_FIELDS = [
+  field('queryId', 'Query objetivo', 'binding', 'data'),
+  field('applyMode', 'Modo de aplicación', 'select', 'data', ['realtime', 'apply']),
+  field('persistState', 'Conservar estado', 'boolean', 'data'),
+  field('showCount', 'Mostrar contador', 'boolean', 'data'),
+  field('urlKey', 'Parámetro URL', 'text', 'advanced'),
+] as const
+
+function filterTarget(id: string): {
+  readonly defaults: Readonly<Record<string, JsonValue>>
+  readonly fields: readonly Field[]
+  readonly shape: z.ZodRawShape
+} {
+  if (['filter.search', 'filter.select', 'filter.range', 'filter.checkboxes', 'filter.radio'].includes(id)) {
+    return {
+      defaults: { fieldId: '' },
+      fields: [field('fieldId', id === 'filter.search' ? 'Campo de búsqueda (vacío = todos)' : 'Campo destino', 'binding', 'data')],
+      shape: { fieldId: z.string().max(500).default('') },
+    }
+  }
+  if (id === 'filter.date') {
+    return {
+      defaults: { dateField: 'createdAt' },
+      fields: [field('dateField', 'Fecha del registro', 'select', 'data', ['createdAt', 'updatedAt'])],
+      shape: { dateField: z.enum(['createdAt', 'updatedAt']).default('createdAt') },
+    }
+  }
+  return { defaults: {}, fields: [], shape: {} }
+}
+
 function filterDefinition(id: string, label: string, defaults: Readonly<Record<string, JsonValue>>, shape: z.ZodRawShape, fields: readonly Field[]): WidgetDefinition {
-  return define({ category: 'filters', id, label, description: `${label} declarativo; no ejecuta consultas en preview.`, defaults, shape, fields, runtime: true })
+  const target = filterTarget(id)
+  return define({
+    category: 'filters',
+    id,
+    label,
+    description: `${label} conectado al runtime canónico de consultas y listings.`,
+    defaults: { ...SMART_FILTER_DEFAULTS, ...target.defaults, ...defaults },
+    shape: { ...SMART_FILTER_SHAPE, ...target.shape, ...shape },
+    fields: [...SMART_FILTER_FIELDS, ...target.fields, ...fields],
+    runtime: true,
+  })
 }
 
 export const FILTER_WIDGET_DEFINITIONS: readonly WidgetDefinition[] = [
