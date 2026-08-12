@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
   createCompleteWidgetRegistry,
@@ -106,7 +106,9 @@ describe('M09.5 controles de binding dinámico', () => {
     fireEvent.change(screen.getByRole('combobox', { name: 'Registro de contenido' }), { target: { value: recordId } })
     fireEvent.change(screen.getByRole('combobox', { name: 'Campo del registro' }), { target: { value: fieldId } })
     fireEvent.click(screen.getByRole('button', { name: 'Preparar binding CMS' }))
-    expect(screen.getByText(/Título CMS/i)).toBeInTheDocument()
+    const configuredBindings = screen.getByLabelText('Bindings configurados')
+    expect(within(configuredBindings).getByText(/Registro .* Título CMS/i)).toBeInTheDocument()
+    expect(within(configuredBindings).getByRole('button', { name: 'Quitar binding text' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
     await waitFor(() => expect(session.store.structure.documents[session.documentId]?.nodes[node.id]?.bindings.text).toEqual({
