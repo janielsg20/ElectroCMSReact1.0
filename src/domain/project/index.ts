@@ -303,6 +303,14 @@ export {
   type RelationEntryEditablePatch,
 } from './record-relation-engine'
 export {
+  executeCmsQuery,
+  executeSavedCmsQuery,
+  validateQueryDefinition,
+  type QueryEngineDiagnostic,
+  type QueryEngineDiagnosticCode,
+  type QueryExecutionResult,
+} from './query-engine'
+export {
   validateCmsBackend,
   type CmsDiagnostic,
   type CmsDiagnosticCode,
