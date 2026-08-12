@@ -54,7 +54,7 @@ describe('M04.3 shell móvil CMS/builder', () => {
     await waitFor(() => expect(trigger).toHaveFocus())
   })
 
-  it('mantiene Capas e Inspector contextuales y abre CMS desde Más', async () => {
+  it('mantiene Capas e Inspector contextuales y abre Contenido desde Más', async () => {
     render(<App />)
     const dock = builderDock()
 
@@ -73,11 +73,11 @@ describe('M04.3 shell móvil CMS/builder', () => {
     fireEvent.click(within(modules).getByRole('button', { name: /Contenido/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Más módulos' })).not.toBeInTheDocument())
-    expect(await screen.findByRole('region', { name: /contenido cms · módulo principal/i })).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: /contenido dinámico · módulo principal/i })).toBeInTheDocument()
     expect(within(dock).getByRole('button', { name: 'Más' })).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(within(dock).getByRole('button', { name: 'Canvas' }))
-    await waitFor(() => expect(screen.queryByRole('region', { name: /contenido cms · módulo principal/i })).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('region', { name: /contenido dinámico · módulo principal/i })).not.toBeInTheDocument())
     expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
   })
 
