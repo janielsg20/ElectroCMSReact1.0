@@ -62,7 +62,11 @@
   }
 
   .m04-tablet-shell[data-mobile-shell="active"] .theme-settings-trigger {
-    height: 44px;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding-inline: 0 !important;
   }
 
   .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar {
