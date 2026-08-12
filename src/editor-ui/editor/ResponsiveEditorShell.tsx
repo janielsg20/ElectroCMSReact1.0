@@ -3,6 +3,7 @@ import { Button, Icon } from '../primitives'
 import { EditorShell } from './EditorShell'
 import { InspectorPanel, type InspectorTab } from './InspectorPanel'
 import { LibraryPanel, type LibraryTab } from './LibraryPanel'
+import { useAppSection } from './app-section-context'
 import './responsive-mobile-shell.css'
 import './responsive-tablet-shell.css'
 
@@ -36,6 +37,7 @@ function panelTitle(panel: TabletPanel): string {
 }
 
 export function ResponsiveEditorShell() {
+  const { section } = useAppSection()
   const [mobileViewport, setMobileViewport] = useState(() => isMobileViewport())
   const [tabletViewport, setTabletViewport] = useState(() => isTabletViewport())
   const [persistentPanel, setPersistentPanel] = useState<TabletPanel>('library')
@@ -49,6 +51,7 @@ export function ResponsiveEditorShell() {
   const overlayResizeRef = useRef<OverlayResizeState | null>(null)
 
   const tabletActive = tabletViewport
+  const tabletContextActive = tabletViewport && section === 'editor'
   const persistentWidth = window.innerWidth >= 900 ? 248 : 232
   const secondaryPanel: TabletPanel = persistentPanel === 'library' ? 'inspector' : 'library'
   const secondaryTitle = panelTitle(secondaryPanel)
@@ -76,9 +79,15 @@ export function ResponsiveEditorShell() {
   }, [closeOverlay, overlayPanel])
 
   useEffect(() => {
-    if (!overlayPanel || !tabletActive) return
+    if (section === 'editor') return
+    const frame = requestAnimationFrame(() => setOverlayPanel(null))
+    return () => cancelAnimationFrame(frame)
+  }, [section])
+
+  useEffect(() => {
+    if (!overlayPanel || !tabletContextActive) return
     requestAnimationFrame(() => overlayRef.current?.focus())
-  }, [overlayPanel, tabletActive])
+  }, [overlayPanel, tabletContextActive])
 
   useEffect(() => {
     function handlePointerMove(event: PointerEvent): void {
@@ -176,7 +185,7 @@ export function ResponsiveEditorShell() {
     >
       <EditorShell />
 
-      {tabletActive ? (
+      {tabletContextActive ? (
         <aside aria-label="Panel contextual persistente de tablet" className="tablet-context-panel">
           <div className="tablet-context-panel__header">
             <div className="min-w-0">
@@ -193,7 +202,7 @@ export function ResponsiveEditorShell() {
         </aside>
       ) : null}
 
-      {tabletActive && overlayPanel ? (
+      {tabletContextActive && overlayPanel ? (
         <div className="tablet-secondary-overlay">
           <button aria-label="Cerrar panel secundario" className="tablet-secondary-overlay__backdrop" onClick={closeOverlay} tabIndex={-1} type="button" />
           <section

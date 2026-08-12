@@ -2,6 +2,7 @@ import * as z from 'zod'
 import {
   BackendScreenIdSchema,
   ContentRecordIdSchema,
+  ContentRecordRevisionIdSchema,
   ContentTypeIdSchema,
   DocumentIdSchema,
   FieldDefinitionIdSchema,
@@ -28,33 +29,9 @@ const RouteSchema = z.string().trim().min(1).max(300).startsWith('/')
 export const ContentStatusSchema = z.enum(['draft', 'pending', 'published', 'private', 'archived'])
 
 export const FieldTypeSchema = z.enum([
-  'text',
-  'textarea',
-  'rich-text',
-  'number',
-  'currency',
-  'email',
-  'phone',
-  'url',
-  'date',
-  'time',
-  'datetime',
-  'color',
-  'select',
-  'radio',
-  'checkbox',
-  'switch',
-  'image',
-  'gallery',
-  'file',
-  'map',
-  'relation',
-  'user',
-  'taxonomy',
-  'repeater',
-  'group',
-  'calculated',
-  'conditional',
+  'text', 'textarea', 'rich-text', 'number', 'currency', 'email', 'phone', 'url', 'date', 'time',
+  'datetime', 'color', 'select', 'radio', 'checkbox', 'switch', 'image', 'gallery', 'file', 'map',
+  'relation', 'user', 'taxonomy', 'repeater', 'group', 'calculated', 'conditional',
 ])
 
 export const FieldOwnerSchema = z.discriminatedUnion('kind', [
@@ -70,10 +47,7 @@ export const FieldValidationSchema = z.strictObject({
   pattern: z.string().max(500).nullable(),
 })
 
-export const FieldOptionSchema = z.strictObject({
-  label: LabelSchema,
-  value: JsonValueSchema,
-})
+export const FieldOptionSchema = z.strictObject({ label: LabelSchema, value: JsonValueSchema })
 
 export const FieldConditionSchema = z.strictObject({
   fieldId: FieldDefinitionIdSchema,
@@ -159,6 +133,13 @@ export const ContentRecordSchema = z.strictObject({
   updatedAt: TimestampSchema,
 })
 
+export const ContentRecordRevisionSchema = z.strictObject({
+  id: ContentRecordRevisionIdSchema,
+  recordId: ContentRecordIdSchema,
+  createdAt: TimestampSchema,
+  snapshot: ContentRecordSchema,
+})
+
 export const RelationSchema = z.strictObject({
   id: RelationIdSchema,
   name: LabelSchema,
@@ -180,26 +161,11 @@ export const QueryPredicateSchema = z.strictObject({
   fieldId: FieldDefinitionIdSchema.nullable(),
   taxonomyId: TaxonomyIdSchema.nullable(),
   relationId: RelationIdSchema.nullable(),
-  operator: z.enum([
-    'equals',
-    'not-equals',
-    'contains',
-    'in',
-    'not-in',
-    'greater-than',
-    'greater-or-equal',
-    'less-than',
-    'less-or-equal',
-    'between',
-    'exists',
-  ]),
+  operator: z.enum(['equals', 'not-equals', 'contains', 'in', 'not-in', 'greater-than', 'greater-or-equal', 'less-than', 'less-or-equal', 'between', 'exists']),
   value: JsonValueSchema,
 })
 
-export const QueryGroupSchema = z.strictObject({
-  operator: z.enum(['all', 'any']),
-  predicates: z.array(QueryPredicateSchema).min(1),
-})
+export const QueryGroupSchema = z.strictObject({ operator: z.enum(['all', 'any']), predicates: z.array(QueryPredicateSchema).min(1) })
 
 export const QuerySortSchema = z.strictObject({
   fieldId: FieldDefinitionIdSchema.nullable(),
@@ -228,28 +194,11 @@ export const FormControlSchema = z.strictObject({
   conditions: z.array(FieldConditionGroupSchema),
 })
 
-export const FormStepSchema = z.strictObject({
-  id: z.uuid(),
-  name: LabelSchema,
-  controlIds: z.array(z.uuid()).min(1),
-})
+export const FormStepSchema = z.strictObject({ id: z.uuid(), name: LabelSchema, controlIds: z.array(z.uuid()).min(1) })
 
 export const FormActionSchema = z.strictObject({
   id: z.uuid(),
-  kind: z.enum([
-    'save-record',
-    'create-content',
-    'update-content',
-    'register-user',
-    'sign-in',
-    'send-email',
-    'save-local',
-    'redirect',
-    'show-message',
-    'webhook',
-    'update-relation',
-    'upload-file',
-  ]),
+  kind: z.enum(['save-record', 'create-content', 'update-content', 'register-user', 'sign-in', 'send-email', 'save-local', 'redirect', 'show-message', 'webhook', 'update-relation', 'upload-file']),
   config: z.record(KeySchema, JsonValueSchema),
 })
 
@@ -267,18 +216,10 @@ export const FormSchema = z.strictObject({
 })
 
 export const ContentTypePermissionSchema = z.strictObject({
-  create: z.boolean(),
-  read: z.boolean(),
-  update: z.boolean(),
-  delete: z.boolean(),
-  publish: z.boolean(),
-  moderate: z.boolean(),
+  create: z.boolean(), read: z.boolean(), update: z.boolean(), delete: z.boolean(), publish: z.boolean(), moderate: z.boolean(),
 })
 
-export const FieldPermissionSchema = z.strictObject({
-  readable: z.boolean(),
-  editable: z.boolean(),
-})
+export const FieldPermissionSchema = z.strictObject({ readable: z.boolean(), editable: z.boolean() })
 
 export const RoleSchema = z.strictObject({
   id: RoleIdSchema,
@@ -309,12 +250,7 @@ export const MenuItemSchema = z.strictObject({
   allowedRoleIds: z.array(RoleIdSchema),
 })
 
-export const MenuSchema = z.strictObject({
-  id: MenuIdSchema,
-  name: LabelSchema,
-  rootItemIds: z.array(MenuItemIdSchema),
-  items: z.record(MenuItemIdSchema, MenuItemSchema),
-})
+export const MenuSchema = z.strictObject({ id: MenuIdSchema, name: LabelSchema, rootItemIds: z.array(MenuItemIdSchema), items: z.record(MenuItemIdSchema, MenuItemSchema) })
 
 export const BackendScreenSchema = z.strictObject({
   id: BackendScreenIdSchema,
@@ -333,6 +269,7 @@ export const CmsBackendSchema = z.strictObject({
   taxonomies: z.record(TaxonomyIdSchema, TaxonomySchema),
   fields: z.record(FieldDefinitionIdSchema, FieldDefinitionSchema),
   records: z.record(ContentRecordIdSchema, ContentRecordSchema),
+  recordRevisions: z.record(ContentRecordRevisionIdSchema, ContentRecordRevisionSchema).default(() => ({})),
   taxonomyTerms: z.record(TaxonomyTermIdSchema, TaxonomyTermSchema),
   relations: z.record(RelationIdSchema, RelationSchema),
   relationEntries: z.record(RelationEntryIdSchema, RelationEntrySchema),
@@ -350,6 +287,7 @@ export type ContentType = z.infer<typeof ContentTypeSchema>
 export type Taxonomy = z.infer<typeof TaxonomySchema>
 export type TaxonomyTerm = z.infer<typeof TaxonomyTermSchema>
 export type ContentRecord = z.infer<typeof ContentRecordSchema>
+export type ContentRecordRevision = z.infer<typeof ContentRecordRevisionSchema>
 export type Relation = z.infer<typeof RelationSchema>
 export type RelationEntry = z.infer<typeof RelationEntrySchema>
 export type Query = z.infer<typeof QuerySchema>

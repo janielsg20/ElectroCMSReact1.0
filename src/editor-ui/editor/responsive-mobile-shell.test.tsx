@@ -17,7 +17,7 @@ function builderDock() {
   return screen.getByRole('navigation', { name: /navegación del builder/i })
 }
 
-describe('M04.3 shell móvil reducido', () => {
+describe('M04.3 shell móvil CMS/builder', () => {
   beforeEach(() => {
     window.localStorage.clear()
     assignViewportWidth(320)
@@ -28,12 +28,12 @@ describe('M04.3 shell móvil reducido', () => {
     window.localStorage.clear()
   })
 
-  it('prioriza canvas y muestra solo cuatro destinos implementados', async () => {
+  it('prioriza canvas y conserva cinco destinos responsive', async () => {
     const { container } = render(<App />)
     await waitFor(() => expect(container.querySelector('[data-mobile-shell="active"]')).toBeInTheDocument())
 
     const labels = within(builderDock()).getAllByRole('button').map((button) => button.getAttribute('aria-label'))
-    expect(labels).toEqual(['Widgets', 'Capas', 'Canvas', 'Inspector'])
+    expect(labels).toEqual(['Widgets', 'Capas', 'Canvas', 'Props', 'Más'])
     expect(within(builderDock()).getByRole('button', { name: 'Canvas' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
   })
@@ -54,21 +54,36 @@ describe('M04.3 shell móvil reducido', () => {
     await waitFor(() => expect(trigger).toHaveFocus())
   })
 
-  it('ofrece capas e inspector sin un menú de módulos futuros', async () => {
+  it('mantiene Capas e Inspector contextuales y abre CMS desde Más', async () => {
     render(<App />)
     const dock = builderDock()
 
     fireEvent.click(within(dock).getByRole('button', { name: 'Capas' }))
     expect(await screen.findByRole('dialog', { name: 'Biblioteca' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar panel' }))
-    fireEvent.click(within(dock).getByRole('button', { name: 'Inspector' }))
+
+    fireEvent.click(within(dock).getByRole('button', { name: 'Props' }))
     expect(await screen.findByRole('dialog', { name: 'Inspector' })).toBeInTheDocument()
-    expect(within(dock).queryByRole('button', { name: 'Más' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar panel' }))
+
+    const more = within(dock).getByRole('button', { name: 'Más' })
+    fireEvent.click(more)
+    const modules = await screen.findByRole('dialog', { name: 'Más módulos' })
+    expect(within(modules).getByRole('navigation', { name: 'Módulos principales' })).toBeInTheDocument()
+    fireEvent.click(within(modules).getByRole('button', { name: /Contenido/i }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Más módulos' })).not.toBeInTheDocument())
+    expect(await screen.findByRole('region', { name: /contenido cms · módulo principal/i })).toBeInTheDocument()
+    expect(within(dock).getByRole('button', { name: 'Más' })).toHaveAttribute('aria-current', 'page')
+
+    fireEvent.click(within(dock).getByRole('button', { name: 'Canvas' }))
+    await waitFor(() => expect(screen.queryByRole('region', { name: /contenido cms · módulo principal/i })).not.toBeInTheDocument())
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'editor-canvas')
   })
 
-  it('cierra una sheet al cruzar a tablet y activa el panel persistente', async () => {
+  it('cierra una sheet contextual al cruzar a tablet y activa el panel persistente', async () => {
     const { container } = render(<App />)
-    fireEvent.click(within(builderDock()).getByRole('button', { name: 'Inspector' }))
+    fireEvent.click(within(builderDock()).getByRole('button', { name: 'Props' }))
     expect(await screen.findByRole('dialog', { name: 'Inspector' })).toBeInTheDocument()
 
     setViewportWidth(768)

@@ -174,15 +174,17 @@
 }
 
 /* ---------- Topbar action hierarchy ---------- */
-.app-topbar [role="toolbar"] button {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button,
+.app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger {
   white-space: nowrap;
 }
 
-.app-topbar [role="toolbar"] button:not(:disabled):not(.bg-primary):hover {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:not(:disabled):not(.bg-primary):hover,
+.app-topbar > [role="toolbar"] > .builder-toolgroup > div > .theme-settings-trigger:not(:disabled):not(.bg-primary):hover {
   border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
-.app-topbar [role="toolbar"] button:disabled {
+.app-topbar > [role="toolbar"] > .builder-toolgroup > button:disabled {
   opacity: 0.42;
 }
 

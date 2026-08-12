@@ -11,6 +11,8 @@ import {
   type GlobalComponentId,
   type Node,
   type NodeAccessibility,
+  type NodeDataPreviewMode,
+  type NodeDataRenderState,
   type NodeId,
   type ProjectStructure,
   type ProjectTheme,
@@ -27,6 +29,7 @@ const EMPTY_NODE_IDS: readonly NodeId[] = Object.freeze([])
 
 export interface NodeRenderSnapshot {
   readonly accessibility: NodeAccessibility
+  readonly dataState: NodeDataRenderState
   readonly diagnostics: readonly DataConditionDiagnostic[]
   readonly node: Node
   readonly responsive: ResolvedNodeResponsiveState
@@ -36,6 +39,7 @@ interface CachedNodeSnapshot {
   readonly breakpointId: BreakpointId
   readonly breakpoints: ProjectStructure['breakpoints']
   readonly node: Node
+  readonly previewMode: NodeDataPreviewMode
   readonly structure: ProjectStructure
   readonly snapshot: NodeRenderSnapshot
 }
@@ -66,6 +70,7 @@ function indexNodeOwners(structure: ProjectStructure): ReadonlyMap<NodeId, Struc
  *
  * Conserva ProjectStructure como única fuente de verdad y notifica por ID. Un
  * cambio inmutable en un nodo no fuerza renders de sus ancestros o hermanos.
+ * Los estados de preview de datos son transitorios y nunca entran al proyecto.
  */
 export class ProjectStructureRenderStore {
   readonly #documentListeners = new Map<DocumentId, Set<Listener>>()
@@ -73,6 +78,7 @@ export class ProjectStructureRenderStore {
   readonly #structureListeners = new Set<Listener>()
   readonly #themeListeners = new Map<ProjectThemeScope, Set<Listener>>()
   readonly #snapshotCache = new Map<NodeId, CachedNodeSnapshot>()
+  readonly #dataPreviewModes = new Map<NodeId, NodeDataPreviewMode>()
   #nodeOwners: ReadonlyMap<NodeId, StructureTree>
   #structure: ProjectStructure
 
@@ -105,18 +111,34 @@ export class ProjectStructureRenderStore {
     return this.#structure.globalComponents[componentId]?.rootNodeIds ?? EMPTY_NODE_IDS
   }
 
+  getNodeDataPreviewMode(nodeId: NodeId): NodeDataPreviewMode {
+    return this.#dataPreviewModes.get(nodeId) ?? 'auto'
+  }
+
+  setNodeDataPreviewMode(nodeId: NodeId, mode: NodeDataPreviewMode): void {
+    if (!this.#nodeOwners.has(nodeId)) return
+    const previous = this.getNodeDataPreviewMode(nodeId)
+    if (previous === mode) return
+    if (mode === 'auto') this.#dataPreviewModes.delete(nodeId)
+    else this.#dataPreviewModes.set(nodeId, mode)
+    this.#snapshotCache.delete(nodeId)
+    this.#emit(this.#nodeListeners.get(nodeId))
+  }
+
   getNodeSnapshot(
     nodeId: NodeId,
     breakpointId: BreakpointId,
   ): NodeRenderSnapshot | undefined {
     const node = this.#nodeOwners.get(nodeId)?.nodes[nodeId]
     if (!node) return undefined
+    const previewMode = this.getNodeDataPreviewMode(nodeId)
 
     const cached = this.#snapshotCache.get(nodeId)
     if (
       cached?.node === node
       && cached.breakpointId === breakpointId
       && cached.breakpoints === this.#structure.breakpoints
+      && cached.previewMode === previewMode
       && (Object.keys(node.bindings).length === 0 && node.conditions.length === 0 || cached.structure === this.#structure)
     ) {
       return cached.snapshot
@@ -128,6 +150,7 @@ export class ProjectStructureRenderStore {
     const data = resolveNodeDataState(this.#structure, node, resolved.value.properties)
     const snapshot = {
       accessibility: data.accessibility,
+      dataState: previewMode === 'auto' ? data.state : previewMode,
       diagnostics: data.diagnostics,
       node,
       responsive: {
@@ -140,6 +163,7 @@ export class ProjectStructureRenderStore {
       breakpointId,
       breakpoints: this.#structure.breakpoints,
       node,
+      previewMode,
       snapshot,
       structure: this.#structure,
     })
@@ -179,6 +203,7 @@ export class ProjectStructureRenderStore {
       },
     }
     const breakpointsChanged = !sameJson(previous.breakpoints, next.breakpoints)
+    const cmsChanged = !sameJson(previous.cms, next.cms)
     const nextOwners = indexNodeOwners(next)
     const dynamicNodeIds = new Set<NodeId>([...nextOwners.entries()]
       .filter(([nodeId, tree]) => {
@@ -203,6 +228,14 @@ export class ProjectStructureRenderStore {
       if (previous.themes[scope] !== next.themes[scope]) this.#emit(this.#themeListeners.get(scope))
     }
 
+    if (cmsChanged) {
+      for (const dynamicNodeId of dynamicNodeIds) {
+        this.#snapshotCache.delete(dynamicNodeId)
+        this.#emit(this.#nodeListeners.get(dynamicNodeId))
+        notifiedNodeIds.add(dynamicNodeId)
+      }
+    }
+
     for (const nodeId of nodeIds) {
       const previousNode = this.#findNode(previous, nodeId)
       const nextNode = nextOwners.get(nodeId)?.nodes[nodeId]
@@ -219,8 +252,10 @@ export class ProjectStructureRenderStore {
       )
       if (breakpointsChanged || referencedComponentChanged || !sameJson(previousNode, nextNode)) {
         this.#snapshotCache.delete(nodeId)
-        this.#emit(this.#nodeListeners.get(nodeId))
-        notifiedNodeIds.add(nodeId)
+        if (!notifiedNodeIds.has(nodeId)) {
+          this.#emit(this.#nodeListeners.get(nodeId))
+          notifiedNodeIds.add(nodeId)
+        }
         for (const dynamicNodeId of dynamicNodeIds) {
           if (notifiedNodeIds.has(dynamicNodeId)) continue
           this.#snapshotCache.delete(dynamicNodeId)
@@ -228,6 +263,10 @@ export class ProjectStructureRenderStore {
           notifiedNodeIds.add(dynamicNodeId)
         }
       }
+    }
+
+    for (const previewNodeId of [...this.#dataPreviewModes.keys()]) {
+      if (!nextOwners.has(previewNodeId)) this.#dataPreviewModes.delete(previewNodeId)
     }
 
     for (const documentId of documentIds) {

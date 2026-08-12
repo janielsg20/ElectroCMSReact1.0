@@ -44,6 +44,31 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Browser UI audit
+        run: |
+          python3 -m http.server 4173 --directory dist >/tmp/electrocms-browser-audit.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          node scripts/browser-audit.mjs
+
+      - name: Upload browser audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electrocms-browser-audit
+          path: browser-audit
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload pull request preview build
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: electrocms-pr-preview
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Upload production build
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
@@ -52,6 +77,35 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 7
+
+  preview:
+    name: Deploy Cloudflare preview
+    if: github.event_name == 'pull_request'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download validated preview build
+        uses: actions/download-artifact@v4
+        with:
+          name: electrocms-pr-preview
+          path: dist
+
+      - name: Deploy pull request preview
+        id: cloudflare-preview
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=electrocms-react --branch=preview-pr-${{ github.event.pull_request.number }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: "4.120.0"
 
   deploy:
     name: Deploy production

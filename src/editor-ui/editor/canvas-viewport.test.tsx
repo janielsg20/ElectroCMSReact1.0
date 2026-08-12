@@ -78,7 +78,9 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
     const rotate = screen.getByRole('button', { name: 'Cambiar orientación del dispositivo' })
     fireEvent.click(rotate)
     expect(rotate).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText(/Horizontal · 90%/)).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Viewport del documento' })).toContainElement(rotate)
+    expect(screen.getByLabelText('Zoom del canvas: 90 por ciento')).toBeInTheDocument()
+    expect(screen.queryByText(/Horizontal · 90%/)).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Herramienta de desplazamiento' }))
     const region = screen.getByRole('region', { name: 'Viewport interactivo del canvas' })
@@ -87,6 +89,24 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
     firePointer(region, 'pointerup', 52, 44, 7)
     expect(region.querySelector('[data-canvas-pan-x]')).toHaveAttribute('data-canvas-pan-x', '32')
     expect(region.querySelector('[data-canvas-pan-y]')).toHaveAttribute('data-canvas-pan-y', '24')
+  })
+
+  it('elige el breakpoint representativo de cada modo sin anunciar un ancho ficticio', () => {
+    render(<CanvasHarness />)
+    const breakpointSelect = screen.getByLabelText('Breakpoint activo')
+    const mobile = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Móvil pequeño')
+    const tablet = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Tablet vertical')
+    const desktop = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Desktop')
+    expect(mobile && tablet && desktop).toBeTruthy()
+
+    expect(screen.getByRole('button', { name: 'Móvil' })).toHaveAttribute('aria-pressed', 'true')
+    expect(breakpointSelect).toHaveValue(mobile?.id)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tablet' }))
+    expect(breakpointSelect).toHaveValue(tablet?.id)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Escritorio' }))
+    expect(breakpointSelect).toHaveValue(desktop?.id)
   })
 
   it('mueve el foco de forma explícita entre capas, canvas e inspector', async () => {

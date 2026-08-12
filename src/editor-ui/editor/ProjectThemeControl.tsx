@@ -158,7 +158,7 @@ export function ProjectThemeControl({ scope, theme }: ProjectThemeControlProps) 
 
       <label className="grid gap-1 text-xs font-semibold" htmlFor={`${scope}-theme-name`}>
         Nombre
-        <input className="h-9 rounded-md border border-border bg-surface px-2 text-xs font-normal text-foreground focus-visible:ring-2 focus-visible:ring-focus" id={`${scope}-theme-name`} maxLength={160} onChange={(event) => setName(event.target.value)} value={name} />
+        <input className="min-h-11 rounded-md border border-border bg-surface px-2 text-xs font-normal text-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" id={`${scope}-theme-name`} maxLength={160} onChange={(event) => setName(event.target.value)} value={name} />
       </label>
 
       <label className="grid gap-1 text-xs font-semibold" htmlFor={`${scope}-theme-tokens`}>

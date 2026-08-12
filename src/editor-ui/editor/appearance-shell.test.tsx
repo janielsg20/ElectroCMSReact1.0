@@ -73,16 +73,35 @@ describe('M04.5 temas del editor', () => {
     expect(within(colors).getByRole('radio', { name: 'Automático' })).toHaveAttribute('aria-checked', 'false')
   })
 
-  it('separa visualmente editor, frontend y backend sin mezclar su persistencia', () => {
+  it('mantiene la apariencia local del editor fuera de los temas exportables del proyecto', () => {
     render(<App />)
     const appearance = openAppearance()
-    const scope = within(appearance).getByRole('group', { name: 'Ámbito de tema' })
-    expect(within(scope).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(within(scope).getByRole('button', { name: 'Frontend' }))
-    expect(within(appearance).getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
-    expect(within(appearance).getByRole('textbox', { name: /tokens semánticos/i })).toBeInTheDocument()
-    expect(within(appearance).queryByRole('radiogroup', { name: 'Preset visual' })).not.toBeInTheDocument()
+
+    expect(within(appearance).getByRole('heading', { name: 'Apariencia del editor' })).toBeInTheDocument()
+    expect(within(appearance).queryByRole('group', { name: 'Ámbito de tema' })).not.toBeInTheDocument()
+    expect(within(appearance).getByRole('radiogroup', { name: 'Preset visual' })).toBeInTheDocument()
     expect(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY)).toBeNull()
+  })
+
+  it('ubica temas y paquetes exportables en Diseño, separados de la apariencia local', async () => {
+    render(<App />)
+
+    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Diseño' }))
+
+    expect(screen.getByRole('region', { name: /diseño · módulo principal/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Diseño del proyecto' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Tema' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Paquetes' })).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('tab', { name: 'Frontend' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Paquetes' }))
+      await Promise.resolve()
+    })
+    expect(screen.getByRole('heading', { name: 'Paquetes reutilizables' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Tema del frontend generado' })).not.toBeInTheDocument()
   })
 
   it('cambia color por teclado, preserva el preset y persiste appearance.v1', async () => {

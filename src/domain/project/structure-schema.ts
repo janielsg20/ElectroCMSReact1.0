@@ -1,10 +1,13 @@
 import * as z from 'zod'
 import {
   BreakpointIdSchema,
+  ContentRecordIdSchema,
   DocumentIdSchema,
+  FieldDefinitionIdSchema,
   GlobalComponentIdSchema,
   NodeIdSchema,
 } from './identity'
+import { CmsBackendSchema } from './cms-schema'
 import { JsonValueSchema } from './project-envelope'
 import { DEFAULT_PROJECT_THEMES, ProjectThemesSchema } from './theme-schema'
 
@@ -22,6 +25,16 @@ export const BreakpointSchema = z.strictObject({
   inheritsFrom: BreakpointIdSchema.nullable(),
 })
 
+export const CmsRecordPropertySchema = z.enum([
+  'id',
+  'status',
+  'contentTypeId',
+  'authorId',
+  'createdAt',
+  'updatedAt',
+  'taxonomyTermIds',
+])
+
 export const BindingSourceSchema = z.discriminatedUnion('kind', [
   z.strictObject({
     kind: z.literal('literal'),
@@ -35,6 +48,16 @@ export const BindingSourceSchema = z.discriminatedUnion('kind', [
     kind: z.literal('node-property'),
     nodeId: NodeIdSchema,
     path: z.array(PropertyKeySchema).min(1),
+  }),
+  z.strictObject({
+    kind: z.literal('cms-record-field'),
+    recordId: ContentRecordIdSchema,
+    fieldId: FieldDefinitionIdSchema,
+  }),
+  z.strictObject({
+    kind: z.literal('cms-record-property'),
+    recordId: ContentRecordIdSchema,
+    property: CmsRecordPropertySchema,
   }),
 ])
 
@@ -135,12 +158,14 @@ export const GlobalComponentSchema = z.strictObject({
 
 export const ProjectStructureSchema = z.strictObject({
   breakpoints: z.array(BreakpointSchema).min(1),
+  cms: CmsBackendSchema.optional(),
   documents: z.record(DocumentIdSchema, DocumentSchema),
   globalComponents: z.record(GlobalComponentIdSchema, GlobalComponentSchema),
   themes: ProjectThemesSchema.default(() => structuredClone(DEFAULT_PROJECT_THEMES)),
 })
 
 export type Breakpoint = z.infer<typeof BreakpointSchema>
+export type CmsRecordProperty = z.infer<typeof CmsRecordPropertySchema>
 export type BindingSource = z.infer<typeof BindingSourceSchema>
 export type ConditionPredicate = z.infer<typeof ConditionPredicateSchema>
 export type ConditionGroup = z.infer<typeof ConditionGroupSchema>

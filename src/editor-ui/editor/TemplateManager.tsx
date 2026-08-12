@@ -79,7 +79,7 @@ export function TemplateManager() {
   return <section aria-labelledby="template-manager-title" className="min-h-0 overflow-y-auto p-2 lg:p-1.5">
     <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-2">
       <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="content" size={15} /></span>
-      <div><h2 className="text-xs font-bold" id="template-manager-title">Páginas y plantillas</h2><p className="text-[0.625rem] leading-4 text-muted-foreground">Árboles canónicos reutilizables. Las condiciones deciden header, footer y plantilla sin copiar nodos.</p></div>
+      <div><h2 className="text-xs font-bold" id="template-manager-title">Documentos del proyecto</h2><p className="text-[0.625rem] leading-4 text-muted-foreground">Páginas y plantillas canónicas. Las condiciones deciden header, footer y plantilla sin copiar nodos.</p></div>
     </div>
 
     <fieldset className="mt-2 grid gap-1.5 border-0 p-0">

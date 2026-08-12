@@ -218,14 +218,18 @@ export function EditorShell() {
     function handlePointerMove(event: PointerEvent): void {
       const interaction = interactionRef.current
       if (!interaction) return
+      const clientX = Number.isFinite(event.clientX) ? event.clientX : interaction.startX
+      const clientY = interaction.kind === 'nav-resize' || interaction.kind === 'dock-resize'
+        ? 0
+        : Number.isFinite(event.clientY) ? event.clientY : interaction.startY
 
       if (interaction.kind === 'nav-resize') {
-        setRailWidth(clamp(interaction.startWidth + event.clientX - interaction.startX, 44, 168))
+        setRailWidth(clamp(interaction.startWidth + clientX - interaction.startX, 44, 168))
         return
       }
 
       if (interaction.kind === 'dock-resize') {
-        const movement = event.clientX - interaction.startX
+        const movement = clientX - interaction.startX
         const nextWidth = clampPanelWidth(interaction.panel, interaction.startWidth + (interaction.side === 'left' ? movement : -movement))
         if (interaction.panel === 'library') setLibraryWidth(nextWidth)
         else setInspectorWidth(nextWidth)
@@ -233,15 +237,15 @@ export function EditorShell() {
       }
 
       if (interaction.kind === 'move') {
-        const deltaX = event.clientX - interaction.startX
-        const deltaY = event.clientY - interaction.startY
+        const deltaX = clientX - interaction.startX
+        const deltaY = clientY - interaction.startY
         if (Math.hypot(deltaX, deltaY) < 4) return
         setDraggingPanel(interaction.panel)
-        const target: DockTarget = event.clientX <= railWidth + 34
+        const target: DockTarget = clientX <= railWidth + 34
           ? 'rail'
-          : event.clientX <= Math.min(240, window.innerWidth * 0.22)
+          : clientX <= Math.min(240, window.innerWidth * 0.22)
             ? 'left'
-            : event.clientX >= window.innerWidth - Math.min(240, window.innerWidth * 0.22)
+            : clientX >= window.innerWidth - Math.min(240, window.innerWidth * 0.22)
               ? 'right'
               : null
         dockTargetRef.current = target
@@ -250,8 +254,8 @@ export function EditorShell() {
 
       setWorkspace((current) => {
         const panelState = current[interaction.panel]
-        const deltaX = event.clientX - interaction.startX
-        const deltaY = event.clientY - interaction.startY
+        const deltaX = clientX - interaction.startX
+        const deltaY = clientY - interaction.startY
         const { minWidth, minHeight } = floatingLimits[interaction.panel]
         let bounds: PanelBounds
 
@@ -288,6 +292,18 @@ export function EditorShell() {
     }
 
     function handlePointerCancel(): void {
+      const interaction = interactionRef.current
+      if (interaction?.kind === 'nav-resize') {
+        setRailWidth(interaction.startWidth)
+      } else if (interaction?.kind === 'dock-resize') {
+        if (interaction.panel === 'library') setLibraryWidth(interaction.startWidth)
+        else setInspectorWidth(interaction.startWidth)
+      } else if (interaction) {
+        setWorkspace((current) => ({
+          ...current,
+          [interaction.panel]: { ...current[interaction.panel], bounds: interaction.startBounds },
+        }))
+      }
       interactionRef.current = null
       dockTargetRef.current = null
       setDockPreview(null)
@@ -346,7 +362,7 @@ export function EditorShell() {
 
   function startDockResize(panel: WorkspacePanel, side: Exclude<DockSide, 'rail'>, event: ReactPointerEvent<HTMLButtonElement>): void {
     event.preventDefault()
-    interactionRef.current = { kind: 'dock-resize', panel, side, startX: event.clientX, startWidth: panel === 'library' ? libraryWidth : inspectorWidth }
+    interactionRef.current = { kind: 'dock-resize', panel, side, startX: Number.isFinite(event.clientX) ? event.clientX : 0, startWidth: panel === 'library' ? libraryWidth : inspectorWidth }
   }
 
   function resizeDockWithKeyboard(panel: WorkspacePanel, side: Exclude<DockSide, 'rail'>, event: KeyboardEvent<HTMLButtonElement>): void {
@@ -364,7 +380,7 @@ export function EditorShell() {
 
   function startRailResize(event: ReactPointerEvent<HTMLButtonElement>): void {
     event.preventDefault()
-    interactionRef.current = { kind: 'nav-resize', startX: event.clientX, startWidth: railWidth }
+    interactionRef.current = { kind: 'nav-resize', startX: Number.isFinite(event.clientX) ? event.clientX : 0, startWidth: railWidth }
   }
 
   function resizeRailWithKeyboard(event: KeyboardEvent<HTMLButtonElement>): void {
@@ -421,7 +437,13 @@ export function EditorShell() {
       dockTargetRef.current = null
       setDockPreview(null)
     }
-    interactionRef.current = { kind, panel, startX: event.clientX, startY: event.clientY, startBounds: workspace[panel].bounds }
+    interactionRef.current = {
+      kind,
+      panel,
+      startX: Number.isFinite(event.clientX) ? event.clientX : 0,
+      startY: Number.isFinite(event.clientY) ? event.clientY : 0,
+      startBounds: workspace[panel].bounds,
+    }
   }
 
   function moveWindowWithKeyboard(panel: WorkspacePanel, event: KeyboardEvent<HTMLButtonElement>): void {

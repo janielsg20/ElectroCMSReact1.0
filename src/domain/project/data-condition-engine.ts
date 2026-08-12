@@ -1,11 +1,13 @@
 import * as z from 'zod'
 import { failure, success, type Result } from '../common/result'
+import type { ContentRecord } from './cms-schema'
 import { JsonValueSchema, type JsonValue } from './project-envelope'
 import {
   BindingSourceSchema,
   ConditionGroupSchema,
   NodeAccessibilitySchema,
   type BindingSource,
+  type CmsRecordProperty,
   type Node,
   type NodeAccessibility,
   type ProjectStructure,
@@ -22,9 +24,19 @@ export const NodeDataSettingsSchema = z.strictObject({
 })
 
 export type NodeDataSettings = z.infer<typeof NodeDataSettingsSchema>
+export type NodeDataResolutionState = 'ready' | 'empty' | 'error'
+export type NodeDataPreviewMode = 'auto' | 'loading' | 'empty' | 'error'
+export type NodeDataRenderState = NodeDataResolutionState | 'loading'
 
 export interface DataConditionDiagnostic {
-  readonly code: 'missing-path' | 'unsafe-path' | 'non-json-value' | 'invalid-comparison'
+  readonly code:
+    | 'missing-path'
+    | 'unsafe-path'
+    | 'non-json-value'
+    | 'invalid-comparison'
+    | 'missing-record'
+    | 'missing-field'
+    | 'field-owner-mismatch'
   readonly message: string
   readonly path: readonly string[]
 }
@@ -33,6 +45,7 @@ export interface ResolvedNodeDataState {
   readonly accessibility: NodeAccessibility
   readonly diagnostics: readonly DataConditionDiagnostic[]
   readonly properties: Readonly<Record<string, JsonValue>>
+  readonly state: NodeDataResolutionState
   readonly visible: boolean
 }
 
@@ -62,9 +75,44 @@ function readPath(root: unknown, path: readonly string[]): Result<JsonValue, Dat
     : failure({ code: 'non-json-value', message: `La ruta ${path.join('.')} no produce un valor JSON.`, path })
 }
 
+function recordPropertyValue(record: ContentRecord, property: CmsRecordProperty): JsonValue {
+  switch (property) {
+    case 'id': return record.id
+    case 'status': return record.status
+    case 'contentTypeId': return record.contentTypeId
+    case 'authorId': return record.authorId
+    case 'createdAt': return record.createdAt
+    case 'updatedAt': return record.updatedAt
+    case 'taxonomyTermIds': return [...record.taxonomyTermIds]
+  }
+}
+
+function resolveCmsSource(structure: ProjectStructure, source: Extract<BindingSource, { kind: 'cms-record-field' | 'cms-record-property' }>): Result<JsonValue, DataConditionDiagnostic> {
+  const cms = structure.cms
+  const record = cms?.records[source.recordId]
+  if (!record) {
+    return failure({ code: 'missing-record', message: `El registro ${source.recordId} no existe.`, path: [source.recordId] })
+  }
+  if (source.kind === 'cms-record-property') return success(recordPropertyValue(record, source.property))
+
+  const field = cms?.fields[source.fieldId]
+  if (!field) {
+    return failure({ code: 'missing-field', message: `El campo ${source.fieldId} no existe.`, path: [source.fieldId] })
+  }
+  if (field.owner.kind !== 'content-type' || field.owner.contentTypeId !== record.contentTypeId) {
+    return failure({
+      code: 'field-owner-mismatch',
+      message: `El campo ${field.label} no pertenece al tipo del registro seleccionado.`,
+      path: [source.recordId, source.fieldId],
+    })
+  }
+  return success(Object.hasOwn(record.values, source.fieldId) ? record.values[source.fieldId]! : field.defaultValue)
+}
+
 function resolveSource(structure: ProjectStructure, nodes: Readonly<Record<string, Node>>, source: BindingSource): Result<JsonValue, DataConditionDiagnostic> {
   if (source.kind === 'literal') return success(source.value)
   if (source.kind === 'project-path') return readPath(structure, source.path)
+  if (source.kind === 'cms-record-field' || source.kind === 'cms-record-property') return resolveCmsSource(structure, source)
   const node = nodes[source.nodeId]
   return node
     ? readPath(node, source.path)
@@ -73,6 +121,13 @@ function resolveSource(structure: ProjectStructure, nodes: Readonly<Record<strin
 
 function sameValue(left: JsonValue, right: JsonValue): boolean {
   return JSON.stringify(left) === JSON.stringify(right)
+}
+
+function isEmptyValue(value: JsonValue): boolean {
+  if (value === null || value === '') return true
+  if (Array.isArray(value)) return value.length === 0
+  if (typeof value === 'object') return Object.keys(value).length === 0
+  return false
 }
 
 function compare(left: JsonValue, operator: string, right: JsonValue): Result<boolean, DataConditionDiagnostic> {
@@ -99,11 +154,16 @@ export function resolveNodeDataState(
   const diagnostics: DataConditionDiagnostic[] = []
   const nodes = allNodes(structure)
   const properties = { ...responsiveProperties }
+  const bindingValues: JsonValue[] = []
 
   for (const [key, source] of Object.entries(node.bindings)) {
     const resolved = resolveSource(structure, nodes, source)
-    if (resolved.ok) properties[key] = resolved.value
-    else diagnostics.push({ ...resolved.error, path: ['bindings', key, ...resolved.error.path] })
+    if (resolved.ok) {
+      properties[key] = resolved.value
+      bindingValues.push(resolved.value)
+    } else {
+      diagnostics.push({ ...resolved.error, path: ['bindings', key, ...resolved.error.path] })
+    }
   }
 
   const groupResults = node.conditions.map((group, groupIndex) => {
@@ -127,10 +187,17 @@ export function resolveNodeDataState(
     return group.negate ? !matched : matched
   })
 
+  const state: NodeDataResolutionState = diagnostics.length > 0
+    ? 'error'
+    : bindingValues.length > 0 && bindingValues.every(isEmptyValue)
+      ? 'empty'
+      : 'ready'
+
   return {
     accessibility: node.accessibility ?? {},
     diagnostics,
     properties,
+    state,
     visible: groupResults.some((value) => value === null) ? true : groupResults.every(Boolean),
   }
 }

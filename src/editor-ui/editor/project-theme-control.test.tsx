@@ -53,4 +53,10 @@ describe('M08.1 control de tema de proyecto', () => {
     expect(screen.getByRole('button', { name: 'Aplicar tema' })).toBeDisabled()
     expect(session.store.structure.themes.frontend).toEqual(before)
   })
+
+  it('mantiene el campo de nombre en un target táctil y conserva la densidad de escritorio', () => {
+    renderControl()
+
+    expect(screen.getByRole('textbox', { name: 'Nombre' })).toHaveClass('min-h-11', 'lg:min-h-9')
+  })
 })

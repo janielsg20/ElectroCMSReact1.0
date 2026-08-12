@@ -51,4 +51,17 @@ describe('persistencia del workspace desktop', () => {
     expect(screen.getByRole('separator', { name: /páginas y capas/i })).toHaveAttribute('aria-valuenow', '216')
     expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toBeInTheDocument()
   })
+  it('restaura la geometría inicial de una ventana flotante cuando el puntero se cancela', async () => {
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /desacoplar páginas y capas/i }))
+    const floatingLibrary = await screen.findByRole('region', { name: /páginas y capas · flotante/i })
+    expect(floatingLibrary).toHaveStyle({ left: '60px', top: '64px' })
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: /mover páginas y capas/i }), { clientX: 80, clientY: 80 })
+    fireEvent.pointerMove(window, { clientX: 220, clientY: 170 })
+    fireEvent.pointerCancel(window)
+
+    await waitFor(() => expect(floatingLibrary).toHaveStyle({ left: '60px', top: '64px' }))
+  })
 })

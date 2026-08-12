@@ -8,6 +8,7 @@ export type IconName =
   | 'columns'
   | 'content'
   | 'cursor'
+  | 'database'
   | 'desktop'
   | 'dock-left'
   | 'dock-right'
@@ -59,6 +60,7 @@ const paths: Record<IconName, string> = {
   columns: 'M4 5h16v14H4zM12 5v14',
   content: 'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5',
   cursor: 'm5 3 12 9-6 1-3 6z',
+  database: 'M4 6c0 1.7 3.6 3 8 3s8-1.3 8-3-3.6-3-8-3-8 1.3-8 3zm0 0v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6',
   desktop: 'M3 5h18v12H3zM8 21h8M12 17v4',
   'dock-left': 'M3 4h18v16H3zM9 4v16M5.5 8h1M5.5 12h1M5.5 16h1',
   'dock-right': 'M3 4h18v16H3zM15 4v16M17.5 8h1M17.5 12h1M17.5 16h1',

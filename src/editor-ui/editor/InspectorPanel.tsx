@@ -56,7 +56,7 @@ export function InspectorPanel({ className = '' }: InspectorPanelProps) {
               </section>
             )}
 
-            <DataConditionAccessibilityControl key={node.id} node={node} structure={structure} />
+            <DataConditionAccessibilityControl definition={definition} key={node.id} node={node} structure={structure} />
 
             <section className="border-t border-border p-2 lg:p-1.5">
               <p className="rounded-md border border-primary/25 bg-primary-soft p-2 text-[0.625rem] leading-4 text-primary-strong">Propiedades y estilos se validan antes de crear una entrada reversible en el historial. Tamaño y espaciado continúan editándose desde el canvas.</p>

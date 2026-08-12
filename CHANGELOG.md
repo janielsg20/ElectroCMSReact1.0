@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-11 — Auditoría visual F04 / M04.1 (pestañas de Biblioteca)
+
+- Corregidas las pestañas de Biblioteca en paneles estrechos: el contenedor usa su propio breakpoint, elimina iconos redundantes y cambia visualmente `Documentos` a `Docs`, conservando el nombre completo para lectores de pantalla. Se evita que los cuatro destinos se fusionen o se recorten.
+
+## 2026-08-11 — Auditoría visual F04 / M04.1 (canvas y arquitectura de navegación)
+
+- Reestructurada la barra del lienzo en tres regiones de grid: herramientas/selección, viewport y breakpoint, y acciones. Las reglas por container query retiran primero el breadcrumb y controles secundarios cuando los paneles laterales reducen el espacio; no hay solapamiento en 1440, 1024, 768 ni 375 px.
+- Eliminado el indicador sticky inferior que repetía breakpoint, ancho, orientación y zoom ya disponibles en la barra superior.
+- Separada la apariencia local del editor de los temas de proyecto: TopBar conserva solo `appearance.v1`; Frontend y Backend se editan desde Biblioteca > Diseño y siguen perteneciendo al proyecto exportable.
+- Renombrada la pestaña Plantillas como Documentos para describir correctamente sus páginas y plantillas canónicas. No se añadió una sección de componentes porque no existe todavía un editor de componentes funcional.
+
+## 2026-08-11 — Auditoría visual F04 / M04.1
+
+- Corregido el conflicto de selectores de la barra superior que comprimía cada preset del popover de Apariencia a un icono en móvil y superponía los textos.
+- El popover respeta ahora el espacio del bottom dock móvil y conserva scroll interno; en tableta el control de apariencia se compacta a un icono de 44 px sin perder nombre accesible ni tooltip.
+- Verificado manualmente en 1440, 1024, 768, 375 y 812 px: sin overflow horizontal ni errores de consola. Regresión local: `appearance-shell`, `project-theme-control` y `workspace-persistence`, 13/13 pruebas verdes.
+
+## 2026-08-11 — Auditoría F04 / M04.1 Shell desktop
+
+- Corregida la cancelación de arrastre y redimensionado: un `pointercancel` restaura el rail, el ancho acoplado o la geometría flotante de origen y no persiste una interacción incompleta.
+- Normalizadas coordenadas de inicio y movimiento de puntero; eventos incompletos ya no pueden calcular posiciones `NaN` ni emitir estilos CSS inválidos.
+- Añadida prueba de regresión para cancelar el movimiento de una ventana flotante; `workspace-persistence.test.tsx` pasa 3/3 pruebas sin advertencias y typecheck verde.
+
+## 2026-08-11 — Auditoría de calidad F08
+
+- Restauradas las dependencias exactas desde `package-lock.json` tras la actualización remota; el lint vuelve a resolver el contrato tipado de drag-and-drop.
+- Corregido el campo de nombre del tema de proyecto: en touch usa un target de 44 px y en escritorio conserva la densidad de 36 px.
+- Añadida prueba de regresión para ambas clases responsive; `project-theme-control.test.tsx` pasa 4/4 pruebas.
+
 ## 2026-08-11 — M08.3 Motor de plantillas
 
 - Formalizados documentos de página, template, header, footer, single, archive y 404 sobre el árbol canónico, con rutas de página únicas y condiciones tipadas.

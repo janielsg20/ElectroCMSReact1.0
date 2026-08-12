@@ -24,6 +24,9 @@ export type StructureDiagnosticCode =
   | 'multiple-node-parents'
   | 'orphan-node'
   | 'missing-binding-node'
+  | 'missing-binding-record'
+  | 'missing-binding-field'
+  | 'incompatible-binding-field'
   | 'missing-breakpoint-override'
   | 'missing-component-reference'
   | 'component-cycle'
@@ -98,7 +101,57 @@ function validateBreakpointGraph(
   return breakpoints
 }
 
+function validateBindingSource(
+  structure: ProjectStructure,
+  tree: NodeTree,
+  node: Node,
+  nodePath: readonly (string | number)[],
+  source: BindingSource,
+  diagnostics: StructureDiagnostic[],
+): void {
+  if (source.kind === 'node-property') {
+    if (!tree.nodes[source.nodeId]) {
+      diagnostics.push({
+        code: 'missing-binding-node',
+        message: `El binding del nodo ${node.id} referencia al nodo inexistente ${source.nodeId}.`,
+        path: [...nodePath, 'bindings'],
+      })
+    }
+    return
+  }
+  if (source.kind !== 'cms-record-field' && source.kind !== 'cms-record-property') return
+
+  const record = structure.cms?.records[source.recordId]
+  if (!record) {
+    diagnostics.push({
+      code: 'missing-binding-record',
+      message: `El binding del nodo ${node.id} referencia al registro inexistente ${source.recordId}.`,
+      path: [...nodePath, 'bindings'],
+    })
+    return
+  }
+  if (source.kind !== 'cms-record-field') return
+
+  const field = structure.cms?.fields[source.fieldId]
+  if (!field) {
+    diagnostics.push({
+      code: 'missing-binding-field',
+      message: `El binding del nodo ${node.id} referencia al campo inexistente ${source.fieldId}.`,
+      path: [...nodePath, 'bindings'],
+    })
+    return
+  }
+  if (field.owner.kind !== 'content-type' || field.owner.contentTypeId !== record.contentTypeId) {
+    diagnostics.push({
+      code: 'incompatible-binding-field',
+      message: `El campo ${source.fieldId} no pertenece al tipo del registro ${source.recordId}.`,
+      path: [...nodePath, 'bindings'],
+    })
+  }
+}
+
 function validateNodeTree(
+  structure: ProjectStructure,
   tree: NodeTree,
   ownerPath: readonly string[],
   breakpoints: ReadonlyMap<string, unknown>,
@@ -156,13 +209,7 @@ function validateNodeTree(
     }
 
     for (const source of bindingSources(node)) {
-      if (source.kind === 'node-property' && !tree.nodes[source.nodeId]) {
-        diagnostics.push({
-          code: 'missing-binding-node',
-          message: `El binding del nodo ${node.id} referencia al nodo inexistente ${source.nodeId}.`,
-          path: [...nodePath, 'bindings'],
-        })
-      }
+      validateBindingSource(structure, tree, node, nodePath, source, diagnostics)
     }
 
     if (node.kind === 'component-instance' && !components[node.componentId]) {
@@ -310,6 +357,7 @@ export function validateProjectStructure(
       }
     }
     validateNodeTree(
+      structure,
       document,
       ['documents', documentKey],
       breakpoints,
@@ -328,6 +376,7 @@ export function validateProjectStructure(
       })
     }
     validateNodeTree(
+      structure,
       component,
       ['globalComponents', componentKey],
       breakpoints,
