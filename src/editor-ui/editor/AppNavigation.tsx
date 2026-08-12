@@ -10,7 +10,28 @@ const groups = [{ label: 'Builder', sections: ['editor', 'documents'] }, { label
 
 function ModuleWorkspace({ section, close }: { readonly section: Exclude<AppSection, 'editor'>; readonly close: () => void }) {
   const item = APP_SECTIONS[section]
-  return <aside aria-label={`${item.panelTitle} · módulo principal`} className="fixed bottom-6 top-10 z-30 hidden w-[min(26rem,calc(100vw-var(--rail-width)-2rem))] flex-col border-r border-border bg-surface shadow-lg md:flex" data-primary-module={section} style={{ left: 'var(--rail-width)' }}><header className="flex min-h-12 items-center gap-2 border-b border-border bg-muted/35 px-2"><span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={item.icon} size={15} /></span><div className="min-w-0 flex-1"><p className="text-[0.5625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">{section === 'content' ? 'CMS' : section === 'documents' ? 'Builder' : 'Proyecto'}</p><h2 className="truncate text-xs font-bold">{item.panelTitle}</h2></div><button aria-label={`Cerrar ${item.panelTitle}`} className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus" onClick={close} type="button"><Icon name="close" size={14} /></button></header><div className="min-h-0 flex-1 overflow-hidden">{section === 'documents' ? <TemplateManager /> : section === 'content' ? <ProjectDataPanel /> : <ProjectDesignPanel />}</div></aside>
+  return (
+    <section
+      aria-label={`${item.panelTitle} · módulo principal`}
+      className="fixed bottom-6 right-0 top-10 z-20 hidden min-h-0 flex-col bg-canvas md:flex"
+      data-primary-module={section}
+      role="region"
+      style={{ left: 'var(--rail-width)' }}
+    >
+      <header className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border bg-surface px-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-primary-soft text-primary"><Icon name={item.icon} size={16} /></span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.5625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">{section === 'content' ? 'CMS' : section === 'documents' ? 'Builder' : 'Proyecto'}</p>
+          <h1 className="truncate text-sm font-bold text-foreground">{item.panelTitle}</h1>
+        </div>
+        <p className="hidden max-w-xl truncate text-[0.625rem] text-muted-foreground xl:block">{item.description}</p>
+        <button aria-label={`Volver al Editor desde ${item.panelTitle}`} className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-surface text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus" onClick={close} title="Volver al editor" type="button"><Icon name="editor" size={14} /></button>
+      </header>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {section === 'documents' ? <div className="h-full overflow-y-auto p-2 lg:p-3"><TemplateManager /></div> : section === 'content' ? <ProjectDataPanel /> : <ProjectDesignPanel />}
+      </div>
+    </section>
+  )
 }
 
 export function AppNavigation({ expanded, width, onToggleExpanded, onResizePointerDown, onResizeKeyDown }: AppNavigationProps) {
