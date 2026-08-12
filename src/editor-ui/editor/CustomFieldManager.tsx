@@ -317,7 +317,11 @@ export function CustomFieldManager() {
     setPending(false)
   }
 
-  const ownerName = (field: FieldDefinition) => field.owner.kind === 'content-type' ? contentTypes.find((item) => item.id === field.owner.contentTypeId)?.pluralName ?? 'Contenido no disponible' : taxonomies.find((item) => item.id === field.owner.taxonomyId)?.pluralName ?? 'Clasificación no disponible'
+  function ownerName(field: FieldDefinition): string {
+    const owner = field.owner
+    if (owner.kind === 'content-type') return contentTypes.find((item) => item.id === owner.contentTypeId)?.pluralName ?? 'Contenido no disponible'
+    return taxonomies.find((item) => item.id === owner.taxonomyId)?.pluralName ?? 'Clasificación no disponible'
+  }
 
   return (
     <section aria-labelledby="custom-fields-title" className="grid gap-2 p-2 lg:p-1.5">
@@ -349,7 +353,7 @@ export function CustomFieldManager() {
 
         <label className="grid gap-1 text-xs font-semibold">Descripción opcional<textarea className="min-h-16 resize-y rounded-md border border-border bg-surface p-2 text-xs font-normal focus-visible:ring-2 focus-visible:ring-focus" maxLength={4000} onChange={(event) => patchDraft({ description: event.target.value })} value={draft.description} /></label>
 
-        <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/20 p-2"><span><strong className="block text-xs">Campo obligatorio</strong><span className="text-[0.625rem] text-muted-foreground">No permite guardar una entrada completa sin este dato.</span></span><button aria-checked={draft.required} className={`relative h-6 w-10 shrink-0 rounded-full border focus-visible:ring-2 focus-visible:ring-focus ${draft.required ? 'border-primary bg-primary' : 'border-border bg-muted'}`} onClick={() => patchDraft({ required: !draft.required })} role="switch" type="button"><span className={`absolute top-0.5 size-4 rounded-full bg-surface shadow transition-transform ${draft.required ? 'translate-x-4' : 'translate-x-0.5'}`} /></button></div>
+        <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/20 p-2"><span><strong className="block text-xs">Campo obligatorio</strong><span className="text-[0.625rem] text-muted-foreground">No permite guardar una entrada completa sin este dato.</span></span><button aria-checked={draft.required} aria-label="Campo obligatorio" className={`relative h-6 w-10 shrink-0 rounded-full border focus-visible:ring-2 focus-visible:ring-focus ${draft.required ? 'border-primary bg-primary' : 'border-border bg-muted'}`} onClick={() => patchDraft({ required: !draft.required })} role="switch" type="button"><span className={`absolute top-0.5 size-4 rounded-full bg-surface shadow transition-transform ${draft.required ? 'translate-x-4' : 'translate-x-0.5'}`} /></button></div>
 
         {usesOptions ? <label className="grid gap-1 text-xs font-semibold">Opciones disponibles<span className="font-normal text-muted-foreground">Una por línea. Formato: Nombre | valor. El valor puede ser texto, número o JSON.</span><textarea className="min-h-24 resize-y rounded-md border border-border bg-surface p-2 font-mono text-[0.6875rem] font-normal focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => patchDraft({ optionsText: event.target.value })} placeholder={'Disponible | "available"\nReservado | "reserved"'} value={draft.optionsText} /></label> : null}
 
