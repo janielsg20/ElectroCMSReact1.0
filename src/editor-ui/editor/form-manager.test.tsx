@@ -114,9 +114,14 @@ describe('M11.1 FormManager', () => {
     expect(firstControlId ? form?.controls[firstControlId]?.mappedFieldId : null).toBe(textFieldId)
 
     expect(await screen.findByRole('heading', { name: 'Layout y orden' })).toBeInTheDocument()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Etiqueta' }), { target: { value: 'Mensaje' } })
-    fireEvent.change(screen.getByRole('textbox', { name: 'Clave' }), { target: { value: 'message' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Añadir al formulario' }))
+    const addHeading = screen.getByRole('heading', { name: 'Añadir control' })
+    const addSection = addHeading.closest('section')
+    expect(addSection).not.toBeNull()
+    if (!addSection) return
+    const add = within(addSection)
+    fireEvent.change(add.getByRole('textbox', { name: 'Etiqueta' }), { target: { value: 'Mensaje' } })
+    fireEvent.change(add.getByRole('textbox', { name: 'Clave' }), { target: { value: 'message' } })
+    fireEvent.click(add.getByRole('button', { name: 'Añadir al formulario' }))
 
     await waitFor(() => {
       const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
