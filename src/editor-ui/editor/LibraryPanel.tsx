@@ -134,92 +134,82 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
   }, [category, deferredQuery, library.preferences.favoriteWidgetIds, library.preferences.recentWidgetIds, library.preferences.savedWidgets, scope])
 
   return (
-    <aside aria-label="Capas y widgets del editor" className={`library-panel flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
+    <aside aria-label="Biblioteca y capas" className={`library-panel flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
       <div aria-label="Herramientas del editor" className="grid shrink-0 grid-cols-2 gap-0.5 border-b border-border bg-muted/60 p-1" role="tablist">
         <LibraryTabButton active={activeTab === 'layers'} controls="library-panel-layers" icon="layers" id="library-tab-layers" label="Capas" onClick={() => onTabChange('layers')} />
         <LibraryTabButton active={activeTab === 'widgets'} controls="library-panel-widgets" icon="columns" id="library-tab-widgets" label="Widgets" onClick={() => onTabChange('widgets')} />
       </div>
 
-      <div
-        aria-labelledby="library-tab-layers"
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        hidden={activeTab !== 'layers'}
-        id="library-panel-layers"
-        role="tabpanel"
-      >
-        <section aria-labelledby="document-title" className="border-b border-border p-2 lg:p-1.5">
-          <h2 className="text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground" id="document-title">Documento actual</h2>
-          <div className="mt-1 flex min-h-9 items-center gap-1.5 rounded-md bg-primary-soft px-2 text-xs font-semibold text-primary-strong">
-            <Icon name="editor" size={14} />
-            <span className="truncate">{document?.name ?? 'Documento no disponible'}</span>
+      {activeTab === 'layers' ? (
+        <div aria-labelledby="library-tab-layers" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" id="library-panel-layers" role="tabpanel">
+          <section aria-labelledby="document-title" className="border-b border-border p-2 lg:p-1.5">
+            <h2 className="text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground" id="document-title">Documento actual</h2>
+            <div className="mt-1 flex min-h-9 items-center gap-1.5 rounded-md bg-primary-soft px-2 text-xs font-semibold text-primary-strong">
+              <Icon name="editor" size={14} />
+              <span className="truncate">{document?.name ?? 'Documento no disponible'}</span>
+            </div>
+          </section>
+          <section aria-labelledby="layers-title" className="p-1.5 lg:p-1">
+            <h2 className="flex min-h-9 items-center gap-1 px-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={13} />Árbol canónico</h2>
+            <CanonicalLayerTree />
+          </section>
+        </div>
+      ) : (
+        <div aria-labelledby="library-tab-widgets" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-widgets" role="tabpanel">
+          <div className="mb-2 flex items-start justify-between gap-1 lg:mb-1.5">
+            <span className="min-w-0">
+              <strong className="block text-xs leading-4 text-primary">Biblioteca</strong>
+              <span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} widgets registrados</span>
+            </span>
+            <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button">Guardar</button>
           </div>
-        </section>
-        <section aria-labelledby="layers-title" className="p-1.5 lg:p-1">
-          <h2 className="flex min-h-9 items-center gap-1 px-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={13} />Árbol canónico</h2>
-          <CanonicalLayerTree />
-        </section>
-      </div>
 
-      <div
-        aria-labelledby="library-tab-widgets"
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5"
-        hidden={activeTab !== 'widgets'}
-        id="library-panel-widgets"
-        role="tabpanel"
-      >
-        <div className="mb-2 flex items-start justify-between gap-1 lg:mb-1.5">
-          <span className="min-w-0">
-            <strong className="block text-xs leading-4 text-primary">Biblioteca</strong>
-            <span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} widgets registrados</span>
-          </span>
-          <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button">Guardar</button>
-        </div>
+          <label className="block">
+            <span className="sr-only">Buscar widgets registrados</span>
+            <input aria-label="Buscar widgets registrados" className="min-h-11 w-full rounded-md border border-border bg-surface px-3 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, categoría o ID" type="search" value={query} />
+          </label>
 
-        <label className="block">
-          <span className="sr-only">Buscar widgets registrados</span>
-          <input aria-label="Buscar widgets registrados" className="min-h-11 w-full rounded-md border border-border bg-surface px-3 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, categoría o ID" type="search" value={query} />
-        </label>
+          <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1">
+            <select aria-label="Filtrar por categoría" className="min-h-9 min-w-0 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => setCategory(event.target.value as WidgetCategory | 'all')} value={category}>
+              <option value="all">Todas las categorías</option>
+              {Object.entries(categoryLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+            </select>
+            <output aria-label={`${visibleItems.length} elementos visibles`} className="grid min-h-9 min-w-9 place-items-center rounded-md border border-border bg-muted px-1 text-[0.625rem] font-bold text-muted-foreground">{visibleItems.length}</output>
+          </div>
 
-        <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1">
-          <select aria-label="Filtrar por categoría" className="min-h-9 min-w-0 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => setCategory(event.target.value as WidgetCategory | 'all')} value={category}>
-            <option value="all">Todas las categorías</option>
-            {Object.entries(categoryLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-          </select>
-          <output aria-label={`${visibleItems.length} elementos visibles`} className="grid min-h-9 min-w-9 place-items-center rounded-md border border-border bg-muted px-1 text-[0.625rem] font-bold text-muted-foreground">{visibleItems.length}</output>
-        </div>
-
-        <div aria-label="Filtros de biblioteca" className="mt-1.5 grid grid-cols-4 gap-0.5" role="group">
-          {(Object.keys(scopeLabels) as LibraryScope[]).map((id) => (
-            <button aria-pressed={scope === id} className={`min-h-9 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold focus-visible:ring-2 focus-visible:ring-focus ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>
-          ))}
-        </div>
-
-        <p aria-live="polite" className="sr-only">{visibleItems.length} widgets encontrados. {library.status}</p>
-        {visibleItems.length > 0 ? (
-          <ul className="widget-library-grid mt-2 grid gap-1.5 lg:mt-1.5">
-            {visibleItems.map((item) => (
-              <WidgetLibraryCard
-                definition={item.definition}
-                description={item.description}
-                favorite={library.preferences.favoriteWidgetIds.includes(item.definition.id)}
-                key={item.key}
-                label={item.label}
-                onInsert={() => { void library.insertSource(item.source) }}
-                onRemove={item.preset ? () => library.removeSaved(item.preset?.id ?? '') : undefined}
-                onToggleFavorite={item.preset ? undefined : () => library.toggleFavorite(item.definition.id)}
-                source={item.source}
-                subtitle={`${categoryLabels[item.definition.category]} · ${item.preset ? 'Preset local' : item.definition.id}`}
-              />
+          <div aria-label="Filtros de biblioteca" className="mt-1.5 grid grid-cols-4 gap-0.5" role="group">
+            {(Object.keys(scopeLabels) as LibraryScope[]).map((id) => (
+              <button aria-pressed={scope === id} className={`min-h-9 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold focus-visible:ring-2 focus-visible:ring-focus ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>
             ))}
-          </ul>
-        ) : (
-          <div className="mt-2 grid place-items-center rounded-md border border-dashed border-border px-2 py-5 text-center">
-            <Icon className="text-muted-foreground" name="search" size={18} />
-            <p className="mt-2 text-xs font-semibold text-foreground">Sin elementos en este filtro</p>
-            <button className="mt-2 min-h-9 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong hover:bg-primary-soft" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
           </div>
-        )}
-      </div>
+
+          <p aria-live="polite" className="sr-only">{visibleItems.length} widgets encontrados. {library.status}</p>
+          {visibleItems.length > 0 ? (
+            <ul className="widget-library-grid mt-2 grid gap-1.5 lg:mt-1.5">
+              {visibleItems.map((item) => (
+                <WidgetLibraryCard
+                  definition={item.definition}
+                  description={item.description}
+                  favorite={library.preferences.favoriteWidgetIds.includes(item.definition.id)}
+                  key={item.key}
+                  label={item.label}
+                  onInsert={() => { void library.insertSource(item.source) }}
+                  onRemove={item.preset ? () => library.removeSaved(item.preset?.id ?? '') : undefined}
+                  onToggleFavorite={item.preset ? undefined : () => library.toggleFavorite(item.definition.id)}
+                  source={item.source}
+                  subtitle={`${categoryLabels[item.definition.category]} · ${item.preset ? 'Preset local' : item.definition.id}`}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-2 grid place-items-center rounded-md border border-dashed border-border px-2 py-5 text-center">
+              <Icon className="text-muted-foreground" name="search" size={18} />
+              <p className="mt-2 text-xs font-semibold text-foreground">Sin elementos en este filtro</p>
+              <button className="mt-2 min-h-9 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong hover:bg-primary-soft" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
+            </div>
+          )}
+        </div>
+      )}
     </aside>
   )
 }
