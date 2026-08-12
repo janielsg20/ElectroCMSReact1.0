@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { NodeDataSettingsSchema, resolveNodeDataState, type Node, type ProjectStructure } from '../../domain'
+import { Button, TextArea } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 
 interface DataConditionAccessibilityControlProps {
@@ -81,23 +82,29 @@ export function DataConditionAccessibilityControl({ node, structure }: DataCondi
   }
 
   return (
-    <form className="grid gap-1.5 border-t border-border p-2 lg:p-1.5" data-data-condition-control onSubmit={(event) => { void submit(event) }}>
+    <form className="grid gap-1.5 border-t border-border p-2 lg:p-1.5" data-data-condition-control data-electrocms-surface="data-settings" onSubmit={(event) => { void submit(event) }}>
       <div><h2 className="text-xs font-bold">Datos, visibilidad y ARIA</h2><p className="text-[0.625rem] leading-4 text-muted-foreground">JSON estructurado. Admite literales, rutas del proyecto y propiedades de nodos; no ejecuta consultas ni acciones.</p></div>
-      <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`bindings-${node.id}`}>Bindings
-        <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`bindings-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, bindings: event.target.value }))} value={draft.bindings} />
-      </label>
-      <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`conditions-${node.id}`}>Condiciones de visibilidad
-        <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`conditions-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, conditions: event.target.value }))} value={draft.conditions} />
-      </label>
-      <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`accessibility-${node.id}`}>Accesibilidad ARIA
-        <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`accessibility-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, accessibility: event.target.value }))} value={draft.accessibility} />
-      </label>
-      {resolved.diagnostics.length > 0 ? <div className="rounded border border-warning/35 bg-warning/10 px-2 py-1 text-[0.625rem] text-foreground" role="status"><strong>Diagnósticos</strong><ul className="list-disc pl-4">{resolved.diagnostics.map((item, index) => <li key={`${item.code}-${item.path.join('.')}-${index}`}>{item.message}</li>)}</ul></div> : null}
+      <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`bindings-${node.id}`} label="Bindings" onChange={(event) => setDraft((current) => ({ ...current, bindings: event.target.value }))} value={draft.bindings} />
+      <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`conditions-${node.id}`} label="Condiciones de visibilidad" onChange={(event) => setDraft((current) => ({ ...current, conditions: event.target.value }))} value={draft.conditions} />
+      <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`accessibility-${node.id}`} label="Accesibilidad ARIA" onChange={(event) => setDraft((current) => ({ ...current, accessibility: event.target.value }))} value={draft.accessibility} />
+      {resolved.diagnostics.length > 0 ? (
+        <div className="rounded-md border border-warning/35 bg-warning/10 px-2 py-1.5 text-[0.625rem] text-foreground" role="status">
+          <strong className="block text-xs">Diagnósticos</strong>
+          <div className="mt-1 grid gap-1" role="list">
+            {resolved.diagnostics.map((item, index) => (
+              <div className="flex items-start gap-1.5 rounded bg-surface/65 px-1.5 py-1" key={`${item.code}-${item.path.join('.')}-${index}`} role="listitem">
+                <span aria-hidden="true" className="mt-1 size-1.5 shrink-0 rounded-full bg-warning" />
+                <span>{item.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {error ? <p className="rounded bg-danger-soft px-2 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="flex gap-1">
-        <button className="min-h-9 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary disabled:opacity-50" disabled={node.locked || pending} type="submit">{pending ? 'Guardando…' : 'Aplicar datos'}</button>
-        <button className="min-h-9 rounded-md border border-border px-2 text-[0.625rem] font-bold disabled:opacity-50" disabled={!hasSettings || node.locked || pending} onClick={() => { void reset() }} type="button">Reset datos</button>
+        <Button className="flex-1" disabled={node.locked} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">Aplicar datos</Button>
+        <Button disabled={!hasSettings || node.locked || pending} onClick={() => { void reset() }} size="small" variant="secondary">Reset datos</Button>
       </div>
     </form>
   )
