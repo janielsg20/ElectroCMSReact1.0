@@ -123,6 +123,7 @@ function ChoiceMenu({
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-label={label}
         className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-sm text-foreground outline-none transition-colors hover:border-primary/35 hover:bg-muted/40 focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 lg:min-h-8 lg:px-2 lg:text-xs"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
@@ -278,7 +279,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
           help={FORM_HELP.contentType}
           label="Guardar respuestas en"
           onChange={(value) => {
-            const next = cms.contentTypes[value]?.id ?? null
+            const next = contentTypes.find((type) => type.id === value)?.id ?? null
             setContentTypeId(next)
             setMappedFieldId('')
           }}
@@ -314,7 +315,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
       </AdvancedOptions>
 
       <div className="flex justify-end">
-        <Button disabled={contentTypes.length === 0} isLoading={pending} loadingLabel="Creando" onClick={create}>
+        <Button disabled={contentTypes.length === 0} isLoading={pending} loadingLabel="Creando" onClick={() => { void create() }}>
           <Icon name="plus" size={13} /> Crear formulario
         </Button>
       </div>
@@ -406,10 +407,10 @@ function ControlEditor({ cms, form, control, onDeleted }: {
         <InternalKeyField onChange={setName} value={name} />
       </AdvancedOptions>
       <div className="flex flex-wrap justify-between gap-2 border-t border-border pt-2">
-        <Button disabled={pending || Object.keys(form.controls).length <= 1} onClick={remove} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
+        <Button disabled={pending || Object.keys(form.controls).length <= 1} onClick={() => { void remove() }} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
           <Icon name="close" size={12} /> {confirmDelete ? 'Confirmar eliminación' : 'Eliminar campo'}
         </Button>
-        <Button isLoading={pending} loadingLabel="Guardando" onClick={save} size="small"><Icon name="check" size={12} /> Guardar cambios</Button>
+        <Button isLoading={pending} loadingLabel="Guardando" onClick={() => { void save() }} size="small"><Icon name="check" size={12} /> Guardar cambios</Button>
       </div>
     </section>
   )
@@ -503,7 +504,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
             <h2 className="truncate text-sm font-bold text-foreground">{form.name}</h2>
             <p className="text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} campos · edición visual</p>
           </div>
-          <Button disabled={pending} onClick={deleteForm} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
+          <Button disabled={pending} onClick={() => { void deleteForm() }} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
             {confirmDelete ? 'Confirmar borrar' : 'Borrar'}
           </Button>
         </div>
@@ -513,11 +514,11 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
           <ChoiceMenu
             help={FORM_HELP.contentType}
             label="Guardar respuestas en"
-            onChange={(value) => setContentTypeId(cms.contentTypes[value]?.id ?? null)}
+            onChange={(value) => setContentTypeId(contentTypes.find((type) => type.id === value)?.id ?? null)}
             options={contentTypes.map((type) => ({ label: type.pluralName, description: type.description || 'Contenido disponible', value: type.id }))}
             value={contentTypeId ?? ''}
           />
-          <Button isLoading={pending} loadingLabel="Guardando" onClick={saveForm} size="small"><Icon name="check" size={12} /> Guardar</Button>
+          <Button isLoading={pending} loadingLabel="Guardando" onClick={() => { void saveForm() }} size="small"><Icon name="check" size={12} /> Guardar</Button>
         </div>
       </section>
 
@@ -544,8 +545,8 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
                   <strong className="block truncate text-xs text-foreground">{index + 1}. {control.label}</strong>
                   <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `Guarda en ${field.label}` : 'No conectado a contenido'}</span>
                 </button>
-                <Button aria-label={`Mover arriba ${control.label}`} disabled={pending || index === 0} onClick={() => move(control.id, index - 1)} size="icon" variant="ghost"><span aria-hidden="true" className="rotate-180"><Icon name="chevron-down" size={13} /></span></Button>
-                <Button aria-label={`Mover abajo ${control.label}`} disabled={pending || index === orderedControlIds.length - 1} onClick={() => move(control.id, index + 1)} size="icon" variant="ghost"><Icon name="chevron-down" size={13} /></Button>
+                <Button aria-label={`Mover arriba ${control.label}`} disabled={pending || index === 0} onClick={() => { void move(control.id, index - 1) }} size="icon" variant="ghost"><span aria-hidden="true" className="rotate-180"><Icon name="chevron-down" size={13} /></span></Button>
+                <Button aria-label={`Mover abajo ${control.label}`} disabled={pending || index === orderedControlIds.length - 1} onClick={() => { void move(control.id, index + 1) }} size="icon" variant="ghost"><Icon name="chevron-down" size={13} /></Button>
               </div>
             )
           })}
@@ -565,7 +566,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
         <AdvancedOptions label="Opciones avanzadas del campo" onToggle={() => setAddAdvancedOpen((current) => !current)} open={addAdvancedOpen}>
           <InternalKeyField onChange={setAddName} value={addName} />
         </AdvancedOptions>
-        <div className="flex justify-end"><Button disabled={pending || !firstStep} onClick={addControl} size="small"><Icon name="plus" size={12} /> Añadir al formulario</Button></div>
+        <div className="flex justify-end"><Button disabled={pending || !firstStep} onClick={() => { void addControl() }} size="small"><Icon name="plus" size={12} /> Añadir al formulario</Button></div>
       </section>
 
       {selectedControl ? <ControlEditor cms={cms} control={selectedControl} form={form} key={selectedControl.id} onDeleted={() => {
