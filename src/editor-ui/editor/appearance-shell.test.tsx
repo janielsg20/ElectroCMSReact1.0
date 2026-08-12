@@ -83,7 +83,7 @@ describe('M04.5 temas del editor', () => {
     expect(window.localStorage.getItem(EDITOR_APPEARANCE_PREFERENCES_KEY)).toBeNull()
   })
 
-  it('ubica temas y paquetes exportables en Diseño, separados de la apariencia local', () => {
+  it('ubica temas y paquetes exportables en Diseño, separados de la apariencia local', async () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Diseño' }))
@@ -94,7 +94,10 @@ describe('M04.5 temas del editor', () => {
     expect(screen.getByRole('tab', { name: 'Frontend' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('heading', { name: 'Tema del frontend generado' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Paquetes' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Paquetes' }))
+      await Promise.resolve()
+    })
     expect(screen.getByRole('heading', { name: 'Paquetes reutilizables' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Tema del frontend generado' })).not.toBeInTheDocument()
   })
