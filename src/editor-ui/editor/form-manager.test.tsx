@@ -86,24 +86,24 @@ describe('M11.1 FormManager', () => {
     const { formsTab } = await renderForms()
     expect(formsTab).toHaveClass('min-h-11', 'shrink-0')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Texto' }))
-    const typeList = screen.getByRole('listbox', { name: 'Tipo del primer control' })
+    fireEvent.click(screen.getByRole('button', { name: 'Tipo del primer campo' }))
+    const typeList = screen.getByRole('listbox', { name: 'Tipo del primer campo' })
     expect(within(typeList).getAllByRole('option')).toHaveLength(27)
-    expect(within(typeList).getByRole('option', { name: 'Repeater' })).toBeInTheDocument()
-    fireEvent.click(within(typeList).getByRole('option', { name: 'Texto' }))
+    expect(within(typeList).getByRole('option', { name: 'Lista repetible' })).toBeInTheDocument()
+    fireEvent.click(within(typeList).getByRole('option', { name: 'Texto corto' }))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sin mapear' }))
-    const mappingList = screen.getByRole('listbox', { name: 'Mapear a Custom Field' })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar su valor en' }))
+    const mappingList = screen.getByRole('listbox', { name: 'Guardar su valor en' })
     expect(within(mappingList).getByRole('option', { name: /Nombre CMS/ })).toBeInTheDocument()
     expect(within(mappingList).queryByRole('option', { name: /Cantidad CMS/ })).not.toBeInTheDocument()
   })
 
-  it('crea un formulario real, añade un control y lo reordena sin depender de drag', async () => {
+  it('crea un formulario real, añade un campo y lo reordena sin depender de drag', async () => {
     const { session } = await renderForms()
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Nombre del formulario' }), { target: { value: 'Solicitud web' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sin mapear' }))
-    const mappingList = screen.getByRole('listbox', { name: 'Mapear a Custom Field' })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar su valor en' }))
+    const mappingList = screen.getByRole('listbox', { name: 'Guardar su valor en' })
     fireEvent.click(within(mappingList).getByRole('option', { name: /Nombre CMS/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Crear formulario' }))
 
@@ -113,14 +113,13 @@ describe('M11.1 FormManager', () => {
     const firstControlId = form?.steps[0]?.controlIds[0]
     expect(firstControlId ? form?.controls[firstControlId]?.mappedFieldId : null).toBe(textFieldId)
 
-    expect(await screen.findByRole('heading', { name: 'Layout y orden' })).toBeInTheDocument()
-    const addHeading = screen.getByRole('heading', { name: 'Añadir control' })
+    expect(await screen.findByRole('heading', { name: 'Campos y orden' })).toBeInTheDocument()
+    const addHeading = screen.getByRole('heading', { name: 'Añadir campo' })
     const addSection = addHeading.closest('section')
     expect(addSection).not.toBeNull()
     if (!addSection) return
     const add = within(addSection)
-    fireEvent.change(add.getByRole('textbox', { name: 'Etiqueta' }), { target: { value: 'Mensaje' } })
-    fireEvent.change(add.getByRole('textbox', { name: 'Clave' }), { target: { value: 'message' } })
+    fireEvent.change(add.getByRole('textbox', { name: 'Texto que verá el usuario' }), { target: { value: 'Mensaje' } })
     fireEvent.click(add.getByRole('button', { name: 'Añadir al formulario' }))
 
     await waitFor(() => {
