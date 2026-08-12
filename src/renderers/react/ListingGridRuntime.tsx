@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { executeCmsListing } from '../../domain/project/listing-engine'
 import type { JsonValue } from '../../domain'
-import { ListingRecordProvider } from './listing-runtime-context'
+import { ListingRecordProvider } from './ListingRecordProvider'
 import type { ProjectStructureRenderStore } from './project-structure-render-store'
 
 export interface ListingGridRuntimeProps {
@@ -54,70 +54,33 @@ export function ListingGridRuntime({ nodeId, properties, slots, store }: Listing
     [cms, page, queryId],
   )
 
-  if (!queryId) {
-    return <RuntimeState message="Selecciona una consulta guardada para este listing." />
-  }
-  if (!cms) {
-    return <RuntimeState message="El proyecto no tiene un backend CMS disponible." tone="danger" />
-  }
-  if (!listing) {
-    return <RuntimeState message={emptyMessage} />
-  }
-  if (!listing.ok) {
-    return <RuntimeState message={listing.error[0]?.message ?? 'No se pudo ejecutar el listing.'} tone="danger" />
-  }
+  if (!queryId) return <RuntimeState message="Selecciona una consulta guardada para este listing." />
+  if (!cms) return <RuntimeState message="El proyecto no tiene un backend CMS disponible." tone="danger" />
+  if (!listing) return <RuntimeState message={emptyMessage} />
+  if (!listing.ok) return <RuntimeState message={listing.error[0]?.message ?? 'No se pudo ejecutar el listing.'} tone="danger" />
 
   const result = listing.value
   const hasTemplate = template.length > 0
 
   return (
-    <section
-      aria-label="Listado de contenido"
-      data-listing-page={result.page}
-      data-listing-query={result.queryId}
-      data-listing-runtime={nodeId}
-    >
+    <section aria-label="Listado de contenido" data-listing-page={result.page} data-listing-query={result.queryId} data-listing-runtime={nodeId}>
       {result.records.length > 0 ? (
         hasTemplate ? (
-          <div
-            className="grid min-w-0 gap-3"
-            role="list"
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-          >
+          <div className="grid min-w-0 gap-3" role="list" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
             {result.records.map((record) => (
               <div className="min-w-0" data-listing-record={record.id} key={record.id} role="listitem">
                 <ListingRecordProvider recordId={record.id}>{template}</ListingRecordProvider>
               </div>
             ))}
           </div>
-        ) : (
-          <RuntimeState message="Añade widgets dentro del Listing grid para definir la plantilla repetible." />
-        )
-      ) : (
-        <RuntimeState message={emptyMessage} />
-      )}
+        ) : <RuntimeState message="Añade widgets dentro del Listing grid para definir la plantilla repetible." />
+      ) : <RuntimeState message={emptyMessage} />}
 
       {result.pageCount > 1 ? (
         <nav aria-label="Paginación del listado" className="mt-3 flex min-h-11 items-center justify-between gap-2 rounded-md border border-slate-200 bg-white p-1.5 text-xs">
-          <button
-            className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={!result.hasPreviousPage}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            type="button"
-          >
-            Anterior
-          </button>
-          <span aria-live="polite" className="min-w-0 truncate px-2 font-semibold text-slate-600">
-            Página {result.page} de {result.pageCount} · {result.availableCount} elementos
-          </span>
-          <button
-            className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={!result.hasNextPage}
-            onClick={() => setPage((current) => Math.min(result.pageCount, current + 1))}
-            type="button"
-          >
-            Siguiente
-          </button>
+          <button className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasPreviousPage} onClick={() => setPage((current) => Math.max(1, current - 1))} type="button">Anterior</button>
+          <span aria-live="polite" className="min-w-0 truncate px-2 font-semibold text-slate-600">Página {result.page} de {result.pageCount} · {result.availableCount} elementos</span>
+          <button className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasNextPage} onClick={() => setPage((current) => Math.min(result.pageCount, current + 1))} type="button">Siguiente</button>
         </nav>
       ) : null}
     </section>
