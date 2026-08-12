@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_BREAKPOINTS,
@@ -25,6 +25,7 @@ const recordCId = parseContentRecordId('23000000-0000-4000-8000-000000000003')
 const queryId = parseQueryId('24000000-0000-4000-8000-000000000001')
 const listingNodeId = parseNodeId('25000000-0000-4000-8000-000000000001')
 const templateNodeId = parseNodeId('25000000-0000-4000-8000-000000000002')
+const searchNodeId = parseNodeId('25000000-0000-4000-8000-000000000003')
 
 function fixture(): ProjectStructure {
   const cms = structuredClone(EMPTY_CMS_BACKEND)
@@ -118,6 +119,20 @@ function fixture(): ProjectStructure {
             styles: {},
             widgetType: 'dynamic.listing-grid',
           },
+          [searchNodeId]: {
+            bindings: {},
+            conditions: [],
+            hidden: false,
+            id: searchNodeId,
+            kind: 'widget',
+            locked: false,
+            name: 'Buscar entradas',
+            properties: { applyMode: 'realtime', fieldId, label: 'Buscar entradas', persistState: false, query: '', queryId, showCount: true, urlKey: '' },
+            responsive: {},
+            slots: {},
+            styles: {},
+            widgetType: 'filter.search',
+          },
           [templateNodeId]: {
             bindings: { fallback: { fieldId, kind: 'cms-record-field', recordId: recordAId } },
             conditions: [],
@@ -133,7 +148,7 @@ function fixture(): ProjectStructure {
             widgetType: 'dynamic.field',
           },
         },
-        rootNodeIds: [listingNodeId],
+        rootNodeIds: [searchNodeId, listingNodeId],
       },
     },
     globalComponents: {},
@@ -166,6 +181,20 @@ describe('M10.3 ListingGridRuntime', () => {
     expect(screen.queryByText('Beta')).not.toBeInTheDocument()
     expect(screen.getByText('Gamma')).toBeInTheDocument()
     expect(screen.getByText('Página 2 de 2 · 3 elementos')).toBeInTheDocument()
+    expect(store.structure.cms?.queries[queryId]).toEqual(originalQuery)
+  })
+
+  it('filtra el listing en tiempo real y conserva inmutable la query guardada', async () => {
+    const store = new ProjectStructureRenderStore(fixture())
+    const originalQuery = structuredClone(store.structure.cms?.queries[queryId])
+    render(<CanonicalProjectRenderer breakpointId={desktopBreakpoint()} documentId={documentId} store={store} />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar entradas' }), { target: { value: 'Gamma' } })
+
+    await waitFor(() => expect(screen.getByText('Gamma')).toBeInTheDocument())
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument()
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('1 resultados')).toHaveTextContent('1')
     expect(store.structure.cms?.queries[queryId]).toEqual(originalQuery)
   })
 })
