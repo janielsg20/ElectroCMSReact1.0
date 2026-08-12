@@ -5,7 +5,6 @@ import { ProjectStructureRenderStore } from '../../renderers'
 import { EditorProjectProvider } from './EditorProjectProvider'
 import { InspectorPanel } from './InspectorPanel'
 import { STARTER_DOCUMENT_ID, STARTER_PROJECT_STRUCTURE, STARTER_SELECTED_NODE_ID } from './starter-project-structure'
-import { INSPECTOR_SECTION_LABELS, INSPECTOR_SECTION_ORDER } from './inspector-schema-model'
 
 function renderInspector() {
   const store = new ProjectStructureRenderStore(STARTER_PROJECT_STRUCTURE)
@@ -47,13 +46,16 @@ function renderInspector() {
 }
 
 describe('M07.1 inspector declarativo', () => {
-  it('muestra las nueve secciones y abre la primera que tiene campos', () => {
+  it('muestra solo secciones útiles y abre la primera disponible', () => {
     renderInspector()
     const generated = screen.getByTestId('generated-inspector-sections')
-    for (const section of INSPECTOR_SECTION_ORDER) expect(within(generated).getByText(INSPECTOR_SECTION_LABELS[section])).toBeInTheDocument()
+    expect(within(generated).getByText('Diseño')).toBeInTheDocument()
+    expect(within(generated).getByText('Estilo')).toBeInTheDocument()
+    expect(within(generated).queryByText('Contenido')).not.toBeInTheDocument()
+    expect(within(generated).queryByText('Avanzado')).not.toBeInTheDocument()
     const details = document.querySelectorAll('[data-testid="generated-inspector-sections"] details')
-    expect(details).toHaveLength(9)
-    expect(details[2]).toHaveAttribute('open')
+    expect(details).toHaveLength(2)
+    expect(details[0]).toHaveAttribute('open')
   })
 
   it('presenta descriptor, valor efectivo y control tipado conectado a la sesión', async () => {
@@ -62,6 +64,7 @@ describe('M07.1 inspector declarativo', () => {
     expect(screen.getByText('Número')).toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Ancho máximo: 1200' })).toHaveTextContent('1200')
     expect(screen.getByText('Personalizado')).toBeInTheDocument()
+    expect(screen.queryByText(/Schema:/)).not.toBeInTheDocument()
     const input = screen.getByRole('textbox', { name: 'Ancho máximo Número' })
     expect(input).toHaveAttribute('inputmode', 'decimal')
     expect(input).toHaveValue('1200')
