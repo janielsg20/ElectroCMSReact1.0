@@ -1,14 +1,18 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
-  useState,
   useSyncExternalStore,
   type ReactNode,
 } from 'react'
-import { executeCmsListing } from '../../domain/project/listing-engine'
-import type { JsonValue } from '../../domain'
+import {
+  composeSmartFilteredQuery,
+  executeCmsListingQuery,
+  type JsonValue,
+} from '../../domain'
 import { ListingRecordProvider } from './ListingRecordProvider'
 import type { ProjectStructureRenderStore } from './project-structure-render-store'
+import { useSmartFilterRuntimeStore } from './smart-filter-runtime-context'
 
 export interface ListingGridRuntimeProps {
   readonly nodeId: string
@@ -35,8 +39,8 @@ function slotTemplate(slots: Readonly<Record<string, readonly ReactNode[]>>): re
 
 function RuntimeState({ message, tone = 'neutral' }: { readonly message: string; readonly tone?: 'neutral' | 'danger' }) {
   const className = tone === 'danger'
-    ? 'rounded-md border border-red-300 bg-red-50 p-4 text-xs text-red-700'
-    : 'rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500'
+    ? 'rounded-md border border-danger/40 bg-danger/10 p-4 text-xs text-danger'
+    : 'rounded-md border border-dashed border-border bg-muted/20 p-4 text-center text-xs text-muted-foreground'
   return <div className={className} role={tone === 'danger' ? 'alert' : 'status'}>{message}</div>
 }
 
@@ -44,15 +48,32 @@ export function ListingGridRuntime({ nodeId, properties, slots, store }: Listing
   const queryId = textProperty(properties, 'queryId').trim()
   const columns = Math.max(1, Math.min(12, Math.trunc(numberProperty(properties, 'columns', 3))))
   const emptyMessage = textProperty(properties, 'emptyMessage', 'Sin resultados')
-  const [page, setPage] = useState(1)
+  const filterStore = useSmartFilterRuntimeStore()
   const subscribe = useCallback((listener: () => void) => store.subscribeStructure(listener), [store])
   const getCms = useCallback(() => store.structure.cms, [store])
   const cms = useSyncExternalStore(subscribe, getCms, getCms)
+  const subscribeFilters = useCallback((listener: () => void) => filterStore.subscribe(queryId, listener), [filterStore, queryId])
+  const getFilters = useCallback(() => filterStore.getSnapshot(queryId), [filterStore, queryId])
+  const filterSnapshot = useSyncExternalStore(subscribeFilters, getFilters, getFilters)
   const template = slotTemplate(slots)
-  const listing = useMemo(
-    () => cms && queryId ? executeCmsListing(cms, { page, queryId }) : null,
-    [cms, page, queryId],
-  )
+  const listing = useMemo(() => {
+    if (!cms || !queryId) return null
+    const composed = composeSmartFilteredQuery(cms, queryId, filterSnapshot.activeFilters)
+    if (!composed.ok) return composed
+    const pageSize = Math.min(1_000, composed.value.query.pageSize * filterSnapshot.loadMoreMultiplier)
+    return executeCmsListingQuery(cms, composed.value.query, { page: filterSnapshot.page, pageSize })
+  }, [cms, filterSnapshot.activeFilters, filterSnapshot.loadMoreMultiplier, filterSnapshot.page, queryId])
+
+  useEffect(() => {
+    if (!listing?.ok) return
+    filterStore.setResultMeta(queryId, {
+      count: listing.value.totalMatched,
+      hasNextPage: listing.value.hasNextPage,
+      page: listing.value.page,
+      pageCount: listing.value.pageCount,
+      pageSize: listing.value.pageSize,
+    })
+  }, [filterStore, listing, queryId])
 
   if (!queryId) return <RuntimeState message="Selecciona una consulta guardada para este listing." />
   if (!cms) return <RuntimeState message="El proyecto no tiene un backend CMS disponible." tone="danger" />
@@ -63,7 +84,13 @@ export function ListingGridRuntime({ nodeId, properties, slots, store }: Listing
   const hasTemplate = template.length > 0
 
   return (
-    <section aria-label="Listado de contenido" data-listing-page={result.page} data-listing-query={result.queryId} data-listing-runtime={nodeId}>
+    <section
+      aria-label="Listado de contenido"
+      data-listing-active-filters={filterSnapshot.activeFilters.length}
+      data-listing-page={result.page}
+      data-listing-query={result.queryId}
+      data-listing-runtime={nodeId}
+    >
       {result.records.length > 0 ? (
         hasTemplate ? (
           <div className="grid min-w-0 gap-3" role="list" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
@@ -77,10 +104,10 @@ export function ListingGridRuntime({ nodeId, properties, slots, store }: Listing
       ) : <RuntimeState message={emptyMessage} />}
 
       {result.pageCount > 1 ? (
-        <nav aria-label="Paginación del listado" className="mt-3 flex min-h-11 items-center justify-between gap-2 rounded-md border border-slate-200 bg-white p-1.5 text-xs">
-          <button className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasPreviousPage} onClick={() => setPage((current) => Math.max(1, current - 1))} type="button">Anterior</button>
-          <span aria-live="polite" className="min-w-0 truncate px-2 font-semibold text-slate-600">Página {result.page} de {result.pageCount} · {result.availableCount} elementos</span>
-          <button className="min-h-11 rounded-md border border-slate-200 px-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasNextPage} onClick={() => setPage((current) => Math.min(result.pageCount, current + 1))} type="button">Siguiente</button>
+        <nav aria-label="Paginación del listado" className="mt-3 flex min-h-11 items-center justify-between gap-2 rounded-md border border-border bg-surface p-1.5 text-xs">
+          <button className="min-h-11 rounded-md border border-border px-3 font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasPreviousPage} onClick={() => filterStore.setPage(queryId, result.page - 1)} type="button">Anterior</button>
+          <span aria-live="polite" className="min-w-0 truncate px-2 font-semibold text-muted-foreground">Página {result.page} de {result.pageCount} · {result.availableCount} elementos</span>
+          <button className="min-h-11 rounded-md border border-border px-3 font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-40" disabled={!result.hasNextPage} onClick={() => filterStore.setPage(queryId, result.page + 1)} type="button">Siguiente</button>
         </nav>
       ) : null}
     </section>
