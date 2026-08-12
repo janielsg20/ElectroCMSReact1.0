@@ -5,6 +5,7 @@ export type SmartFilterApplyMode = 'realtime' | 'apply'
 export interface SmartFilterRegistration {
   readonly applyMode: SmartFilterApplyMode
   readonly dateField?: 'createdAt' | 'updatedAt'
+  readonly debounceMs: number
   readonly fieldId?: string
   readonly initialValue: JsonValue
   readonly kind: SmartFilterKind
@@ -51,6 +52,10 @@ const EMPTY_SNAPSHOT: SmartFilterQuerySnapshot = Object.freeze({
 
 function storageKey(registration: SmartFilterRegistration): string {
   return `electrocms.smart-filter.v1:${registration.queryId}:${registration.nodeId}`
+}
+
+function timerKey(queryId: string, nodeId: string): string {
+  return `${queryId}:${nodeId}`
 }
 
 function defaultUrlKey(registration: SmartFilterRegistration): string {
@@ -123,7 +128,7 @@ function activeFilter(entry: SmartFilterRuntimeEntry): SmartFilterInput | null {
   if (isEmptyValue(entry.applied)) return null
   const registration = entry.registration
   return {
-    dateField: registration.dateField,
+    ...(registration.dateField ? { dateField: registration.dateField } : {}),
     fieldId: registration.fieldId || null,
     id: registration.nodeId,
     kind: registration.kind,
@@ -134,6 +139,7 @@ function activeFilter(entry: SmartFilterRuntimeEntry): SmartFilterInput | null {
 
 export class SmartFilterRuntimeStore {
   private readonly listeners = new Map<string, Set<() => void>>()
+  private readonly pending = new Map<string, ReturnType<typeof setTimeout>>()
   private readonly snapshots = new Map<string, SmartFilterQuerySnapshot>()
 
   getSnapshot(queryId: string): SmartFilterQuerySnapshot {
@@ -156,10 +162,11 @@ export class SmartFilterRuntimeStore {
     const existing = current.entries[registration.nodeId]
     if (existing && JSON.stringify(existing.registration) === JSON.stringify(registration)) return
 
+    this.cancelPending(registration.queryId, registration.nodeId)
     const initial = existing?.applied ?? readInitialValue(registration)
     const entry: SmartFilterRuntimeEntry = {
       applied: initial,
-      draft: initial,
+      draft: existing?.draft ?? initial,
       registration,
     }
     this.publish(registration.queryId, {
@@ -170,6 +177,7 @@ export class SmartFilterRuntimeStore {
   }
 
   unregister(queryId: string, nodeId: string): void {
+    this.cancelPending(queryId, nodeId)
     const current = this.snapshots.get(queryId)
     if (!current?.entries[nodeId]) return
     const entries = { ...current.entries }
@@ -181,22 +189,38 @@ export class SmartFilterRuntimeStore {
     const current = this.getSnapshot(queryId)
     const entry = current.entries[nodeId]
     if (!entry || sameJson(entry.draft, value)) return
-    const commit = entry.registration.applyMode === 'realtime'
-    const nextEntry: SmartFilterRuntimeEntry = {
-      ...entry,
-      applied: commit ? value : entry.applied,
-      draft: value,
+
+    if (entry.registration.applyMode !== 'realtime') {
+      this.publish(queryId, {
+        ...current,
+        entries: { ...current.entries, [nodeId]: { ...entry, draft: value } },
+      })
+      return
     }
+
+    const debounceMs = Math.max(0, Math.trunc(entry.registration.debounceMs))
+    if (debounceMs === 0) {
+      this.cancelPending(queryId, nodeId)
+      this.commitRealtime(queryId, nodeId, value)
+      return
+    }
+
+    this.cancelPending(queryId, nodeId)
     this.publish(queryId, {
       ...current,
-      entries: { ...current.entries, [nodeId]: nextEntry },
-      loadMoreMultiplier: commit ? 1 : current.loadMoreMultiplier,
-      page: commit ? 1 : current.page,
+      entries: { ...current.entries, [nodeId]: { ...entry, draft: value } },
     })
-    if (commit) persistApplied(entry.registration, value)
+    const handle = setTimeout(() => {
+      this.pending.delete(timerKey(queryId, nodeId))
+      const latest = this.getSnapshot(queryId).entries[nodeId]
+      if (!latest) return
+      this.commitRealtime(queryId, nodeId, latest.draft)
+    }, debounceMs)
+    this.pending.set(timerKey(queryId, nodeId), handle)
   }
 
   apply(queryId: string, nodeId: string): void {
+    this.cancelPending(queryId, nodeId)
     const current = this.getSnapshot(queryId)
     const entry = current.entries[nodeId]
     if (!entry || sameJson(entry.applied, entry.draft)) return
@@ -230,6 +254,7 @@ export class SmartFilterRuntimeStore {
   reset(queryId: string): void {
     const current = this.getSnapshot(queryId)
     const entries = Object.fromEntries(Object.entries(current.entries).map(([nodeId, entry]) => {
+      this.cancelPending(queryId, nodeId)
       const value = entry.registration.initialValue
       persistApplied(entry.registration, value)
       return [nodeId, { ...entry, applied: value, draft: value }]
@@ -247,6 +272,27 @@ export class SmartFilterRuntimeStore {
       && current.meta.pageSize === meta.pageSize
     ) return
     this.publish(queryId, { ...current, meta })
+  }
+
+  private cancelPending(queryId: string, nodeId: string): void {
+    const key = timerKey(queryId, nodeId)
+    const pending = this.pending.get(key)
+    if (pending !== undefined) clearTimeout(pending)
+    this.pending.delete(key)
+  }
+
+  private commitRealtime(queryId: string, nodeId: string, value: JsonValue): void {
+    const current = this.getSnapshot(queryId)
+    const entry = current.entries[nodeId]
+    if (!entry || (sameJson(entry.applied, value) && sameJson(entry.draft, value))) return
+    const nextEntry: SmartFilterRuntimeEntry = { ...entry, applied: value, draft: value }
+    this.publish(queryId, {
+      ...current,
+      entries: { ...current.entries, [nodeId]: nextEntry },
+      loadMoreMultiplier: 1,
+      page: 1,
+    })
+    persistApplied(entry.registration, value)
   }
 
   private publish(queryId: string, input: Omit<SmartFilterQuerySnapshot, 'activeFilters' | 'revision'>): void {
