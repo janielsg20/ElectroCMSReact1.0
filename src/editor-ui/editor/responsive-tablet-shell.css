@@ -182,6 +182,46 @@
   }
 }
 
+@media (pointer: coarse) and (min-width: 48rem) and (max-width: 63.999rem) {
+  .m04-tablet-shell[data-tablet-shell="active"] .app-navigation > div > div:nth-child(2) {
+    padding-inline: 0 !important;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .nav-option {
+    width: 44px !important;
+    min-width: 44px !important;
+    padding-inline: 0 !important;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .canvas-toolbar [aria-label="Viewport del documento"] {
+    max-width: min(30rem, calc(100vw - 14rem));
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .canvas-toolbar [aria-label="Viewport del documento"] > button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 44px;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .canvas-toolbar #active-breakpoint {
+    min-height: 44px !important;
+    flex: 0 0 auto;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .library-panel [role="tab"] {
+    min-height: 44px !important;
+  }
+
+  .m04-tablet-shell[data-tablet-shell="active"] .layer-option,
+  .m04-tablet-shell[data-tablet-shell="active"] .layer-option > button {
+    min-height: 44px !important;
+  }
+}
+
 @media (orientation: portrait) and (min-width: 48rem) and (max-width: 63.999rem) {
   .tablet-context-panel {
     box-shadow: 6px 0 14px rgb(15 23 42 / 0.05);
