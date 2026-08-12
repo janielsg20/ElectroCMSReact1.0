@@ -43,7 +43,7 @@ async function renderRecords() {
       <ProjectDataPanel />
     </EditorProjectContext>,
   )
-  fireEvent.click(screen.getByRole('tab', { name: 'Registros' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Registros y relaciones' }))
   return session
 }
 
