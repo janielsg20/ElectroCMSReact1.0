@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react'
 
 interface WidgetMediaPlayerProps {
   readonly kind: 'audio' | 'video'
@@ -80,13 +80,13 @@ export function WidgetMediaPlayer({ kind, label = '', source, showControls = tru
   }
 
   const mediaEvents = {
-    onDurationChange: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onEnded: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onLoadedMetadata: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onPause: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onPlay: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onTimeUpdate: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
-    onVolumeChange: (event: React.SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onDurationChange: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onEnded: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onLoadedMetadata: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onPause: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onPlay: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onTimeUpdate: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
+    onVolumeChange: (event: SyntheticEvent<HTMLMediaElement>) => sync(event.currentTarget),
   }
 
   return (
