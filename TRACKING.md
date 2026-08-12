@@ -27,16 +27,17 @@ Actualizado: 2026-08-12.
 
 ## Arquitectura de navegación CMS/builder vigente
 
-- Navegación principal: `Editor | Documentos | Contenido | Diseño`.
+- Navegación principal orientada a tareas: grupos `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
 - `Capas` contiene exclusivamente el árbol/estructura del documento actual.
 - `Widgets` contiene exclusivamente la biblioteca insertable.
-- `Inspector` contiene propiedades y configuración del nodo seleccionado, incluidos bindings dinámicos.
-- `Contenido` es el workspace global para CPT, taxonomías, campos, registros/relaciones, consultas y los gestores globales que correspondan a fases posteriores.
-- `Diseño` contiene temas y paquetes exportables.
-- `Documentos` contiene documentos/plantillas del proyecto.
+- `Inspector` contiene propiedades del elemento seleccionado, incluidos datos dinámicos, con ayuda contextual y sin exponer claves internas como lenguaje principal.
+- `Contenido` es el workspace global para tipos de contenido, clasificaciones, campos, entradas/relaciones, consultas y gestores globales de fases posteriores.
+- `Diseño` contiene apariencia global, temas y paquetes exportables.
+- `Páginas` contiene páginas y plantillas del proyecto.
 - Móvil: `Widgets | Capas | Canvas | Props | Más`; `Más` abre módulos globales.
 - Tablet: los paneles contextuales de Capas/Inspector se retiran al abrir un módulo global.
 - Nunca insertar gestores globales de proyecto dentro de Capas o Widgets.
+- Regla transversal: `UX_SIMPLICITY_SYSTEM.md` exige divulgación progresiva, vocabulario de usuario y ayuda `ⓘ` con referencia funcional WordPress/Elementor/ACF/JetEngine cuando corresponda.
 
 ## F09 completada
 
@@ -131,7 +132,20 @@ Reglas de implementación:
 - Mapeo visual de controles a campos personalizados compatibles.
 - Layout y orden deben ser canónicos y exportables; no guardar geometría efímera de UI en el proyecto.
 - Mantener High Density + Minimal Clean: ~36 px escritorio y >=44 px en superficies táctiles.
+- Aplicar `UX_SIMPLICITY_SYSTEM.md`: flujo común primero, opciones avanzadas colapsadas, referencias funcionales conocidas y ningún término interno obligatorio para completar tareas normales.
 - No iniciar M11.2 (validación/condiciones) antes del gate completo de M11.1.
+
+### Implementación en curso
+
+- `form-builder-engine.ts`: CRUD, orden y mapping canónico de controles sobre `ProjectStructure.cms.forms`.
+- Pruebas dedicadas del motor; corregido fixture para usar `routePath` canónico.
+- Primitive `HelpTip` con icono `info`, teclado/puntero/touch y referencia funcional.
+- Catálogo `feature-help.ts` para Editor, Páginas, Contenido, Diseño, tipos, clasificaciones, campos, entradas/relaciones, consultas e Inspector.
+- Navegación reescrita por intención: `Crear | Administrar | Apariencia`.
+- `ProjectDataPanel` usa nombres orientados a resultados y ayuda contextual.
+- Inspector elimina `field.key`, `Binding`, `Nodo/Predeterminado` como vocabulario principal y usa `Dato dinámico`, `Personalizado/Global`, `Guardar/Restablecer`.
+- `ContentTypeManager` aplica divulgación progresiva: configuración esencial visible y permisos/soportes/visibilidad/plantillas dentro de `Opciones avanzadas`, sin pérdida funcional.
+- `UX_SIMPLICITY_SYSTEM.md` y `AGENTS.md` hacen esta dirección obligatoria para las fases siguientes.
 
 ## Bloqueos
 
@@ -140,12 +154,12 @@ Reglas de implementación:
 
 ## Regla de avance
 
-No cambiar de microfase sin evidencia reproducible verde. Desde F09, una fase tampoco se cierra sin auditoría visual real en navegador de la aplicación compilada y corrección de inconsistencias UI/UX/layout detectadas.
+No cambiar de microfase sin evidencia reproducible verde. Desde F09, una fase tampoco se cierra sin auditoría visual real en navegador de la aplicación compilada y corrección de inconsistencias UI/UX/layout detectadas. La auditoría debe comprobar además que los flujos comunes no requieren comprender nombres técnicos internos.
 
 ## Documentos de control
 
 - Alcance: `PROMPT_MAESTRO_ELECTROCMS.md` y `FLUTTERFLOW_PARITY_ADDENDUM.md`.
-- Reglas: `RULES.md`.
+- Reglas: `RULES.md` y `UX_SIMPLICITY_SYSTEM.md`.
 - Plan: `PHASES.md` y `DETAILED_EXECUTION_PHASES.md`.
 - Memoria corta: `MEMORY.md`.
 - Temas: `THEME_SYSTEM.md`; paquetes: `THEME_PACKAGE_SYSTEM.md`.
