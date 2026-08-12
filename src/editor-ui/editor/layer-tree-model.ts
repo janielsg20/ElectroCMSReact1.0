@@ -32,6 +32,40 @@ export function buildLayerTreeEntries(document: Document): readonly LayerTreeEnt
   return entries
 }
 
+export function hasLayerChildren(entry: LayerTreeEntry): boolean {
+  return Object.values(entry.node.slots).some((children) => children.length > 0)
+}
+
+export function layerAncestorIds(
+  entry: LayerTreeEntry,
+  entries: readonly LayerTreeEntry[],
+): readonly NodeId[] {
+  const entryById = new Map(entries.map((candidate) => [candidate.node.id, candidate]))
+  const ancestors: NodeId[] = []
+  let parentId = entry.parentId
+  while (parentId) {
+    ancestors.push(parentId)
+    parentId = entryById.get(parentId)?.parentId ?? null
+  }
+  return ancestors
+}
+
+export function visibleLayerTreeEntries(
+  entries: readonly LayerTreeEntry[],
+  collapsedIds: ReadonlySet<NodeId>,
+): readonly LayerTreeEntry[] {
+  if (collapsedIds.size === 0) return entries
+  const entryById = new Map(entries.map((entry) => [entry.node.id, entry]))
+  return entries.filter((entry) => {
+    let parentId = entry.parentId
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return false
+      parentId = entryById.get(parentId)?.parentId ?? null
+    }
+    return true
+  })
+}
+
 export function placementRelativeTo(
   target: LayerTreeEntry,
   relation: MoveRelation,
