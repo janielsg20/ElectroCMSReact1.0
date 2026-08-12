@@ -9,10 +9,10 @@ describe('arquitectura de navegación CMS/builder', () => {
 
   it('reserva Capas para estructura y Widgets para inserción', () => {
     render(<App />)
-    const library = screen.getByRole('complementary', { name: /estructura y widgets del documento/i })
+    const library = screen.getByRole('complementary', { name: /capas y widgets del editor/i })
     expect(within(library).getByRole('tab', { name: 'Capas' })).toBeInTheDocument()
     expect(within(library).getByRole('tab', { name: 'Widgets' })).toBeInTheDocument()
-    expect(within(library).queryByRole('tab', { name: /documentos|datos|diseño/i })).not.toBeInTheDocument()
+    expect(within(library).queryByRole('tab', { name: /documentos|datos|diseño|contenido/i })).not.toBeInTheDocument()
   })
 
   it('expone las funciones de proyecto desde la navegación principal', () => {
@@ -26,11 +26,16 @@ describe('arquitectura de navegación CMS/builder', () => {
 
   it('abre Contenido como módulo principal sin contaminar el panel de capas', () => {
     render(<App />)
+    const library = screen.getByRole('complementary', { name: /capas y widgets del editor/i })
+    expect(within(library).queryByRole('tab', { name: /datos|contenido/i })).not.toBeInTheDocument()
+
     fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
-    expect(screen.getByRole('region', { name: /contenido cms · módulo principal/i })).toBeInTheDocument()
-    expect(screen.getByRole('tablist', { name: /datos del proyecto/i })).toBeInTheDocument()
-    const library = screen.getByRole('complementary', { name: /estructura y widgets del documento/i })
-    expect(within(library).queryByRole('tab', { name: /datos/i })).not.toBeInTheDocument()
+    const cms = screen.getByRole('region', { name: /contenido cms · módulo principal/i })
+    expect(cms).toBeInTheDocument()
+    expect(within(cms).getByRole('tablist', { name: /datos del proyecto/i })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: 'Tipos' })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: 'Campos' })).toBeInTheDocument()
+    expect(within(cms).getByRole('tab', { name: /registros y relaciones/i })).toBeInTheDocument()
   })
 
   it('mantiene el ajuste real de anchura del rail', () => {
