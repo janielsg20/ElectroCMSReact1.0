@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { Icon } from './Icon'
 
 export interface HelpTipProps {
@@ -29,31 +29,19 @@ export function HelpTip({ description, example, label, reference }: HelpTipProps
   const contentRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<number | null>(null)
 
-  function clearCloseTimer(): void {
+  const clearCloseTimer = useCallback((): void => {
     if (closeTimerRef.current === null) return
     window.clearTimeout(closeTimerRef.current)
     closeTimerRef.current = null
-  }
+  }, [])
 
-  function close(): void {
+  const close = useCallback((): void => {
     clearCloseTimer()
     setPinned(false)
     setOpen(false)
-  }
+  }, [clearCloseTimer])
 
-  function scheduleHoverClose(): void {
-    if (pinned) return
-    clearCloseTimer()
-    closeTimerRef.current = window.setTimeout(() => setOpen(false), 100)
-  }
-
-  function openOnHover(): void {
-    if (typeof window !== 'undefined' && window.matchMedia?.('(hover: hover)').matches === false) return
-    clearCloseTimer()
-    setOpen(true)
-  }
-
-  function updatePosition(): void {
+  const updatePosition = useCallback((): void => {
     const trigger = triggerRef.current
     const content = contentRef.current
     if (!trigger || !content) return
@@ -83,7 +71,19 @@ export function HelpTip({ description, example, label, reference }: HelpTipProps
     }
     const availableHeight = Math.max(120, window.innerHeight - top - VIEWPORT_PADDING)
     setPosition({ left, maxHeight: Math.min(maxHeight, availableHeight), top, width })
-  }
+  }, [])
+
+  const scheduleHoverClose = useCallback((): void => {
+    if (pinned) return
+    clearCloseTimer()
+    closeTimerRef.current = window.setTimeout(() => setOpen(false), 100)
+  }, [clearCloseTimer, pinned])
+
+  const openOnHover = useCallback((): void => {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(hover: hover)').matches === false) return
+    clearCloseTimer()
+    setOpen(true)
+  }, [clearCloseTimer])
 
   useLayoutEffect(() => {
     if (!open) return
@@ -94,7 +94,7 @@ export function HelpTip({ description, example, label, reference }: HelpTipProps
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [open])
+  }, [open, updatePosition])
 
   useEffect(() => {
     if (!open) return
@@ -106,9 +106,11 @@ export function HelpTip({ description, example, label, reference }: HelpTipProps
     }
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
-  }, [open])
+  }, [close, open])
 
-  useEffect(() => () => clearCloseTimer(), [])
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current)
+  }, [])
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>): void {
     if (event.key !== 'Escape') return
