@@ -76,6 +76,8 @@ describe('M09.2 gestor de clasificaciones', () => {
 
     expect(await options.findByText(/Arte creado/i)).toBeInTheDocument()
     expect(Object.values(session.store.structure.cms?.taxonomyTerms ?? {})).toHaveLength(1)
+    await waitFor(() => expect(options.getByRole('button', { name: 'Eliminar opción' })).toBeEnabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Eliminar' })).toBeEnabled())
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
@@ -93,6 +95,7 @@ describe('M09.2 gestor de clasificaciones', () => {
     const classificationTab = screen.getByRole('tab', { name: 'Clasificaciones' })
     expect(classificationTab).toHaveClass('min-h-11', 'lg:min-h-9')
     expect(classificationTab).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva' }))
     expect(screen.getByRole('checkbox', { name: /Artículos/i })).toHaveAttribute('aria-checked', 'true')
     expect(screen.queryByText(/CPT/i)).not.toBeInTheDocument()
 
