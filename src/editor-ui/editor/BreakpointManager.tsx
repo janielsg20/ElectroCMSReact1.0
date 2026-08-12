@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import type { Breakpoint, BreakpointId, BreakpointInput } from '../../domain'
-import { Button, Icon } from '../primitives'
+import { Button, HelpTip, Icon } from '../primitives'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
 
 interface BreakpointManagerProps {
@@ -25,7 +26,7 @@ interface BreakpointDraft {
 function draftFromBreakpoint(breakpoint?: Breakpoint): BreakpointDraft {
   return breakpoint
     ? { inheritsFrom: breakpoint.inheritsFrom ?? '', name: breakpoint.name, orientation: breakpoint.orientation, width: String(breakpoint.width) }
-    : { inheritsFrom: '', name: 'Nuevo breakpoint', orientation: 'any', width: '900' }
+    : { inheritsFrom: '', name: 'Nuevo tamaño', orientation: 'any', width: '900' }
 }
 
 function BreakpointForm({ breakpoint, breakpoints, onCreated, onStatus }: BreakpointFormProps) {
@@ -88,7 +89,7 @@ function BreakpointForm({ breakpoint, breakpoints, onCreated, onStatus }: Breakp
         </select>
       </label>
       {error ? <p className="rounded bg-danger-soft px-2 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
-      <Button disabled={pending} size="small" type="submit">{pending ? 'Guardando…' : breakpoint ? 'Guardar cambios' : 'Crear breakpoint'}</Button>
+      <Button disabled={pending} size="small" type="submit">{pending ? 'Guardando…' : breakpoint ? 'Guardar cambios' : 'Crear tamaño'}</Button>
     </form>
   )
 }
@@ -171,22 +172,22 @@ export function BreakpointManager({ activeBreakpointId, onActiveBreakpointChange
 
   return (
     <>
-      <label className="sr-only" htmlFor="active-breakpoint">Breakpoint activo</label>
+      <label className="sr-only" htmlFor="active-breakpoint">Tamaño de pantalla activo</label>
       <select className="hidden h-8 max-w-44 rounded-md border border-border bg-surface px-1 text-[0.625rem] font-semibold text-foreground sm:block" id="active-breakpoint" onChange={(event) => onActiveBreakpointChange(event.target.value as BreakpointId)} value={activeBreakpointId}>
         {breakpoints.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.width}px</option>)}
       </select>
-      <button aria-label="Administrar breakpoints" className="grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:size-8" onClick={() => { setEditingId(activeBreakpointId); setOpen(true) }} ref={triggerRef} type="button"><Icon name="settings" size={14} /></button>
-      {open ? (
+      <button aria-label="Configurar tamaños de pantalla" className="grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:size-8" onClick={() => { setEditingId(activeBreakpointId); setOpen(true) }} ref={triggerRef} type="button"><Icon name="settings" size={14} /></button>
+      {open ? createPortal(
         <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/45 p-3" role="presentation">
           <section aria-label="Administrador de breakpoints" aria-modal="true" className="flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-surface text-left shadow-2xl" onKeyDown={trapFocus} ref={dialogRef} role="dialog" tabIndex={-1}>
-            <header className="flex min-h-12 items-center justify-between border-b border-border px-3">
-              <div><h2 className="text-sm font-bold">Breakpoints</h2><p className="text-[0.625rem] text-muted-foreground">Orden, herencia y preview canónicos.</p></div>
+            <header className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-3">
+              <div className="min-w-0"><div className="flex items-center gap-1"><h2 className="text-sm font-bold">Tamaños de pantalla</h2><HelpTip description="Define los tamaños que usarás para revisar y ajustar el diseño en móvil, tablet y escritorio. Los cambios se aplican a la misma página." example="Crea un tamaño de 768 px para comprobar el diseño de una tablet vertical." label="Tamaños de pantalla" reference="Elementor — Responsive Mode" /></div><p className="text-[0.625rem] text-muted-foreground">Ordena las vistas y decide de cuál heredan sus ajustes.</p></div>
               <Button aria-label="Cerrar administrador de breakpoints" onClick={close} size="icon" variant="ghost"><Icon name="close" size={15} /></Button>
             </header>
             <div className="grid min-h-0 flex-1 md:grid-cols-[15rem_1fr]">
               <div className="min-h-0 overflow-y-auto border-b border-border p-2 md:border-b-0 md:border-r">
-                <button className={`mb-1 min-h-9 w-full rounded-md border px-2 text-left text-xs font-semibold ${editingId === 'new' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border hover:bg-muted'}`} onClick={() => setEditingId('new')} type="button">+ Nuevo breakpoint</button>
-                <ol className="grid gap-1" aria-label="Orden de breakpoints">
+                <button className={`mb-1 min-h-9 w-full rounded-md border px-2 text-left text-xs font-semibold ${editingId === 'new' ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border hover:bg-muted'}`} onClick={() => setEditingId('new')} type="button">+ Añadir tamaño</button>
+                <ol className="grid gap-1" aria-label="Orden de tamaños de pantalla">
                   {breakpoints.map((item, index) => (
                     <li key={item.id}><button aria-current={editingId === item.id ? 'true' : undefined} className={`min-h-11 w-full rounded-md border px-2 text-left ${editingId === item.id ? 'border-primary bg-primary-soft' : 'border-border hover:bg-muted'}`} onClick={() => { setEditingId(item.id); onActiveBreakpointChange(item.id) }} type="button"><span className="block truncate text-xs font-bold">{index + 1}. {item.name}</span><span className="text-[0.625rem] text-muted-foreground">{item.width}px · {item.orientation}</span></button></li>
                   ))}
@@ -196,7 +197,7 @@ export function BreakpointManager({ activeBreakpointId, onActiveBreakpointChange
                 <div className="mb-2 flex flex-wrap gap-1">
                   <Button disabled={!editing || breakpoints.indexOf(editing) === 0} onClick={() => { void move(-1) }} size="small" variant="secondary">↑ Subir</Button>
                   <Button disabled={!editing || breakpoints.indexOf(editing) === breakpoints.length - 1} onClick={() => { void move(1) }} size="small" variant="secondary">↓ Bajar</Button>
-                  <Button disabled={!selectedNodeId || !hasOverride} onClick={() => { void resetOverride() }} size="small" variant="secondary">Reset override activo</Button>
+                  <Button disabled={!selectedNodeId || !hasOverride} onClick={() => { void resetOverride() }} size="small" variant="secondary">Restablecer ajuste de este elemento</Button>
                 </div>
                 <BreakpointForm breakpoint={editing} breakpoints={breakpoints} key={editing?.id ?? 'new'} onCreated={created} onStatus={setStatus} />
                 {error ? <p className="mt-2 rounded bg-danger-soft px-2 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
@@ -204,7 +205,8 @@ export function BreakpointManager({ activeBreakpointId, onActiveBreakpointChange
               </div>
             </div>
           </section>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   )

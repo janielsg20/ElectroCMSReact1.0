@@ -67,7 +67,7 @@ function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSel
       style={style}
     >
       <div
-        className={`layer-option flex min-h-11 items-center gap-1 rounded-md pr-1 text-xs transition-[background-color,color,box-shadow] lg:min-h-9 ${selected ? 'layer-option--selected bg-primary-soft font-semibold text-primary-strong' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+        className={`layer-option layer-option--depth-${Math.min(entry.depth, 6)} flex min-h-11 items-center gap-1 rounded-md pr-1 text-xs transition-[background-color,color,box-shadow] lg:min-h-9 ${selected ? 'layer-option--selected bg-primary-soft font-semibold text-primary-strong' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
         data-selected={selected ? 'true' : 'false'}
         style={{ paddingLeft: `${4 + entry.depth * 10}px` }}
       >
@@ -85,7 +85,7 @@ function SortableLayer({ activeId, entry, insertion, selected, onOpenMove, onSel
         <button className="flex min-h-9 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus" onClick={() => onSelect(entry.node.id)} type="button">
           <Icon name={nodeIcon(entry)} size={14} />
           <span className="truncate">{entry.node.name}</span>
-          {entry.node.hidden ? <span className="sr-only">Oculta</span> : null}
+          {entry.node.hidden ? <><Icon name="eye" size={12} /><span className="sr-only">Oculta</span></> : null}
         </button>
         <button
           aria-expanded={activeId === entry.node.id}

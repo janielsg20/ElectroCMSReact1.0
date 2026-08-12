@@ -93,7 +93,7 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
 
   it('elige el breakpoint representativo de cada modo sin anunciar un ancho ficticio', () => {
     render(<CanvasHarness />)
-    const breakpointSelect = screen.getByLabelText('Breakpoint activo')
+    const breakpointSelect = screen.getByLabelText('Tamaño de pantalla activo')
     const mobile = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Móvil pequeño')
     const tablet = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Tablet vertical')
     const desktop = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Desktop')
@@ -107,6 +107,13 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Escritorio' }))
     expect(breakpointSelect).toHaveValue(desktop?.id)
+  })
+
+  it('presenta la configuración responsive con lenguaje de usuario', () => {
+    render(<CanvasHarness />)
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar tamaños de pantalla' }))
+    expect(screen.getByRole('dialog', { name: 'Administrador de breakpoints' })).toHaveTextContent('Tamaños de pantalla')
+    expect(screen.getByRole('button', { name: 'Información: Tamaños de pantalla' })).toBeInTheDocument()
   })
 
   it('mueve el foco de forma explícita entre capas, canvas e inspector', async () => {

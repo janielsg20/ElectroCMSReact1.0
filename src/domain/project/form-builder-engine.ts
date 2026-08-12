@@ -34,7 +34,7 @@ export interface FormBuilderDiagnostic {
 
 export type FormEditablePatch = Partial<Pick<Form, 'name' | 'contentTypeId'>>
 export type FormControlEditablePatch = Partial<Pick<FormControl,
-  'name' | 'label' | 'type' | 'mappedFieldId'
+  'name' | 'label' | 'type' | 'mappedFieldId' | 'required'
 >>
 
 function diagnostic(

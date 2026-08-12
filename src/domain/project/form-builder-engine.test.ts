@@ -141,10 +141,10 @@ describe('M11.1 form builder engine', () => {
     if (!reordered.ok) return
     expect(reordered.value.cms?.forms[formId]?.steps[0]?.controlIds).toEqual([secondControlId, firstControlId])
 
-    const updated = updateFormControl(reordered.value, formId, secondControlId, { label: 'Unidades', name: 'units' })
+    const updated = updateFormControl(reordered.value, formId, secondControlId, { label: 'Unidades', name: 'units', required: true })
     expect(updated.ok).toBe(true)
     if (!updated.ok) return
-    expect(updated.value.cms?.forms[formId]?.controls[secondControlId]).toMatchObject({ label: 'Unidades', name: 'units' })
+    expect(updated.value.cms?.forms[formId]?.controls[secondControlId]).toMatchObject({ label: 'Unidades', name: 'units', required: true })
 
     const removed = removeFormControl(updated.value, formId, firstControlId)
     expect(removed.ok).toBe(true)

@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { createCompleteWidgetRegistry, type WidgetCategory, type WidgetDefinition } from '../../domain'
-import { Icon } from '../primitives'
+import { HelpTip, Icon } from '../primitives'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
 import { WidgetLibraryCard } from './WidgetLibraryCard'
@@ -150,7 +150,10 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
             </div>
           </section>
           <section aria-labelledby="layers-title" className="p-1.5 lg:p-1">
-            <h2 className="flex min-h-9 items-center gap-1 px-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={13} />Árbol canónico</h2>
+            <div className="flex min-h-9 items-center gap-1 px-1">
+              <h2 className="flex items-center gap-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={13} />Estructura de la página</h2>
+              <HelpTip description="Muestra los contenedores y widgets en el mismo orden en que se crean en la página. Selecciona una fila para editarla; usa el control de puntos para moverla sin arrastrar." example="Un título dentro de una sección aparece sangrado bajo esa sección." label="Estructura de la página" reference="Elementor — Navigator" />
+            </div>
             <CanonicalLayerTree />
           </section>
         </div>
@@ -158,8 +161,8 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
         <div aria-labelledby="library-tab-widgets" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-widgets" role="tabpanel">
           <div className="mb-2 flex items-start justify-between gap-1 lg:mb-1.5">
             <span className="min-w-0">
-              <strong className="block text-xs leading-4 text-primary">Biblioteca</strong>
-              <span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} widgets registrados</span>
+              <span className="flex items-center gap-0.5"><strong className="block text-xs leading-4 text-primary">Widgets</strong><HelpTip description="Elige una pieza para añadirla al elemento seleccionado del lienzo. Puedes insertarla con el botón o arrastrarla usando el control de cuatro direcciones." example="Añade un Contenedor antes de colocar un título, una imagen y un botón dentro." label="Biblioteca de widgets" reference="Elementor — Panel de widgets" /></span>
+              <span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} elementos disponibles por categoría</span>
             </span>
             <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button">Guardar</button>
           </div>

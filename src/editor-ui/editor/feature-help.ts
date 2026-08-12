@@ -105,6 +105,12 @@ export const FORM_HELP = {
     description: 'Define el orden en que las personas verán los campos. Puedes moverlos arriba o abajo sin arrastrar.',
     reference: 'JetFormBuilder / Elementor Forms — Orden de campos',
   },
+  required: {
+    label: 'Campo obligatorio',
+    description: 'Impide enviar el formulario mientras este campo esté vacío. Actívalo solo cuando la respuesta sea necesaria para procesar la solicitud.',
+    reference: 'JetFormBuilder / Elementor Forms — Required field',
+    example: 'El correo puede ser obligatorio para poder responder al usuario.',
+  },
 } as const satisfies Readonly<Record<string, FeatureHelp>>
 
 const FIELD_HELP_BY_KEY: Readonly<Record<string, FeatureHelp>> = {

@@ -46,6 +46,8 @@ describe('M06.5 UX de biblioteca', () => {
     expect(WIDGET_LIBRARY_DRAG_POLICY).toEqual({ pointerDistance: 6, touchDelay: 180, touchTolerance: 6 })
     expect(screen.getByRole('button', { name: 'Arrastrar Título H1–H6 al canvas' })).toHaveAttribute('tabindex', '0')
     expect(screen.getByRole('button', { name: 'Insertar Título H1–H6' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Información: Biblioteca de widgets' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Arrastrar Título H1–H6 al canvas' })).toHaveAttribute('aria-description', expect.stringContaining('cuatro direcciones'))
   })
 
   it('filtra por búsqueda, categoría y favoritos con miniaturas declarativas', () => {

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 coverage/
+browser-audit/
 .npm-cache/
 .wrangler/
 .dev.vars
@@ -13,4 +14,3 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
-

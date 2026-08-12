@@ -54,9 +54,9 @@ function setup() {
 describe('M07.4 administrador de breakpoints', () => {
   it('selecciona cualquier breakpoint canónico y edita sus metadatos', async () => {
     const { activeId, updateBreakpoint } = setup()
-    fireEvent.click(screen.getByRole('button', { name: 'Administrar breakpoints' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar tamaños de pantalla' }))
     const dialog = screen.getByRole('dialog', { name: 'Administrador de breakpoints' })
-    expect(within(dialog).getByRole('list', { name: 'Orden de breakpoints' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('list', { name: 'Orden de tamaños de pantalla' })).toBeInTheDocument()
     fireEvent.change(within(dialog).getByLabelText('Nombre'), { target: { value: 'Móvil UI' } })
     fireEvent.change(within(dialog).getByLabelText('Ancho (px)'), { target: { value: '520' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar cambios' }))
@@ -65,18 +65,18 @@ describe('M07.4 administrador de breakpoints', () => {
 
   it('crea, reordena y restablece el override activo con alternativas por botón', async () => {
     const { activeId, createBreakpoint, reorderBreakpoint, resetNodeBreakpointOverride } = setup()
-    fireEvent.click(screen.getByRole('button', { name: 'Administrar breakpoints' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar tamaños de pantalla' }))
     const dialog = screen.getByRole('dialog', { name: 'Administrador de breakpoints' })
 
-    fireEvent.click(within(dialog).getByRole('button', { name: '+ Nuevo breakpoint' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: '+ Añadir tamaño' }))
     fireEvent.change(within(dialog).getByLabelText('Nombre'), { target: { value: 'Custom' } })
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Crear breakpoint' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Crear tamaño' }))
     await waitFor(() => expect(createBreakpoint).toHaveBeenCalledWith(expect.objectContaining({ name: 'Custom', width: 900 })))
 
     fireEvent.click(within(dialog).getByRole('button', { name: /Móvil grande/ }))
     fireEvent.click(within(dialog).getByRole('button', { name: '↑ Subir' }))
     await waitFor(() => expect(reorderBreakpoint).toHaveBeenCalledWith(activeId, 3))
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Reset override activo' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Restablecer ajuste de este elemento' }))
     await waitFor(() => expect(resetNodeBreakpointOverride).toHaveBeenCalledWith(TEST_SELECTED_NODE_ID, activeId))
   })
 })

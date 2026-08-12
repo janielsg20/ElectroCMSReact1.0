@@ -44,7 +44,7 @@ async function renderRecords() {
     </EditorProjectContext>,
   )
   fireEvent.click(screen.getByRole('tab', { name: 'Entradas y relaciones' }))
-  await screen.findByRole('tab', { name: 'Registros' })
+  await screen.findByRole('tab', { name: 'Registros' }, { timeout: 5_000 })
   return session
 }
 

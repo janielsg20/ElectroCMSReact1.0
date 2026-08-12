@@ -3,6 +3,45 @@
   container-type: inline-size;
 }
 
+#project-data-forms {
+  container-name: form-manager;
+  container-type: inline-size;
+}
+
+@container form-manager (max-width: 44rem) {
+  .form-manager {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding: 0.5rem !important;
+  }
+
+  .form-manager-sidebar [role="list"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  }
+}
+
+@container form-manager (max-width: 28rem) {
+  .form-manager {
+    gap: 0.375rem;
+    padding: 0.375rem !important;
+  }
+
+  .form-manager > main section,
+  .form-manager-sidebar {
+    padding: 0.5rem;
+  }
+
+  .form-manager-responsive-copy {
+    display: none;
+  }
+
+  .form-manager h2,
+  .form-manager h3,
+  .form-manager strong {
+    overflow-wrap: anywhere;
+  }
+}
+
 .library-primary-tab__compact {
   display: none;
 }

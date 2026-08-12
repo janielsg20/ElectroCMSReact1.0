@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const auditDir = resolve('browser-audit')
@@ -10,6 +10,17 @@ function sleep(ms) {
 }
 
 function findChrome() {
+  if (process.platform === 'win32') {
+    const candidates = [
+      'C:/Program Files/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+      'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+    ]
+    const browser = candidates.find((candidate) => existsSync(candidate))
+    if (browser) return browser
+    throw new Error('No se encontró Chrome o Edge en el equipo para la auditoría.')
+  }
   const command = execFileSync('bash', ['-lc', 'command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser'], { encoding: 'utf8' }).trim()
   if (!command) throw new Error('No se encontró un navegador Chromium en el runner.')
   return command
@@ -84,15 +95,17 @@ async function evaluate(client, expression) {
 }
 
 async function waitForReady(client) {
+  let diagnostics = null
   for (let index = 0; index < 120; index += 1) {
-    const ready = await evaluate(client, 'document.readyState === "complete" && Boolean(document.querySelector("#root")?.children.length)')
+    diagnostics = await evaluate(client, '({ href: location.href, readyState: document.readyState, rootChildren: document.querySelector("#root")?.children.length ?? -1, title: document.title, scripts: [...document.scripts].map((script) => ({ src: script.src, type: script.type })), resources: performance.getEntriesByType("resource").map((entry) => ({ name: entry.name, duration: entry.duration })).slice(-12) })')
+    const ready = diagnostics.readyState === 'complete' && diagnostics.rootChildren > 0
     if (ready) {
       await sleep(450)
       return
     }
     await sleep(100)
   }
-  throw new Error('ElectroCMS no terminó de renderizar en el navegador de auditoría.')
+  throw new Error(`ElectroCMS no terminó de renderizar en el navegador de auditoría: ${JSON.stringify(diagnostics)}`)
 }
 
 async function waitForSelector(client, selector, attempts = 60) {
@@ -246,6 +259,7 @@ const report = {
 const chrome = findChrome()
 let chromeStderr = ''
 const chromeProcess = spawn(chrome, [
+  '--incognito',
   '--headless=new',
   '--no-sandbox',
   '--no-first-run',
@@ -254,8 +268,8 @@ const chromeProcess = spawn(chrome, [
   '--disable-dev-shm-usage',
   '--remote-debugging-address=127.0.0.1',
   '--remote-debugging-port=9222',
-  '--user-data-dir=/tmp/electrocms-browser-audit',
-  'about:blank',
+  `--user-data-dir=${resolve(auditDir, 'browser-profile')}`,
+  'http://127.0.0.1:4173/',
 ], { stdio: ['ignore', 'pipe', 'pipe'] })
 
 chromeProcess.stderr?.on('data', (chunk) => {
@@ -282,7 +296,6 @@ try {
   await client.send('Page.enable')
   await client.send('Runtime.enable')
   await client.send('Log.enable')
-  await client.send('Page.navigate', { url: 'http://127.0.0.1:4173/' })
   await waitForReady(client)
 
   const viewports = [
@@ -302,6 +315,22 @@ try {
   // Desktop: los módulos globales se alcanzan desde el sidebar, nunca desde Capas.
   await setViewport(client, 1440, 1000, false)
   await assertEditorLibraryScope(client)
+  await requireClickNamed(client, 'Widgets')
+  await waitForSelector(client, '#library-panel-widgets')
+  report.states.push(await metrics(client, 'widgets-desktop', 1440, 1000, false))
+  await capture(client, 'widgets-desktop')
+  await requireClickNamed(client, 'Información: Biblioteca de widgets')
+  await waitForSelector(client, '[role="tooltip"]')
+  report.states.push(await metrics(client, 'widgets-help-desktop', 1440, 1000, false))
+  await capture(client, 'widgets-help-desktop')
+  await requireClickNamed(client, 'Información: Biblioteca de widgets')
+  await requireClickNamed(client, 'Capas')
+  await requireClickNamed(client, 'Configurar tamaños de pantalla')
+  await waitForSelector(client, '[aria-label="Administrador de breakpoints"]')
+  await sleep(300)
+  report.states.push(await metrics(client, 'responsive-settings-desktop', 1440, 1000, false))
+  await capture(client, 'responsive-settings-desktop')
+  await requireClickNamed(client, 'Cerrar administrador de breakpoints')
   await requireClickNamed(client, 'Contenido')
   await waitForSelector(client, '[data-primary-module="content"]')
   report.states.push(await metrics(client, 'cms-desktop', 1440, 1000, false))

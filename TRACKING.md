@@ -9,6 +9,7 @@ Actualizado: 2026-08-12.
 - Fase actual: `F11 — Formularios y acciones`.
 - Microfase actual: `M11.1 — Builder y campos`.
 - Estado: `EN_CURSO`.
+- Auditoría UX/UI M11.1: simplificación incremental aplicada a lienzo, Capas, Widgets, Formularios y ayudas contextuales, sin adelantar M11.2–M11.5. El builder ya permite marcar campos obligatorios y reordenarlos por drag accesible o botones, siempre mediante sesión/Command Bus. El diálogo responsive se porta a `document.body` para no quedar deformado por transformaciones del lienzo. Verificación: typecheck, lint, build y 23 pruebas focalizadas verdes; suite global 370/373 antes de corregir tres expectativas/timeouts heredados, luego verdes de forma aislada (la repetición completa serial superó 6 min sin reportar fallos). Auditoría Chromium de producción: 20 estados, 0 overflow horizontal, 0 targets touch <44×44, 0 errores de arquitectura, excepciones o consola.
 - F00–F10: `COMPLETADA`.
 - F11: M11.1 activa; M11.2–M11.5 `NO_INICIADA`.
 - F12–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.

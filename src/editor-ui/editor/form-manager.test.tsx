@@ -96,6 +96,7 @@ describe('M11.1 FormManager', () => {
     const mappingList = screen.getByRole('listbox', { name: 'Guardar su valor en' })
     expect(within(mappingList).getByRole('option', { name: /Nombre CMS/ })).toBeInTheDocument()
     expect(within(mappingList).queryByRole('option', { name: /Cantidad CMS/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'Campo obligatorio' })).toHaveAttribute('aria-checked', 'false')
   })
 
   it('crea un formulario real, añade un campo y lo reordena sin depender de drag', async () => {
@@ -105,6 +106,7 @@ describe('M11.1 FormManager', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar su valor en' }))
     const mappingList = screen.getByRole('listbox', { name: 'Guardar su valor en' })
     fireEvent.click(within(mappingList).getByRole('option', { name: /Nombre CMS/ }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Campo obligatorio' }))
     fireEvent.click(screen.getByRole('button', { name: 'Crear formulario' }))
 
     await waitFor(() => expect(Object.values(session.store.structure.cms?.forms ?? {})).toHaveLength(1))
@@ -112,6 +114,7 @@ describe('M11.1 FormManager', () => {
     expect(form?.name).toBe('Solicitud web')
     const firstControlId = form?.steps[0]?.controlIds[0]
     expect(firstControlId ? form?.controls[firstControlId]?.mappedFieldId : null).toBe(textFieldId)
+    expect(firstControlId ? form?.controls[firstControlId]?.required : null).toBe(true)
 
     expect(await screen.findByRole('heading', { name: 'Campos y orden' })).toBeInTheDocument()
     const addHeading = screen.getByRole('heading', { name: 'Añadir campo' })
@@ -120,18 +123,37 @@ describe('M11.1 FormManager', () => {
     if (!addSection) return
     const add = within(addSection)
     fireEvent.change(add.getByRole('textbox', { name: 'Texto que verá el usuario' }), { target: { value: 'Mensaje' } })
+    fireEvent.click(add.getByRole('switch', { name: 'Campo obligatorio' }))
     fireEvent.click(add.getByRole('button', { name: 'Añadir al formulario' }))
 
     await waitFor(() => {
       const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
       expect(current?.steps[0]?.controlIds).toHaveLength(2)
+      const addedId = current?.steps[0]?.controlIds[1]
+      expect(addedId ? current?.controls[addedId]?.required : null).toBe(true)
     })
+    expect(screen.getByRole('button', { name: 'Arrastrar Mensaje para cambiar su orden' })).toHaveAttribute('aria-roledescription', 'sortable')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mover arriba Mensaje' }))
+    const moveMessageUp = screen.getByRole('button', { name: 'Mover arriba Mensaje' })
+    await waitFor(() => expect(moveMessageUp).toBeEnabled())
+    fireEvent.click(moveMessageUp)
     await waitFor(() => {
       const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
       const firstId = current?.steps[0]?.controlIds[0]
       expect(firstId ? current?.controls[firstId]?.label : null).toBe('Mensaje')
+    })
+
+    const editorHeading = screen.getByRole('heading', { name: 'Editar campo · Mensaje' })
+    const editorSection = editorHeading.closest('section')
+    expect(editorSection).not.toBeNull()
+    if (!editorSection) return
+    const editor = within(editorSection)
+    fireEvent.click(editor.getByRole('switch', { name: 'Campo obligatorio' }))
+    fireEvent.click(editor.getByRole('button', { name: 'Guardar cambios' }))
+    await waitFor(() => {
+      const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
+      const message = Object.values(current?.controls ?? {}).find((control) => control.label === 'Mensaje')
+      expect(message?.required).toBe(false)
     })
   })
 })

@@ -43,7 +43,7 @@ export function WidgetLibraryCard({ definition, description, favorite, label, on
       <p className="mt-1 line-clamp-2 text-[0.625rem] leading-4 text-muted-foreground">{description}</p>
       <div className="mt-1 flex items-center gap-1">
         <button aria-label={`Insertar ${label}`} className="min-h-9 flex-1 cursor-pointer rounded-md bg-primary px-2 text-xs font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus" onClick={onInsert} type="button">Insertar</button>
-        <button {...attributes} {...listeners} aria-label={`Arrastrar ${label} al canvas`} className="grid size-9 touch-none cursor-grab place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus active:cursor-grabbing" type="button"><Icon name="move" size={13} /></button>
+        <button {...attributes} {...listeners} aria-description="Control de cuatro direcciones: arrastra este widget al lienzo. También puedes usar Insertar sin arrastrar." aria-label={`Arrastrar ${label} al canvas`} className="grid size-9 touch-none cursor-grab place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus active:cursor-grabbing" type="button"><Icon name="move" size={13} /></button>
       </div>
     </li>
   )

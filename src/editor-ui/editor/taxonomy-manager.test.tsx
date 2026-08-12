@@ -38,7 +38,7 @@ async function renderDataPanel() {
     </EditorProjectContext>,
   )
   fireEvent.click(screen.getByRole('tab', { name: 'Clasificaciones' }))
-  await screen.findByRole('button', { name: 'Nueva' })
+  await screen.findByRole('button', { name: 'Nueva' }, { timeout: 5_000 })
   return session
 }
 

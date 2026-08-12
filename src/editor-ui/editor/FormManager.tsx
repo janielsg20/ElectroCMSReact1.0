@@ -1,3 +1,15 @@
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
   parseFormId,
@@ -197,6 +209,32 @@ function InternalKeyField({ value, onChange }: { readonly onChange: (value: stri
   )
 }
 
+function RequiredFieldToggle({ checked, onChange }: { readonly checked: boolean; readonly onChange: (checked: boolean) => void }) {
+  return (
+    <div className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-muted/20 px-2 lg:min-h-9">
+      <button
+        aria-checked={checked}
+        aria-label="Campo obligatorio"
+        className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-md focus-visible:ring-2 focus-visible:ring-focus lg:h-8 lg:w-11"
+        onClick={() => onChange(!checked)}
+        role="switch"
+        type="button"
+      >
+        <span aria-hidden="true" className={`relative block h-6 w-11 rounded-full border transition-colors ${checked ? 'border-primary bg-primary' : 'border-border bg-surface'}`}>
+          <span className={`absolute top-0.5 grid size-5 place-items-center rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-[1.15rem] text-primary' : 'translate-x-0.5 text-muted-foreground'}`}>
+            {checked ? <Icon name="check" size={11} /> : null}
+          </span>
+        </span>
+      </button>
+      <span className="min-w-0 flex-1">
+        <strong className="block text-xs text-foreground">Campo obligatorio</strong>
+        <span className="form-manager-responsive-copy block text-[0.625rem] leading-4 text-muted-foreground">Debe completarse antes de enviar.</span>
+      </span>
+      <HelpTip description={FORM_HELP.required.description} example={FORM_HELP.required.example} label={FORM_HELP.required.label} reference={FORM_HELP.required.reference} />
+    </div>
+  )
+}
+
 function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly onCreated: (formId: FormId) => void }) {
   const forms = useFormSession()
   const contentTypes = useMemo(() => Object.values(cms.contentTypes).sort((left, right) => left.order - right.order || lexicalCompare(left.pluralName, right.pluralName)), [cms])
@@ -205,6 +243,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
   const [controlType, setControlType] = useState<FieldType>('text')
   const [controlLabel, setControlLabel] = useState('Nombre')
   const [controlName, setControlName] = useState('name')
+  const [required, setRequired] = useState(false)
   const [mappedFieldId, setMappedFieldId] = useState('')
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
@@ -234,7 +273,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
           label: controlLabel.trim(),
           mappedFieldId: mapped,
           name: controlName.trim(),
-          required: false,
+          required,
           type: controlType,
         },
       },
@@ -308,6 +347,7 @@ function CreationPanel({ cms, onCreated }: { readonly cms: CmsBackend; readonly 
           setControlLabel(next)
           if (!controlName || controlName === keyFromLabel(controlLabel, 'field')) setControlName(keyFromLabel(next, 'field'))
         }} required value={controlLabel} />
+        <RequiredFieldToggle checked={required} onChange={setRequired} />
       </div>
 
       <AdvancedOptions onToggle={() => setAdvancedOpen((current) => !current)} open={advancedOpen}>
@@ -334,6 +374,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
   const [name, setName] = useState(control.name)
   const [type, setType] = useState<FieldType>(control.type)
   const [mappedFieldId, setMappedFieldId] = useState(control.mappedFieldId ?? '')
+  const [required, setRequired] = useState(control.required)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -350,6 +391,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
       label: label.trim(),
       mappedFieldId: matchingFields.find((field) => field.id === mappedFieldId)?.id ?? null,
       name: name.trim(),
+      required,
       type,
     })
     setPending(false)
@@ -402,6 +444,7 @@ function ControlEditor({ cms, form, control, onDeleted }: {
           options={[{ label: 'No guardar en un campo', value: '' }, ...matchingFields.map((field) => ({ label: field.label, description: typeLabel(field.type), value: field.id }))]}
           value={mappedFieldId}
         />
+        <RequiredFieldToggle checked={required} onChange={setRequired} />
       </div>
       <AdvancedOptions onToggle={() => setAdvancedOpen((current) => !current)} open={advancedOpen}>
         <InternalKeyField onChange={setName} value={name} />
@@ -416,6 +459,48 @@ function ControlEditor({ cms, form, control, onDeleted }: {
   )
 }
 
+interface SortableControlRowProps {
+  readonly control: FormControl
+  readonly field?: FieldDefinition
+  readonly index: number
+  readonly length: number
+  readonly pending: boolean
+  readonly selected: boolean
+  readonly onMove: (controlId: string, target: number) => void
+  readonly onSelect: (controlId: string) => void
+}
+
+function SortableControlRow({ control, field, index, length, pending, selected, onMove, onSelect }: SortableControlRowProps) {
+  const { attributes, isDragging, listeners, setActivatorNodeRef, setNodeRef, transform, transition } = useSortable({ disabled: pending, id: control.id })
+
+  return (
+    <div
+      className={`grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-1 rounded-md border p-1 ${selected ? 'border-primary/40 bg-primary-soft/60' : 'border-border bg-surface'} ${isDragging ? 'z-10 opacity-60 shadow-lg' : ''}`}
+      ref={setNodeRef}
+      role="listitem"
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      <button
+        aria-label={`Arrastrar ${control.label} para cambiar su orden`}
+        className="grid size-11 shrink-0 touch-none cursor-grab place-items-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus active:cursor-grabbing lg:size-8"
+        disabled={pending}
+        ref={setActivatorNodeRef}
+        type="button"
+        {...attributes}
+        {...listeners}
+      >
+        <Icon name="more" size={13} />
+      </button>
+      <button aria-current={selected ? 'true' : undefined} className="min-h-11 min-w-0 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => onSelect(control.id)} type="button">
+        <strong className="block truncate text-xs text-foreground">{index + 1}. {control.label}</strong>
+        <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `Guarda en ${field.label}` : 'No conectado a contenido'}</span>
+      </button>
+      <Button aria-label={`Mover arriba ${control.label}`} disabled={pending || index === 0} onClick={() => onMove(control.id, index - 1)} size="icon" variant="ghost"><span aria-hidden="true" className="rotate-180"><Icon name="chevron-down" size={13} /></span></Button>
+      <Button aria-label={`Mover abajo ${control.label}`} disabled={pending || index === length - 1} onClick={() => onMove(control.id, index + 1)} size="icon" variant="ghost"><Icon name="chevron-down" size={13} /></Button>
+    </div>
+  )
+}
+
 function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; readonly form: Form; readonly onDeleted: () => void }) {
   const forms = useFormSession()
   const contentTypes = useMemo(() => Object.values(cms.contentTypes).sort((left, right) => left.order - right.order || lexicalCompare(left.pluralName, right.pluralName)), [cms])
@@ -427,6 +512,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
   const [addLabel, setAddLabel] = useState('Nuevo campo')
   const [addName, setAddName] = useState(`field_${Object.keys(form.controls).length + 1}`)
   const [addMappedFieldId, setAddMappedFieldId] = useState('')
+  const [addRequired, setAddRequired] = useState(false)
   const [addAdvancedOpen, setAddAdvancedOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -434,6 +520,11 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
   const selectedControl = form.controls[selectedControlId] ?? form.controls[orderedControlIds[0] ?? '']
   const addFields = compatibleFields(cms, form.contentTypeId, addType)
   const firstStep = form.steps[0]
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
 
   async function saveForm() {
     setPending(true)
@@ -455,7 +546,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
       label: addLabel.trim(),
       mappedFieldId: addFields.find((field) => field.id === addMappedFieldId)?.id ?? null,
       name: addName.trim(),
-      required: false,
+      required: addRequired,
       type: addType,
     }
     setPending(true)
@@ -469,6 +560,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
     setAddLabel('Nuevo campo')
     setAddName(`field_${Object.keys(form.controls).length + 2}`)
     setAddMappedFieldId('')
+    setAddRequired(false)
     setNotice({ kind: 'success', text: `${control.label} añadido al formulario.` })
   }
 
@@ -477,6 +569,12 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
     const result = await forms.reorderFormControl(form.id, controlId, target)
     setPending(false)
     if (!result.ok) setNotice({ kind: 'error', text: result.error })
+  }
+
+  function handleDragEnd(event: DragEndEvent): void {
+    if (!event.over || event.active.id === event.over.id) return
+    const target = orderedControlIds.indexOf(String(event.over.id))
+    if (target >= 0) void move(String(event.active.id), target)
   }
 
   async function deleteForm() {
@@ -502,7 +600,7 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="form" size={14} /></span>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-sm font-bold text-foreground">{form.name}</h2>
-            <p className="text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} campos · edición visual</p>
+            <p className="form-manager-responsive-copy text-[0.625rem] text-muted-foreground">{Object.keys(form.controls).length} campos · edición visual</p>
           </div>
           <Button disabled={pending} onClick={() => { void deleteForm() }} size="small" variant={confirmDelete ? 'destructive' : 'ghost'}>
             {confirmDelete ? 'Confirmar borrar' : 'Borrar'}
@@ -529,39 +627,57 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
               <h3 className="text-xs font-bold text-foreground" id="form-layout-heading">Campos y orden</h3>
               <HelpTip description={FORM_HELP.order.description} label={FORM_HELP.order.label} reference={FORM_HELP.order.reference} />
             </div>
-            <p className="text-[0.625rem] text-muted-foreground">Selecciona un campo para editarlo o muévelo arriba/abajo. Funciona con ratón, teclado y touch.</p>
+            <p className="form-manager-responsive-copy text-[0.625rem] text-muted-foreground">Selecciona un campo para editarlo. Reordénalo arrastrando o con los botones; funciona con ratón, teclado y touch.</p>
           </div>
           <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">{orderedControlIds.length} campos</span>
         </div>
-        <div className="grid gap-1" role="list">
-          {orderedControlIds.map((controlId, index) => {
-            const control = form.controls[controlId]
-            if (!control) return null
-            const field = control.mappedFieldId ? cms.fields[control.mappedFieldId] : undefined
-            const selected = selectedControl?.id === control.id
-            return (
-              <div className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1 rounded-md border p-1 ${selected ? 'border-primary/40 bg-primary-soft/60' : 'border-border bg-surface'}`} key={control.id} role="listitem">
-                <button aria-current={selected ? 'true' : undefined} className="min-h-11 min-w-0 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => setSelectedControlId(control.id)} type="button">
-                  <strong className="block truncate text-xs text-foreground">{index + 1}. {control.label}</strong>
-                  <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `Guarda en ${field.label}` : 'No conectado a contenido'}</span>
-                </button>
-                <Button aria-label={`Mover arriba ${control.label}`} disabled={pending || index === 0} onClick={() => { void move(control.id, index - 1) }} size="icon" variant="ghost"><span aria-hidden="true" className="rotate-180"><Icon name="chevron-down" size={13} /></span></Button>
-                <Button aria-label={`Mover abajo ${control.label}`} disabled={pending || index === orderedControlIds.length - 1} onClick={() => { void move(control.id, index + 1) }} size="icon" variant="ghost"><Icon name="chevron-down" size={13} /></Button>
-              </div>
-            )
-          })}
-        </div>
+        <DndContext
+          accessibility={{
+            announcements: {
+              onDragCancel: () => 'Cambio de orden cancelado.',
+              onDragEnd: ({ active, over }) => over ? `${form.controls[String(active.id)]?.label ?? 'Campo'} reordenado.` : 'Cambio de orden cancelado.',
+              onDragOver: ({ over }) => over ? `Posición ${orderedControlIds.indexOf(String(over.id)) + 1}.` : 'Sin destino.',
+              onDragStart: ({ active }) => `Moviendo ${form.controls[String(active.id)]?.label ?? 'campo'}.`,
+            },
+          }}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <SortableContext items={orderedControlIds} strategy={verticalListSortingStrategy}>
+            <div className="grid gap-1" role="list">
+              {orderedControlIds.map((controlId, index) => {
+                const control = form.controls[controlId]
+                if (!control) return null
+                return (
+                  <SortableControlRow
+                    control={control}
+                    field={control.mappedFieldId ? cms.fields[control.mappedFieldId] : undefined}
+                    index={index}
+                    key={control.id}
+                    length={orderedControlIds.length}
+                    onMove={(id, target) => { void move(id, target) }}
+                    onSelect={setSelectedControlId}
+                    pending={pending}
+                    selected={selectedControl?.id === control.id}
+                  />
+                )
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
       </section>
 
       <section aria-labelledby="add-control-heading" className="grid gap-2 rounded-lg border border-border bg-surface p-2.5">
         <div>
           <h3 className="text-xs font-bold text-foreground" id="add-control-heading">Añadir campo</h3>
-          <p className="text-[0.625rem] text-muted-foreground">Elige qué pedir al usuario. Si lo conectas a contenido, solo aparecen destinos compatibles.</p>
+          <p className="form-manager-responsive-copy text-[0.625rem] text-muted-foreground">Elige qué pedir al usuario. Si lo conectas a contenido, solo aparecen destinos compatibles.</p>
         </div>
         <div className="grid gap-2 md:grid-cols-2">
           <ChoiceMenu help={FORM_HELP.fieldType} label="Tipo de campo" onChange={(value) => { setAddType(fieldType(value)); setAddMappedFieldId('') }} options={fieldTypes.map((option) => ({ label: option.label, value: option.id }))} value={addType} />
           <ChoiceMenu help={FORM_HELP.mappedField} label="Guardar su valor en" onChange={setAddMappedFieldId} options={[{ label: 'No guardar en un campo', value: '' }, ...addFields.map((field) => ({ label: field.label, description: typeLabel(field.type), value: field.id }))]} value={addMappedFieldId} />
           <TextField label="Texto que verá el usuario" onChange={(event) => { const next = event.target.value; setAddLabel(next); setAddName(keyFromLabel(next, 'field')) }} value={addLabel} />
+          <RequiredFieldToggle checked={addRequired} onChange={setAddRequired} />
         </div>
         <AdvancedOptions label="Opciones avanzadas del campo" onToggle={() => setAddAdvancedOpen((current) => !current)} open={addAdvancedOpen}>
           <InternalKeyField onChange={setAddName} value={addName} />
@@ -586,8 +702,8 @@ export function FormManager() {
   const [creating, setCreating] = useState(forms.length === 0)
 
   return (
-    <div className="grid min-h-full gap-2 p-2 lg:grid-cols-[14rem_minmax(0,1fr)] lg:p-3">
-      <aside aria-label="Formularios guardados" className="grid content-start gap-2 rounded-lg border border-border bg-muted/20 p-2">
+    <div className="form-manager grid min-h-full gap-2 p-2 lg:grid-cols-[14rem_minmax(0,1fr)] lg:p-3">
+      <aside aria-label="Formularios guardados" className="form-manager-sidebar grid content-start gap-2 rounded-lg border border-border bg-muted/20 p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-1">

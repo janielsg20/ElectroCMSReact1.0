@@ -21,6 +21,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Fase activa: `F11 — Formularios y acciones`.
 - Microfase activa: `M11.1 — Builder y campos`.
 - F12–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- M11.1 incorpora edición canónica de `required` y orden de campos mediante drag pointer/touch/teclado, conservando botones subir/bajar. El diálogo de tamaños usa portal al body; no colocarlo dentro de superficies transformadas del canvas.
 - Puerta final F10: run `31608617420`, 88 archivos / 364 pruebas, lint/typecheck/build/browser audit verdes.
 - Producción no se despliega desde este PR draft.
 
@@ -31,6 +32,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - La auditoría cubre desktop/tablet/móvil, overflow, jerarquía, densidad, foco/teclado, accesibilidad, consola y funciones visibles no implementadas.
 - `assert-browser-audit.mjs` bloquea CI si cualquier estado touch auditado contiene un target <44×44 CSS px.
 - No cerrar una fase solo porque compile.
+- Última auditoría UX: Chromium producción, 20 estados, sin overflow, targets touch deficientes, errores de arquitectura, excepciones ni consola. Suite focal 23 pruebas verde; la global llegó a 370/373, se corrigieron las tres expectativas/timeouts y pasaron aisladas, pero el rerun serial total excedió el límite de 6 minutos.
 
 ## Decisiones vigentes
 
@@ -102,6 +104,8 @@ Requisitos exactos:
 - La navegación y los gestores CMS en la rama F11 comenzaron una refactorización transversal de simplicidad sin alterar contratos.
 - Existe el primitive accesible `HelpTip` y el catálogo `feature-help.ts` para explicar opciones y equivalencias funcionales.
 - `ContentTypeManager` aplica flujo esencial + `Opciones avanzadas`; el Inspector oculta claves técnicas del lenguaje principal y explica cada propiedad con ayuda contextual.
+- Auditoría UX/UI incremental: Capas se nombra como estructura de página y refuerza la jerarquía visual; Widgets explica inserción/arrastre y se distribuye en dos columnas solo cuando el panel conserva tarjetas legibles. `HelpTip` usa posicionamiento dentro del viewport, scroll/resize y Escape para evitar popovers recortados.
+- La auditoría Chromium de producción cubrió 17 estados desktop/tablet/móvil sin overflow, targets touch <44, excepciones ni avisos de consola. Se corrigió una regla heredada que comprimía el árbol de Capas al aplicar ancho completo a todos sus botones.
 
 ## Próximo paso exacto
 

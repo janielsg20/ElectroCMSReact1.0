@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-12 — Auditoría UX/UI M11.1 (editor, Capas y Widgets)
+
+- Formularios expone ahora `Campo obligatorio` al crear, añadir y editar campos; el contrato canónico `FormControlEditablePatch` admite esa mutación y continúa pasando por sesión, Command Bus, persistencia e historial.
+- Añadido ordenamiento de campos por arrastre con sensores separados para puntero, touch y teclado, anuncios accesibles y alternativa permanente mediante botones subir/bajar.
+- El FormManager responde al ancho real de su contenedor: apila workspace/sidebar, convierte formularios guardados en tarjetas flexibles y reduce texto secundario antes de comprometer legibilidad o targets touch.
+- El diálogo de `Tamaños de pantalla` se renderiza mediante portal en `document.body`, evitando que un ancestro transformado lo comprima o desplace respecto del viewport. También se unificó su vocabulario visible (`Añadir tamaño`, `Crear tamaño`).
+- Simplificada la presentación del editor con vocabulario orientado a tareas: el administrador responsive ahora se presenta como `Tamaños de pantalla`, explica su propósito y referencia el modo responsive de Elementor sin alterar breakpoints, herencia ni persistencia canónica.
+- `Capas` presenta la `Estructura de la página`, con guía visual de anidación, estado visible de elementos ocultos y ayuda contextual que explica selección, jerarquía y alternativa al arrastre.
+- `Widgets` incorpora ayuda contextual, descripciones orientadas a la acción y una cuadrícula que usa el ancho real del panel para pasar a dos columnas solo cuando cada tarjeta mantiene una lectura cómoda. El control de cuatro direcciones explica explícitamente que permite arrastrar, mientras `Insertar` continúa siendo la alternativa sin drag-and-drop.
+- `HelpTip` se reposiciona como superficie fija dentro del viewport, recalcula su posición ante resize/scroll y se cierra con Escape; los paneles de información dejan de recortarse por paneles o de salir de pantalla.
+- La auditoría local agregó detección de Chrome/Edge en Windows, perfil privado y usa la build de producción para evitar que HMR o preferencias previas afecten la revisión. Auditoría Chromium final: 20 estados en desktop/tablet/móvil, cero overflow horizontal, cero targets touch menores de 44×44, cero errores de arquitectura, excepciones o consola.
+- Validación técnica: typecheck, lint y build verdes; 23 pruebas focalizadas verdes. La suite global alcanzó 370/373 antes de corregir tres expectativas/timeouts heredados por el nuevo lenguaje y la carga diferida; esas tres pasan aisladas tras el ajuste. El rerun global serial no reportó fallos, pero excedió el límite de seis minutos.
+- La revisión visual detectó una regla histórica que daba ancho completo a cada control de una fila de Capas; se limitó a los botones correctos para que el árbol vuelva a mostrar nombre, icono, sangría y menú de cada nodo.
+
 ## 2026-08-11 — Auditoría visual F04 / M04.1 (pestañas de Biblioteca)
 
 - Corregidas las pestañas de Biblioteca en paneles estrechos: el contenedor usa su propio breakpoint, elimina iconos redundantes y cambia visualmente `Documentos` a `Docs`, conservando el nombre completo para lectores de pantalla. Se evita que los cuatro destinos se fusionen o se recorten.
