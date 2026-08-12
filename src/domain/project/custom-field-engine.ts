@@ -378,6 +378,7 @@ export function createCustomField(
 
 function fieldHasStoredValues(cms: CmsBackend, fieldId: FieldDefinitionId): boolean {
   return Object.values(cms.records).some((record) => Object.hasOwn(record.values, fieldId))
+    || Object.values(cms.recordRevisions).some((revision) => Object.hasOwn(revision.snapshot.values, fieldId))
     || Object.values(cms.taxonomyTerms).some((term) => Object.hasOwn(term.values, fieldId))
 }
 
