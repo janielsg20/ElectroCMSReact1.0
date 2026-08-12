@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react'
 import { PROJECT_THEME_PRESETS, ProjectThemeSchema, type ProjectTheme, type ProjectThemePresetId, type ProjectThemeScope } from '../../domain'
-import { Button, Icon } from '../primitives'
+import { Button, Icon, TextArea, TextField } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 
 interface ProjectThemeControlProps {
@@ -105,7 +105,7 @@ export function ProjectThemeControl({ scope, theme }: ProjectThemeControlProps) 
   }
 
   return (
-    <section aria-labelledby={`${scope}-theme-title`} className="grid gap-2">
+    <section aria-labelledby={`${scope}-theme-title`} className="grid gap-2" data-electrocms-surface="theme-editor">
       <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-2">
         <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={scope === 'frontend' ? 'window' : 'editor'} size={15} /></span>
         <div className="min-w-0">
@@ -135,7 +135,8 @@ export function ProjectThemeControl({ scope, theme }: ProjectThemeControlProps) 
           {PROJECT_THEME_PRESETS.map((preset) => (
             <button
               aria-checked={selectedPresetId === preset.id}
-              className={`theme-preset-card min-h-24 rounded-md border p-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-focus ${selectedPresetId === preset.id ? 'border-primary bg-primary-soft' : 'border-border bg-muted/25 hover:bg-muted'}`}
+              className={`theme-preset-card min-h-24 cursor-pointer rounded-md border p-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-focus ${selectedPresetId === preset.id ? 'border-primary bg-primary-soft' : 'border-border bg-muted/25 hover:bg-muted'}`}
+              data-electrocms-control="radio-card"
               data-project-theme-preset={preset.id}
               key={preset.id}
               onKeyDown={(event) => handlePresetKeyDown(event, preset.id)}
@@ -156,15 +157,17 @@ export function ProjectThemeControl({ scope, theme }: ProjectThemeControlProps) 
         <div className="mt-1.5 flex justify-end"><Button disabled={pending} onClick={() => void applyPreset()} size="small" variant="secondary">Aplicar preset</Button></div>
       </fieldset>
 
-      <label className="grid gap-1 text-xs font-semibold" htmlFor={`${scope}-theme-name`}>
-        Nombre
-        <input className="h-9 rounded-md border border-border bg-surface px-2 text-xs font-normal text-foreground focus-visible:ring-2 focus-visible:ring-focus" id={`${scope}-theme-name`} maxLength={160} onChange={(event) => setName(event.target.value)} value={name} />
-      </label>
+      <TextField id={`${scope}-theme-name`} label="Nombre" maxLength={160} onChange={(event) => setName(event.target.value)} value={name} />
 
-      <label className="grid gap-1 text-xs font-semibold" htmlFor={`${scope}-theme-tokens`}>
-        Tokens semánticos · schema v1
-        <textarea aria-describedby={`${scope}-theme-help`} className="min-h-52 resize-y rounded-md border border-border bg-canvas p-2 font-mono text-[0.625rem] leading-4 text-foreground focus-visible:ring-2 focus-visible:ring-focus" id={`${scope}-theme-tokens`} onChange={(event) => setTokensText(event.target.value)} spellCheck={false} value={tokensText} />
-      </label>
+      <TextArea
+        aria-describedby={`${scope}-theme-help`}
+        className="min-h-52 bg-canvas font-mono text-[0.625rem] leading-4"
+        id={`${scope}-theme-tokens`}
+        label="Tokens semánticos · schema v1"
+        onChange={(event) => setTokensText(event.target.value)}
+        spellCheck={false}
+        value={tokensText}
+      />
       <p className="text-[0.625rem] leading-4 text-muted-foreground" id={`${scope}-theme-help`}>Color, tipografía, espaciado, radios, sombras, movimiento y densidad se validan antes de guardar. El catálogo permanece inmutable; al aplicar uno se crea una copia editable en este ámbito.</p>
 
       {parsed.error ? <p className="rounded-md border border-danger/35 bg-danger/10 p-2 text-xs text-danger" role="alert">{parsed.error}</p> : null}
