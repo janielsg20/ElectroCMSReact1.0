@@ -82,6 +82,8 @@ describe('M09.2 gestor de clasificaciones', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
     await waitFor(() => expect(Object.values(session.store.structure.cms?.taxonomies ?? {})).toHaveLength(1))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Confirmar eliminación' })).toBeEnabled())
+    await waitFor(() => expect(options.getByRole('button', { name: 'Eliminar opción' })).toBeEnabled())
 
     fireEvent.click(options.getByRole('option', { name: /Arte/i }))
     fireEvent.click(options.getByRole('button', { name: 'Eliminar opción' }))
