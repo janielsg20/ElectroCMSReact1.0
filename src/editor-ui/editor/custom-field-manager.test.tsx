@@ -61,7 +61,10 @@ describe('M09.3 gestor de campos personalizados', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /Requerido/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
-    await waitFor(() => expect(Object.values(session.store.structure.cms?.fields ?? {})[0]).toMatchObject({ label: 'Bajada', required: true }))
+    await waitFor(() => {
+      expect(Object.values(session.store.structure.cms?.fields ?? {})[0]).toMatchObject({ label: 'Bajada', required: true })
+      expect(screen.getByRole('button', { name: 'Eliminar' })).toBeEnabled()
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
