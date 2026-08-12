@@ -84,7 +84,7 @@ export class CmsListingRuntimeCache {
     if (!executed.ok) return failure(executed.error)
     state.entries.set(key, { listing: executed.value })
     while (state.entries.size > this.maxEntries) {
-      const oldest = state.entries.keys().next().value as string | undefined
+      const oldest = state.entries.keys().next().value
       if (oldest === undefined) break
       state.entries.delete(oldest)
     }
