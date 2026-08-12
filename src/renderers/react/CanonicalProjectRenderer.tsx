@@ -26,6 +26,8 @@ import {
   ProjectStructureRenderStore,
   type NodeRenderSnapshot,
 } from './project-structure-render-store'
+import { SmartFilterRuntime } from './SmartFilterRuntime'
+import { SmartFilterRuntimeProvider } from './SmartFilterRuntimeProvider'
 
 export interface CanonicalProjectRendererProps {
   readonly breakpointId: BreakpointId
@@ -155,12 +157,16 @@ function NodeDataStateView({ snapshot }: { readonly snapshot: NodeRenderSnapshot
 function CanonicalNodeView({ NodeFrame, renderWidget, runtimeListings, slots, snapshot, store, themeTokens }: CanonicalNodeViewProps) {
   const compiled = compileCanonicalStyles(snapshot.responsive.styles, { scopeId: snapshot.node.id, tokens: themeTokens })
   const dataStateView = snapshot.dataState === 'ready' ? null : <NodeDataStateView snapshot={snapshot} />
-  const isListing = runtimeListings && snapshot.node.kind === 'widget' && snapshot.node.widgetType === 'dynamic.listing-grid'
+  const isWidget = snapshot.node.kind === 'widget'
+  const isListing = runtimeListings && isWidget && snapshot.node.widgetType === 'dynamic.listing-grid'
+  const isSmartFilter = runtimeListings && isWidget && snapshot.node.widgetType.startsWith('filter.')
   const queryId = snapshot.responsive.properties.queryId
   const listingKey = `${snapshot.node.id}:${typeof queryId === 'string' ? queryId : ''}`
   const widget = isListing
     ? <ListingGridRuntime key={listingKey} nodeId={snapshot.node.id} properties={snapshot.responsive.properties} slots={slots} store={store} />
-    : renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })
+    : isSmartFilter
+      ? <SmartFilterRuntime nodeId={snapshot.node.id} projectStore={store} properties={snapshot.responsive.properties} widgetType={snapshot.node.widgetType} />
+      : renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })
 
   return (
     <NodeFrame
@@ -267,26 +273,28 @@ export function CanonicalProjectRenderer({
   }
 
   return (
-    <div
-      aria-label={`Vista previa de ${document.name}`}
-      data-canonical-document={document.id}
-      data-project-theme={theme.name}
-      data-project-theme-scope={themeScope}
-      style={themeRootStyle(theme)}
-    >
-      {rootNodeIds.map((nodeId) => (
-        <SubscribedNodeRenderer
-          breakpointId={breakpointId}
-          key={nodeId}
-          nodeId={nodeId}
-          NodeFrame={NodeFrame}
-          renderWidget={renderWidget}
-          runtimeListings={runtimeListings}
-          store={store}
-          themeTokens={themeTokens}
-        />
-      ))}
-    </div>
+    <SmartFilterRuntimeProvider>
+      <div
+        aria-label={`Vista previa de ${document.name}`}
+        data-canonical-document={document.id}
+        data-project-theme={theme.name}
+        data-project-theme-scope={themeScope}
+        style={themeRootStyle(theme)}
+      >
+        {rootNodeIds.map((nodeId) => (
+          <SubscribedNodeRenderer
+            breakpointId={breakpointId}
+            key={nodeId}
+            nodeId={nodeId}
+            NodeFrame={NodeFrame}
+            renderWidget={renderWidget}
+            runtimeListings={runtimeListings}
+            store={store}
+            themeTokens={themeTokens}
+          />
+        ))}
+      </div>
+    </SmartFilterRuntimeProvider>
   )
 }
 
