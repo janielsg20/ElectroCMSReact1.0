@@ -38,6 +38,7 @@ async function renderDataPanel() {
     </EditorProjectContext>,
   )
   fireEvent.click(screen.getByRole('tab', { name: 'Taxonomías' }))
+  await screen.findByRole('button', { name: 'Nueva' })
   return session
 }
 
