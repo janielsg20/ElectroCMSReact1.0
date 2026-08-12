@@ -21,12 +21,22 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - M09.1 CPT: `COMPLETADA`.
 - M09.2 Taxonomías: `COMPLETADA`.
 - M09.3 Campos personalizados: `COMPLETADA`.
-- Microfase activa: `M09.4 — Registros y relaciones`.
-- M09.5, F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
-- Puerta M09.1: run `31544864623`, lint/typecheck/suite/build verdes.
-- Puerta M09.2: run `31546741841`, 304/304 pruebas y build verde.
-- Puerta M09.3: run `31548253008`, 73 archivos / 312 pruebas, lint/typecheck/build verdes.
+- M09.4 Registros y relaciones: `COMPLETADA`.
+- Microfase activa: `M09.5 — Binding dinámico`.
+- F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- Puerta M09.1: run `31544864623`.
+- Puerta M09.2: run `31546741841`, 304 pruebas.
+- Puerta M09.3: run `31548253008`, 73 archivos / 312 pruebas.
+- Puerta M09.4: run `31550664429`, 76 archivos / 322 pruebas, lint/typecheck/build verdes.
 - Producción no se despliega desde este PR draft.
+
+## Regla de calidad desde F09
+
+- No cerrar una fase solo porque compile.
+- Cada microfase pasa lint + typecheck + suite completa + build antes de avanzar.
+- Al finalizar cada fase se abre la aplicación compilada en navegador y se realiza auditoría funcional/visual real.
+- La auditoría comprueba desktop/tablet/móvil, overflow, solapamientos, jerarquía, densidad, iconografía, estados, foco/teclado, accesibilidad, consola y funciones visibles no implementadas.
+- Los hallazgos se corrigen, se repite gate y se vuelve a auditar antes de activar la fase siguiente.
 
 ## Decisiones vigentes
 
@@ -35,7 +45,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Toda mutación persistente usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro history global.
 - Undo/redo crea revisiones monotónicas del proyecto y persiste en IndexedDB.
 - Árbol, renderer, temas, documentos y CMS convergen en el mismo `ProjectStructure`.
-- Capacidades específicas se segregan: `ThemePackageSession`, `ContentTypeSession`, `TaxonomySession`, `CustomFieldSession`.
+- Capacidades específicas se segregan: `ThemePackageSession`, `ContentTypeSession`, `TaxonomySession`, `CustomFieldSession`, `RecordRelationSession`.
 - Estado local de UI/preferencias no duplica proyecto: `workspace.v1`, `appearance.v1`, `library.v1`, `theme-packages.v1`.
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History ni Export.
 - Funciones futuras no se muestran como activas.
@@ -45,7 +55,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Dirección: High Density + Minimal Clean + builder/IDE profesional.
 - Targets aproximados: 44 px touch / 36 px escritorio denso.
 - Biblioteca: Capas, Widgets, Documentos, Datos y Diseño; responde al ancho real con container queries.
-- `Datos` solo expone superficies construidas y actualmente contiene `Tipos | Taxonomías | Campos`.
+- `Datos` contiene `Tipos | Taxonomías | Campos | Reg.`; el último tab se anuncia como `Registros y relaciones`.
+- Dentro de Registros y relaciones: `Registros | Relaciones`.
 - Tabpanels inactivos usan el atributo HTML `hidden`.
 - Apariencia local permanece en TopBar; temas/paquetes en Diseño.
 - Canvas mantiene selección, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco.
@@ -57,60 +68,46 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - F07: inspector generado, controles tipados, estilos seguros, breakpoints, bindings, condiciones y ARIA.
 - F08: tres ámbitos de tema, presets, documentos/plantillas y paquetes theme versionados/importables.
 
-## M09.1 completada — CPT
+## F09 implementado hasta M09.4
 
-- CRUD canónico con ID/slug únicos, capacidades, soportes, visibilidad, orden y Single/Archive compatibles.
-- Integridad al borrar.
-- `ContentTypeSession` + Command Bus/IndexedDB/undo/redo.
-- UI: `Datos → Tipos`.
-- Documento: `CONTENT_TYPE_SYSTEM.md`.
+### CPT
+- CRUD canónico, soportes/capacidades/visibilidad/orden/Single/Archive, integridad, Command Bus e UI `Datos → Tipos`.
 
-## M09.2 completada — Taxonomías
+### Taxonomías
+- CRUD taxonomías/términos, asociaciones CPT bidireccionales, Archive, jerarquía sin ciclos, integridad, Command Bus e UI `Datos → Taxonomías`.
 
-- CRUD taxonomías/términos sobre schemas existentes.
-- Asociaciones CPT↔taxonomía bidireccionales, Archive compatible, jerarquía sin ciclos.
-- Borrado protegido por dependencias.
-- `TaxonomySession` + Command Bus/IndexedDB/undo/redo.
-- UI: `Datos → Taxonomías`.
-- Documento: `TAXONOMY_SYSTEM.md`.
+### Campos personalizados
+- 27 tipos sobre `FieldDefinitionSchema`, propietarios CPT/taxonomía, defaults/options/conditions/hijos/relación/taxonomía/calculado/roles, integridad y UI `Datos → Campos`.
+- Campos conservados en revisiones de contenido cuentan como valores almacenados y no se pueden borrar/cambiar de tipo de forma destructiva.
 
-## M09.3 completada — Campos personalizados
+### Registros, revisiones y relaciones
+- `record-relation-engine.ts`: CRUD de registros, validación por FieldDefinition, estados y taxonomías.
+- Borradores pueden estar incompletos; required se exige al salir de draft.
+- `ContentRecordRevision` es snapshot portable distinto del undo/redo global.
+- `CmsBackend.recordRevisions` es retrocompatible con default `{}`.
+- CPT con soporte `revisions` crean snapshots al editar; restaurar preserva la versión reemplazada.
+- Términos/campos conservados solo en revisiones están protegidos.
+- CRUD Relation/RelationEntry con slug, endpoints y cardinalidad íntegros.
+- Registros/relaciones conectados no se borran dejando referencias rotas.
+- `RecordRelationSession` usa Command Bus + IndexedDB + undo/redo.
+- UI: `Datos → Registros y relaciones → Registros | Relaciones`.
+- Documento: `RECORD_RELATION_SYSTEM.md`.
 
-- `custom-field-engine.ts` usa `FieldDefinitionSchema` como única fuente.
-- CRUD para propietarios CPT/taxonomía; key única por propietario.
-- 27 tipos: text, textarea, rich-text, number, currency, email, phone, url, date, time, datetime, color, select, radio, checkbox, switch, image, gallery, file, map, relation, user, taxonomy, repeater, group, calculated y conditional.
-- Defaults, options, conditions, childFieldIds, relationId, taxonomyId, allowedRoleIds, calculatedExpression, group/order y validaciones reforzadas.
-- group/repeater no cruzan propietarios; relation/taxonomy/calculated requieren referencias/configuración reales.
-- Cambio de tipo bloqueado con valores almacenados; delete bloqueado por datos, composición, condiciones, queries, forms o permisos.
-- `ContentType.fieldIds` / `Taxonomy.fieldIds` sincronizados.
-- `CustomFieldSession` + comandos `cms.*` + IndexedDB + undo/redo.
-- UI: `Datos → Campos`, estructurada por tipo; no crea relaciones/roles ficticios.
-- Documento: `CUSTOM_FIELD_SYSTEM.md`.
+## M09.5 activa — Binding dinámico
 
-## M09.4 activa — Registros y relaciones
+Objetivo exacto: conectar contenido a widgets y previsualizar vacío/error/loading.
 
-Debe formalizar `ContentRecordSchema`, `RelationSchema` y `RelationEntrySchema` con:
-
-- CRUD de registros y estados draft/pending/published/private/archived.
-- Validación de valores contra FieldDefinition y required.
-- Términos compatibles con taxonomías del CPT.
-- Autor existente y cronología consistente.
-- Revisión explícita del requisito de revisiones de contenido; no asumir que ProjectCommandBus history sustituye automáticamente snapshots/revisiones de registros.
-- CRUD de relaciones y entries con slug/endpoints/cardinalidad íntegros.
-- Protección de borrado y referencias.
-- Persistencia/historial de comandos.
-- UI real en Datos sin adelantar bindings M09.5.
-- Tests de dominio, IndexedDB/undo/redo y UI antes de avanzar.
-
-## Riesgos y límites
-
-- Los schemas anticipados no cuentan como implementación formal hasta tener motor, persistencia, UI y tests.
-- M09.4 debe reutilizar `validateCmsBackend`; no duplicar integridad existente.
-- Si se necesitan revisiones de contenido separadas, deben distinguirse semánticamente del historial global y añadirse retrocompatiblemente.
-- F12 sigue siendo propietaria de gestión real de roles/usuarios.
-- Collaboration, IA e integraciones remotas nunca degradan offline/local.
-- Secrets no aparecen en frontend, logs, exports ni bundles.
+- Reutilizar `BindingSourceSchema`, `NodeDataSettings`, `resolveNodeDataState` y renderer existentes de F07.
+- No introducir un segundo DataProvider ni otro estado persistente.
+- Añadir binding CMS canónico/serializable con referencias explícitas a registros/campos.
+- Resolver propiedades de widgets y diagnosticar referencias rotas.
+- Distinguir ready/empty/error.
+- Loading debe ser un modo de preview explícito del editor; no fingir I/O remoto.
+- Mejorar Inspector con controles funcionales de contenido sin eliminar el editor JSON avanzado para casos completos.
+- Persistir cambios de bindings por el Command Bus ya existente.
+- Tests de dominio, renderer, UI y persistencia.
+- Gate completo antes de auditoría visual final de F09.
 
 ## Próximo paso exacto
 
-Implementar `M09.4 — Registros y relaciones`: revisar primero validadores y requisito de revisiones; después CRUD/integridad, Command Bus, UI `Datos`, pruebas completas y build antes de M09.5.
+Implementar M09.5 empezando por extender el contrato de binding y el resolver de F07; después integrar renderer/Inspector, estados de preview, tests y build. Cuando quede verde, crear preview no productivo, auditar F09 en navegador, corregir y repetir antes de activar F10.
