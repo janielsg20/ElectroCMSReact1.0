@@ -1,6 +1,6 @@
 # MEMORY — contexto corto de ElectroCMS
 
-Actualizado: 2026-08-11.
+Actualizado: 2026-08-12.
 
 ## Objetivo
 
@@ -16,25 +16,22 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 ## Estado real
 
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
-- F00–F08 completadas.
-- Fase activa: `F09 — Contenido dinámico, CPT, taxonomías y campos`.
-- M09.1 CPT: `COMPLETADA`.
-- M09.2 Taxonomías: `COMPLETADA`.
-- M09.3 Campos personalizados: `COMPLETADA`.
-- M09.4 Registros y relaciones: `COMPLETADA`.
-- Microfase activa: `M09.5 — Binding dinámico`.
-- F10–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- F00–F09 completadas.
+- Fase activa: `F10 — Consultas, listings y filtros`.
+- Microfase activa: `M10.1 — AST de consultas`.
+- F11–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - Puerta M09.1: run `31544864623`.
 - Puerta M09.2: run `31546741841`, 304 pruebas.
 - Puerta M09.3: run `31548253008`, 73 archivos / 312 pruebas.
-- Puerta M09.4: run `31550664429`, 76 archivos / 322 pruebas, lint/typecheck/build verdes.
+- Puerta M09.4: run `31550664429`, 76 archivos / 322 pruebas.
+- Puerta final F09: run `31560809320`, lint/typecheck/tests/build/browser audit verdes.
 - Producción no se despliega desde este PR draft.
 
 ## Regla de calidad desde F09
 
 - No cerrar una fase solo porque compile.
 - Cada microfase pasa lint + typecheck + suite completa + build antes de avanzar.
-- Al finalizar cada fase se abre la aplicación compilada en navegador y se realiza auditoría funcional/visual real.
+- Al finalizar cada fase se abre la aplicación compilada en Chromium y se realiza auditoría funcional/visual real.
 - La auditoría comprueba desktop/tablet/móvil, overflow, solapamientos, jerarquía, densidad, iconografía, estados, foco/teclado, accesibilidad, consola y funciones visibles no implementadas.
 - Los hallazgos se corrigen, se repite gate y se vuelve a auditar antes de activar la fase siguiente.
 
@@ -53,13 +50,19 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 ## UI/UX vigente
 
 - Dirección: High Density + Minimal Clean + builder/IDE profesional.
-- Targets aproximados: 44 px touch / 36 px escritorio denso.
-- Biblioteca: Capas, Widgets, Documentos, Datos y Diseño; responde al ancho real con container queries.
-- `Datos` contiene `Tipos | Taxonomías | Campos | Reg.`; el último tab se anuncia como `Registros y relaciones`.
+- Targets: ~44 px touch / ~36 px escritorio denso.
+- Navegación principal global: `Editor | Documentos | Contenido | Diseño`.
+- `Capas`: exclusivamente árbol/estructura del documento actual.
+- `Widgets`: exclusivamente biblioteca insertable.
+- `Inspector`: propiedades/configuración del nodo seleccionado, incluidos bindings dinámicos.
+- `Contenido`: `Tipos | Taxonomías | Campos | Reg.`; `Reg.` se anuncia como `Registros y relaciones`.
 - Dentro de Registros y relaciones: `Registros | Relaciones`.
-- Tabpanels inactivos usan el atributo HTML `hidden`.
-- Apariencia local permanece en TopBar; temas/paquetes en Diseño.
-- Canvas mantiene selección, breadcrumbs, resize, spacing, snapping, reglas, zoom, pan, orientación, device frames y foco.
+- `Diseño`: temas y paquetes exportables. Apariencia local permanece en TopBar.
+- `Documentos`: documentos/plantillas del proyecto.
+- Móvil: `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
+- Tablet: los paneles contextuales se retiran al entrar a un módulo global.
+- Nunca volver a ubicar módulos globales de CMS/proyecto dentro de Capas o Widgets.
+- Gate Chromium final F09: sin overflow horizontal, sin errores de consola/excepciones y 0 targets bajo 44 px en mobile-375, mobile-more y cms-mobile.
 
 ## F05–F08 resumidas
 
@@ -68,46 +71,48 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - F07: inspector generado, controles tipados, estilos seguros, breakpoints, bindings, condiciones y ARIA.
 - F08: tres ámbitos de tema, presets, documentos/plantillas y paquetes theme versionados/importables.
 
-## F09 implementado hasta M09.4
+## F09 completada
 
 ### CPT
-- CRUD canónico, soportes/capacidades/visibilidad/orden/Single/Archive, integridad, Command Bus e UI `Datos → Tipos`.
+- CRUD canónico, soportes/capacidades/visibilidad/orden/Single/Archive, integridad, Command Bus e UI `Contenido → Tipos`.
 
 ### Taxonomías
-- CRUD taxonomías/términos, asociaciones CPT bidireccionales, Archive, jerarquía sin ciclos, integridad, Command Bus e UI `Datos → Taxonomías`.
+- CRUD taxonomías/términos, asociaciones CPT bidireccionales, Archive, jerarquía sin ciclos, integridad, Command Bus e UI `Contenido → Taxonomías`.
 
 ### Campos personalizados
-- 27 tipos sobre `FieldDefinitionSchema`, propietarios CPT/taxonomía, defaults/options/conditions/hijos/relación/taxonomía/calculado/roles, integridad y UI `Datos → Campos`.
-- Campos conservados en revisiones de contenido cuentan como valores almacenados y no se pueden borrar/cambiar de tipo de forma destructiva.
+- 27 tipos sobre `FieldDefinitionSchema`, propietarios CPT/taxonomía, defaults/options/conditions/hijos/relación/taxonomía/calculado/roles, integridad e UI `Contenido → Campos`.
+- Campos conservados en revisiones cuentan como valores almacenados y no se eliminan/cambian destructivamente.
 
 ### Registros, revisiones y relaciones
 - `record-relation-engine.ts`: CRUD de registros, validación por FieldDefinition, estados y taxonomías.
 - Borradores pueden estar incompletos; required se exige al salir de draft.
 - `ContentRecordRevision` es snapshot portable distinto del undo/redo global.
-- `CmsBackend.recordRevisions` es retrocompatible con default `{}`.
 - CPT con soporte `revisions` crean snapshots al editar; restaurar preserva la versión reemplazada.
-- Términos/campos conservados solo en revisiones están protegidos.
 - CRUD Relation/RelationEntry con slug, endpoints y cardinalidad íntegros.
-- Registros/relaciones conectados no se borran dejando referencias rotas.
 - `RecordRelationSession` usa Command Bus + IndexedDB + undo/redo.
-- UI: `Datos → Registros y relaciones → Registros | Relaciones`.
+- UI: `Contenido → Registros y relaciones → Registros | Relaciones`.
 - Documento: `RECORD_RELATION_SYSTEM.md`.
 
-## M09.5 activa — Binding dinámico
+### Binding dinámico
+- `BindingSourceSchema` admite `cms-record-field` y `cms-record-property` sin segundo DataProvider.
+- `resolveNodeDataState` valida registro/campo/CPT y resuelve propiedades del widget.
+- Estados canónicos: `ready | empty | error`.
+- Preview transitorio: `auto | loading | empty | error`; nunca se persiste.
+- Inspector permite propiedad destino, registro, campo compatible y preparar/quitar/aplicar binding.
+- Integridad bloquea borrar registros/campos aún referenciados.
+- Renderer invalida bindings cuando cambia el CMS.
+- Documento: `DYNAMIC_BINDING_SYSTEM.md`.
 
-Objetivo exacto: conectar contenido a widgets y previsualizar vacío/error/loading.
+## M10.1 activa — AST de consultas
 
-- Reutilizar `BindingSourceSchema`, `NodeDataSettings`, `resolveNodeDataState` y renderer existentes de F07.
-- No introducir un segundo DataProvider ni otro estado persistente.
-- Añadir binding CMS canónico/serializable con referencias explícitas a registros/campos.
-- Resolver propiedades de widgets y diagnosticar referencias rotas.
-- Distinguir ready/empty/error.
-- Loading debe ser un modo de preview explícito del editor; no fingir I/O remoto.
-- Mejorar Inspector con controles funcionales de contenido sin eliminar el editor JSON avanzado para casos completos.
-- Persistir cambios de bindings por el Command Bus ya existente.
-- Tests de dominio, renderer, UI y persistencia.
-- Gate completo antes de auditoría visual final de F09.
+Objetivo: formalizar un AST canónico para consultas de contenido con AND/OR, campos, taxonomías, autor, fecha, orden, límites, offset, relaciones y repeaters.
+
+- Reutilizar `QueryDefinitionSchema`/contratos CMS existentes si ya anticipan el modelo; no crear un query engine paralelo.
+- Añadir validación semántica y ejecución local determinista sobre `ProjectStructure.cms`.
+- Mantener referencias íntegras a CPT/campos/taxonomías/relaciones.
+- No mostrar constructor visual de M10.2 antes de implementarlo.
+- Gate completo antes de M10.2.
 
 ## Próximo paso exacto
 
-Implementar M09.5 empezando por extender el contrato de binding y el resolver de F07; después integrar renderer/Inspector, estados de preview, tests y build. Cuando quede verde, crear preview no productivo, auditar F09 en navegador, corregir y repetir antes de activar F10.
+Auditar los contratos de query ya existentes en `cms-schema.ts`/`validate-cms.ts`, comparar con M10.1 y completar únicamente los huecos del AST y del ejecutor local. Añadir tests de AND/OR, campos, taxonomía, autor, fecha, orden, limit/offset, relaciones y repeaters; después ejecutar lint/typecheck/suite/build antes de activar M10.2.
