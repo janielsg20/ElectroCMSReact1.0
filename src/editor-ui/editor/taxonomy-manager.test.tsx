@@ -37,62 +37,66 @@ async function renderDataPanel() {
       <ProjectDataPanel />
     </EditorProjectContext>,
   )
-  fireEvent.click(screen.getByRole('tab', { name: 'Taxonomías' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Clasificaciones' }))
   await screen.findByRole('button', { name: 'Nueva' })
   return session
 }
 
-describe('M09.2 gestor de taxonomías', () => {
-  it('crea taxonomía y términos, sincroniza el CPT y protege borrados', async () => {
+describe('M09.2 gestor de clasificaciones', () => {
+  it('crea una clasificación y opciones, sincroniza el contenido y protege borrados', async () => {
     const session = await renderDataPanel()
 
     fireEvent.click(screen.getByRole('button', { name: 'Nueva' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Singular' }), { target: { value: 'Categoría' } })
-    fireEvent.change(screen.getByRole('textbox', { name: 'Plural' }), { target: { value: 'Categorías' } })
-    fireEvent.change(screen.getByRole('textbox', { name: 'Slug' }), { target: { value: 'categories' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre singular' }), { target: { value: 'Categoría' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre plural' }), { target: { value: 'Categorías' } })
 
-    const cptAssociation = screen.getByRole('checkbox', { name: /Artículos/i })
-    expect(cptAssociation).toBeChecked()
-    fireEvent.click(screen.getByRole('button', { name: 'Crear taxonomía' }))
+    const contentAssociation = screen.getByRole('checkbox', { name: /Artículos/i })
+    expect(contentAssociation).toHaveAttribute('aria-checked', 'true')
 
-    expect(await screen.findByText(/Categorías creada y guardada/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Opciones avanzadas/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'URL amigable' }), { target: { value: 'categories' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear clasificación' }))
+
+    expect(await screen.findByText(/Categorías creada/i)).toBeInTheDocument()
     const taxonomy = Object.values(session.store.structure.cms?.taxonomies ?? {})[0]
     expect(taxonomy?.contentTypeIds).toEqual([contentTypeId])
     expect(session.store.structure.cms?.contentTypes[contentTypeId]?.taxonomyIds).toContain(taxonomy?.id)
 
-    const termsHeading = screen.getByRole('heading', { name: /Términos · Categorías/i })
-    const termsSection = termsHeading.closest('section')
-    expect(termsSection).not.toBeNull()
-    if (!termsSection) return
-    const terms = within(termsSection)
+    const optionsHeading = screen.getByRole('heading', { name: /Opciones · Categorías/i })
+    const optionsSection = optionsHeading.closest('section')
+    expect(optionsSection).not.toBeNull()
+    if (!optionsSection) return
+    const options = within(optionsSection)
 
-    fireEvent.click(terms.getByRole('button', { name: 'Término' }))
-    fireEvent.change(terms.getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Arte' } })
-    fireEvent.change(terms.getByRole('textbox', { name: 'Slug' }), { target: { value: 'arte' } })
-    fireEvent.click(terms.getByRole('button', { name: 'Crear término' }))
+    fireEvent.click(options.getByRole('button', { name: 'Opción' }))
+    fireEvent.change(options.getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Arte' } })
+    fireEvent.click(options.getByRole('button', { name: /Opciones avanzadas/i }))
+    fireEvent.change(options.getByRole('textbox', { name: 'URL amigable' }), { target: { value: 'arte' } })
+    fireEvent.click(options.getByRole('button', { name: 'Crear opción' }))
 
-    expect(await terms.findByText(/Arte creado/i)).toBeInTheDocument()
+    expect(await options.findByText(/Arte creado/i)).toBeInTheDocument()
     expect(Object.values(session.store.structure.cms?.taxonomyTerms ?? {})).toHaveLength(1)
 
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
-    expect(await screen.findByText(/No se puede eliminar Categorías: existen términos/i)).toBeInTheDocument()
+    await waitFor(() => expect(Object.values(session.store.structure.cms?.taxonomies ?? {})).toHaveLength(1))
 
-    fireEvent.click(terms.getByRole('option', { name: /Arte/i }))
-    fireEvent.click(terms.getByRole('button', { name: 'Eliminar término' }))
-    fireEvent.click(terms.getByRole('button', { name: 'Confirmar eliminación' }))
+    fireEvent.click(options.getByRole('option', { name: /Arte/i }))
+    fireEvent.click(options.getByRole('button', { name: 'Eliminar opción' }))
+    fireEvent.click(options.getByRole('button', { name: 'Confirmar eliminación' }))
     await waitFor(() => expect(Object.values(session.store.structure.cms?.taxonomyTerms ?? {})).toHaveLength(0))
   })
 
-  it('mantiene tabs secundarios accesibles y el aislamiento entre superficies', async () => {
+  it('mantiene navegación accesible y oculta complejidad técnica en el flujo principal', async () => {
     await renderDataPanel()
 
-    const taxonomyTab = screen.getByRole('tab', { name: 'Taxonomías' })
-    expect(taxonomyTab).toHaveClass('min-h-11', 'lg:min-h-9')
-    expect(taxonomyTab).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('checkbox', { name: /Artículos/i })).toHaveClass('size-4')
+    const classificationTab = screen.getByRole('tab', { name: 'Clasificaciones' })
+    expect(classificationTab).toHaveClass('min-h-11', 'lg:min-h-9')
+    expect(classificationTab).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('checkbox', { name: /Artículos/i })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.queryByText(/CPT/i)).not.toBeInTheDocument()
 
-    const fieldsTab = screen.getByRole('tab', { name: 'Campos' })
+    const fieldsTab = screen.getByRole('tab', { name: 'Campos personalizados' })
     expect(fieldsTab).toHaveAttribute('aria-selected', 'false')
     expect(screen.queryByRole('button', { name: /crear campo/i })).not.toBeInTheDocument()
   })
