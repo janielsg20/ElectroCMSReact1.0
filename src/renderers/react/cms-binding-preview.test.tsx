@@ -10,6 +10,7 @@ import {
   parseNodeId,
   parseTimestamp,
   ProjectStructureSchema,
+  type JsonValue,
   type ProjectStructure,
 } from '../../domain'
 import { EMPTY_CMS_BACKEND } from '../../domain/project/cms-defaults'
@@ -22,6 +23,10 @@ const CONTENT_TYPE_ID = parseContentTypeId('30303030-aaaa-4030-8030-303030303030
 const FIELD_ID = parseFieldDefinitionId('40404040-aaaa-4040-8040-404040404040')
 const RECORD_ID = parseContentRecordId('50505050-aaaa-4050-8050-505050505050')
 const TIMESTAMP = parseTimestamp('2026-08-12T00:00:00.000Z')
+
+function textValue(value: JsonValue | undefined): string {
+  return typeof value === 'string' ? value : ''
+}
 
 function structure(text = 'Desde CMS'): ProjectStructure {
   const cms = structuredClone(EMPTY_CMS_BACKEND)
@@ -114,7 +119,7 @@ describe('M09.5 renderer de bindings CMS', () => {
       <CanonicalProjectRenderer
         breakpointId={DEFAULT_BREAKPOINTS[0].id}
         documentId={DOCUMENT_ID}
-        renderWidget={({ responsive }) => createElement('span', null, String(responsive.properties.text ?? ''))}
+        renderWidget={({ responsive }) => createElement('span', null, textValue(responsive.properties.text))}
         store={store}
       />,
     )
@@ -134,7 +139,7 @@ describe('M09.5 renderer de bindings CMS', () => {
       <CanonicalProjectRenderer
         breakpointId={DEFAULT_BREAKPOINTS[0].id}
         documentId={DOCUMENT_ID}
-        renderWidget={({ responsive }) => createElement('span', null, String(responsive.properties.text ?? ''))}
+        renderWidget={({ responsive }) => createElement('span', null, textValue(responsive.properties.text))}
         store={store}
       />,
     )
