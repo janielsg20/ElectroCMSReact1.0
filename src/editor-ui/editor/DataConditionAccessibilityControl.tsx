@@ -82,7 +82,7 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
   const records = useMemo(() => listContentRecords(structure), [structure])
   const fields = useMemo(() => listCustomFields(structure), [structure])
   const [bindingTarget, setBindingTarget] = useState(() => targetKeys[0] ?? '')
-  const [recordId, setRecordId] = useState(() => records[0]?.id ?? '')
+  const [recordId, setRecordId] = useState<string>(() => records[0]?.id ?? '')
   const [sourceKind, setSourceKind] = useState<CmsSourceKind>('field')
   const [fieldId, setFieldId] = useState('')
   const [recordProperty, setRecordProperty] = useState<CmsRecordProperty>('status')
