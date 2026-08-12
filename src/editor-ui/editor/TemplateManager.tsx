@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { parseDocumentId, type Document, type DocumentId, type TemplateCondition } from '../../domain'
-import { Button, Icon } from '../primitives'
+import { Button, Icon, Select, TextArea, TextField } from '../primitives'
 import { useEditorProject, useEditorProjectStructure } from './editor-project-context'
 
 const creatableKinds = ['page', 'template', 'header', 'footer', 'single', 'archive', 'not-found'] as const
@@ -76,25 +76,31 @@ export function TemplateManager() {
     setStatus(result.ok ? 'Condiciones actualizadas con historial reversible.' : result.error)
   }
 
-  return <section aria-labelledby="template-manager-title" className="min-h-0 overflow-y-auto p-2 lg:p-1.5">
+  return <section aria-labelledby="template-manager-title" className="min-h-0 overflow-y-auto p-2 lg:p-1.5" data-electrocms-surface="template-manager">
     <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-2">
       <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="content" size={15} /></span>
       <div><h2 className="text-xs font-bold" id="template-manager-title">Páginas y plantillas</h2><p className="text-[0.625rem] leading-4 text-muted-foreground">Árboles canónicos reutilizables. Las condiciones deciden header, footer y plantilla sin copiar nodos.</p></div>
     </div>
 
-    <fieldset className="mt-2 grid gap-1.5 border-0 p-0">
+    <fieldset className="mt-2 grid gap-1.5 rounded-md border border-border bg-muted/15 p-2">
       <legend className="px-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Crear documento</legend>
-      <label className="grid gap-1 text-xs font-semibold">Tipo<select className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs font-normal" onChange={(event) => setKind(event.target.value as CreatableKind)} value={kind}>{creatableKinds.map((value) => <option key={value} value={value}>{kindLabels[value]}</option>)}</select></label>
-      <label className="grid gap-1 text-xs font-semibold">Nombre<input className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs font-normal" maxLength={160} onChange={(event) => setName(event.target.value)} value={name} /></label>
-      {kind === 'page' ? <label className="grid gap-1 text-xs font-semibold">Ruta<input className="min-h-9 rounded-md border border-border bg-surface px-2 text-xs font-normal" onChange={(event) => setRoutePath(event.target.value)} value={routePath} /></label> : null}
+      <Select
+        controlSize="compact"
+        label="Tipo"
+        onValueChange={(value) => setKind(value as CreatableKind)}
+        options={creatableKinds.map((value) => ({ label: kindLabels[value], value }))}
+        value={kind}
+      />
+      <TextField label="Nombre" maxLength={160} onChange={(event) => setName(event.target.value)} value={name} />
+      {kind === 'page' ? <TextField label="Ruta" onChange={(event) => setRoutePath(event.target.value)} value={routePath} /> : null}
       <Button disabled={pending} onClick={() => void create()} size="small"><Icon name="plus" size={13} />Crear {kindLabels[kind]}</Button>
     </fieldset>
 
     <div className="mt-2 grid gap-1" role="list" aria-label="Documentos del proyecto">
-      {documents.map((document) => <button aria-pressed={selected?.id === document.id} className={`min-h-10 rounded-md border px-2 text-left text-xs focus-visible:ring-2 focus-visible:ring-focus ${selected?.id === document.id ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-surface hover:bg-muted'}`} key={document.id} onClick={() => selectDocument(document)} role="listitem" type="button"><span className="flex items-center justify-between gap-2"><strong className="truncate">{document.name}</strong><span className="shrink-0 text-[0.5625rem] font-bold uppercase tracking-wide">{kindLabels[document.kind]}</span></span><span className="mt-0.5 block truncate text-[0.625rem] text-muted-foreground">{document.routePath ?? `${document.conditions.length} condición(es)`}</span></button>)}
+      {documents.map((document) => <button aria-pressed={selected?.id === document.id} className={`min-h-10 cursor-pointer rounded-md border px-2 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:ring-focus ${selected?.id === document.id ? 'border-primary bg-primary-soft text-primary-strong' : 'border-border bg-surface hover:bg-muted'}`} key={document.id} onClick={() => selectDocument(document)} role="listitem" type="button"><span className="flex items-center justify-between gap-2"><strong className="truncate">{document.name}</strong><span className="shrink-0 text-[0.5625rem] font-bold uppercase tracking-wide">{kindLabels[document.kind]}</span></span><span className="mt-0.5 block truncate text-[0.625rem] text-muted-foreground">{document.routePath ?? `${document.conditions.length} condición(es)`}</span></button>)}
     </div>
 
-    {selected && selected.kind !== 'page' ? <div className="mt-2 grid gap-1.5 rounded-md border border-border bg-muted/20 p-2"><label className="grid gap-1 text-xs font-semibold" htmlFor="template-conditions">Condiciones · JSON tipado<textarea className="min-h-28 resize-y rounded-md border border-border bg-surface p-2 font-mono text-[0.625rem] font-normal leading-4" id="template-conditions" onChange={(event) => setConditionsText(event.target.value)} spellCheck={false} value={conditionsText} /></label><p className="text-[0.625rem] leading-4 text-muted-foreground">Cada regla requiere <code>target</code> y puede usar <code>pathPrefix</code>, <code>contentType</code> y <code>priority</code>. La coincidencia es determinista.</p><Button disabled={pending} onClick={() => void saveConditions()} size="small" variant="secondary">Guardar condiciones</Button></div> : null}
+    {selected && selected.kind !== 'page' ? <div className="mt-2 grid gap-1.5 rounded-md border border-border bg-muted/20 p-2"><TextArea className="min-h-28 font-mono text-[0.625rem] leading-4" id="template-conditions" label="Condiciones · JSON tipado" onChange={(event) => setConditionsText(event.target.value)} spellCheck={false} value={conditionsText} /><p className="text-[0.625rem] leading-4 text-muted-foreground">Cada regla requiere <code>target</code> y puede usar <code>pathPrefix</code>, <code>contentType</code> y <code>priority</code>. La coincidencia es determinista.</p><Button disabled={pending} onClick={() => void saveConditions()} size="small" variant="secondary">Guardar condiciones</Button></div> : null}
     {status ? <p aria-live="polite" className="mt-2 text-xs text-muted-foreground">{status}</p> : null}
   </section>
 }
