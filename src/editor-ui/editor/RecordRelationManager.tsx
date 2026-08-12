@@ -50,6 +50,7 @@ const statusLabel: Record<ContentStatus, string> = {
   private: 'Privado',
   published: 'Publicado',
 }
+const stringFieldTypes = new Set<FieldDefinition['type']>(['text', 'email', 'phone', 'url', 'date', 'time', 'datetime', 'color'])
 
 function recordLabel(record: ContentRecord, fields: readonly FieldDefinition[]): string {
   const preferred = fields.find((field) => field.key === 'title' || field.key === 'name') ?? fields[0]
@@ -84,8 +85,8 @@ function FieldValueControl({
   if (field.type === 'switch') {
     return (
       <label className="flex min-h-11 items-center justify-between rounded-md border border-border bg-muted/20 px-2 text-xs lg:min-h-9">
-        <span>{Boolean(value) ? 'Activo' : 'Inactivo'}</span>
-        <input checked={Boolean(value)} className="size-4 accent-primary" onChange={(event) => onChange(event.target.checked)} type="checkbox" />
+        <span>{value === true ? 'Activo' : 'Inactivo'}</span>
+        <input checked={value === true} className="size-4 accent-primary" onChange={(event) => onChange(event.target.checked)} type="checkbox" />
       </label>
     )
   }
@@ -144,8 +145,7 @@ function FieldValueControl({
     )
   }
 
-  const stringTypes = new Set<FieldDefinition['type']>(['text', 'email', 'phone', 'url', 'date', 'time', 'datetime', 'color'])
-  if (stringTypes.has(field.type)) {
+  if (stringFieldTypes.has(field.type)) {
     const htmlType = field.type === 'datetime' ? 'datetime-local' : field.type === 'phone' ? 'tel' : field.type
     return (
       <input className={inputClass} onChange={(event) => onChange(event.target.value || undefined)} placeholder={field.placeholder} type={htmlType} value={typeof value === 'string' ? value : ''} />
