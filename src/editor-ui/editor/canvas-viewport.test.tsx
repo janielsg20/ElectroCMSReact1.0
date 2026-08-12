@@ -93,20 +93,19 @@ describe('M05.5 zoom, pan, orientación y foco', () => {
 
   it('elige el breakpoint representativo de cada modo sin anunciar un ancho ficticio', () => {
     render(<CanvasHarness />)
-    const breakpointSelect = screen.getByLabelText('Tamaño de pantalla activo')
     const mobile = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Móvil pequeño')
     const tablet = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Tablet vertical')
     const desktop = TEST_PROJECT_STRUCTURE.breakpoints.find((item) => item.name === 'Desktop')
     expect(mobile && tablet && desktop).toBeTruthy()
 
     expect(screen.getByRole('button', { name: 'Móvil' })).toHaveAttribute('aria-pressed', 'true')
-    expect(breakpointSelect).toHaveValue(mobile?.id)
+    expect(screen.getByRole('button', { name: 'Resolución activa' })).toHaveTextContent(`${mobile?.name} · ${mobile?.width}px`)
 
     fireEvent.click(screen.getByRole('button', { name: 'Tablet' }))
-    expect(breakpointSelect).toHaveValue(tablet?.id)
+    expect(screen.getByRole('button', { name: 'Resolución activa' })).toHaveTextContent(`${tablet?.name} · ${tablet?.width}px`)
 
     fireEvent.click(screen.getByRole('button', { name: 'Escritorio' }))
-    expect(breakpointSelect).toHaveValue(desktop?.id)
+    expect(screen.getByRole('button', { name: 'Resolución activa' })).toHaveTextContent(`${desktop?.name} · ${desktop?.width}px`)
   })
 
   it('presenta la configuración responsive con lenguaje de usuario', () => {
