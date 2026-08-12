@@ -79,7 +79,9 @@ export function ResponsiveEditorShell() {
   }, [closeOverlay, overlayPanel])
 
   useEffect(() => {
-    if (section !== 'editor') setOverlayPanel(null)
+    if (section === 'editor') return
+    const frame = requestAnimationFrame(() => setOverlayPanel(null))
+    return () => cancelAnimationFrame(frame)
   }, [section])
 
   useEffect(() => {
