@@ -1,5 +1,5 @@
 import { failure, success, type Result } from '../common/result'
-import type { CmsBackend, ContentRecord } from './cms-schema'
+import type { CmsBackend, ContentRecord, Query } from './cms-schema'
 import { QueryIdSchema, type QueryId } from './identity'
 import {
   executeCmsQuery,
@@ -15,9 +15,12 @@ export interface CmsListingDiagnostic {
   readonly path: readonly (string | number)[]
 }
 
-export interface CmsListingRequest {
+export interface CmsListingPageRequest {
   readonly page?: number
   readonly pageSize?: number
+}
+
+export interface CmsListingRequest extends CmsListingPageRequest {
   readonly queryId: QueryId | string
 }
 
@@ -46,24 +49,15 @@ function queryDiagnostics(items: readonly QueryEngineDiagnostic[]): readonly Cms
 }
 
 /**
- * Ejecuta una página de un listing guardado sin duplicar la semántica del motor
- * de queries. `Query.offset` y `Query.limit` definen la ventana base; page/pageSize
- * únicamente particionan esa ventana para presentación.
+ * Ejecuta una página sobre una definición de query ya materializada. Esta variante
+ * existe para runtimes transitorios (filtros, URL, preview) y nunca persiste la
+ * definición recibida en `CmsBackend`.
  */
-export function executeCmsListing(
+export function executeCmsListingQuery(
   cms: CmsBackend,
-  request: CmsListingRequest,
+  query: Query,
+  request: CmsListingPageRequest = {},
 ): Result<CmsListingResult, readonly CmsListingDiagnostic[]> {
-  const parsedId = QueryIdSchema.safeParse(request.queryId)
-  if (!parsedId.success) {
-    return failure([diagnostic('query-not-found', 'El listing requiere un QueryId válido.', ['listing', 'queryId'])])
-  }
-
-  const query = cms.queries[parsedId.data]
-  if (!query) {
-    return failure([diagnostic('query-not-found', `La consulta ${parsedId.data} no existe.`, ['listing', 'queryId'])])
-  }
-
   const page = request.page ?? 1
   if (!Number.isInteger(page) || page < 1) {
     return failure([diagnostic('invalid-page', 'La página del listing debe ser un entero mayor o igual a 1.', ['listing', 'page'])])
@@ -119,4 +113,26 @@ export function executeCmsListing(
     records: executed.value.records,
     totalMatched: executed.value.totalMatched,
   })
+}
+
+/**
+ * Ejecuta una página de un listing guardado sin duplicar la semántica del motor
+ * de queries. `Query.offset` y `Query.limit` definen la ventana base; page/pageSize
+ * únicamente particionan esa ventana para presentación.
+ */
+export function executeCmsListing(
+  cms: CmsBackend,
+  request: CmsListingRequest,
+): Result<CmsListingResult, readonly CmsListingDiagnostic[]> {
+  const parsedId = QueryIdSchema.safeParse(request.queryId)
+  if (!parsedId.success) {
+    return failure([diagnostic('query-not-found', 'El listing requiere un QueryId válido.', ['listing', 'queryId'])])
+  }
+
+  const query = cms.queries[parsedId.data]
+  if (!query) {
+    return failure([diagnostic('query-not-found', `La consulta ${parsedId.data} no existe.`, ['listing', 'queryId'])])
+  }
+
+  return executeCmsListingQuery(cms, query, request)
 }
