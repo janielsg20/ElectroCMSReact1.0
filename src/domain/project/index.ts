@@ -308,8 +308,16 @@ export {
   validateQueryDefinition,
   type QueryEngineDiagnostic,
   type QueryEngineDiagnosticCode,
+  type QueryExecutionMetrics,
+  type QueryExecutionOptions,
   type QueryExecutionResult,
 } from './query-engine'
+export {
+  buildCmsQueryIndex,
+  selectQueryCandidates,
+  type CmsQueryIndex,
+  type QueryCandidateSelection,
+} from './query-index'
 export {
   executeCmsListing,
   executeCmsListingQuery,
