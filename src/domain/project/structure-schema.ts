@@ -1,7 +1,9 @@
 import * as z from 'zod'
 import {
   BreakpointIdSchema,
+  ContentRecordIdSchema,
   DocumentIdSchema,
+  FieldDefinitionIdSchema,
   GlobalComponentIdSchema,
   NodeIdSchema,
 } from './identity'
@@ -23,6 +25,16 @@ export const BreakpointSchema = z.strictObject({
   inheritsFrom: BreakpointIdSchema.nullable(),
 })
 
+export const CmsRecordPropertySchema = z.enum([
+  'id',
+  'status',
+  'contentTypeId',
+  'authorId',
+  'createdAt',
+  'updatedAt',
+  'taxonomyTermIds',
+])
+
 export const BindingSourceSchema = z.discriminatedUnion('kind', [
   z.strictObject({
     kind: z.literal('literal'),
@@ -36,6 +48,16 @@ export const BindingSourceSchema = z.discriminatedUnion('kind', [
     kind: z.literal('node-property'),
     nodeId: NodeIdSchema,
     path: z.array(PropertyKeySchema).min(1),
+  }),
+  z.strictObject({
+    kind: z.literal('cms-record-field'),
+    recordId: ContentRecordIdSchema,
+    fieldId: FieldDefinitionIdSchema,
+  }),
+  z.strictObject({
+    kind: z.literal('cms-record-property'),
+    recordId: ContentRecordIdSchema,
+    property: CmsRecordPropertySchema,
   }),
 ])
 
@@ -143,6 +165,7 @@ export const ProjectStructureSchema = z.strictObject({
 })
 
 export type Breakpoint = z.infer<typeof BreakpointSchema>
+export type CmsRecordProperty = z.infer<typeof CmsRecordPropertySchema>
 export type BindingSource = z.infer<typeof BindingSourceSchema>
 export type ConditionPredicate = z.infer<typeof ConditionPredicateSchema>
 export type ConditionGroup = z.infer<typeof ConditionGroupSchema>
