@@ -58,6 +58,12 @@ function filterKind(widgetType: string): SmartFilterKind | null {
   return null
 }
 
+function debounceFor(widgetType: string): number {
+  if (widgetType === 'filter.search') return 180
+  if (widgetType === 'filter.range') return 120
+  return 0
+}
+
 function initialValue(widgetType: string, properties: Readonly<Record<string, JsonValue>>): JsonValue {
   if (widgetType === 'filter.search') return text(properties, 'query')
   if (widgetType === 'filter.checkboxes' || widgetType === 'filter.taxonomy') return [...strings(properties, 'selected')]
@@ -83,7 +89,7 @@ function parseChoice(source: string): Choice {
 
 function fieldChoices(cms: CmsBackend | undefined, fieldId: string, fallback: readonly string[]): readonly Choice[] {
   if (fallback.length > 0) return fallback.map(parseChoice)
-  const field = cms?.fields[fieldId as keyof typeof cms.fields]
+  const field = cms ? Object.values(cms.fields).find((item) => item.id === fieldId) : undefined
   if (!field) return []
   return field.options.map((option) => ({ label: option.label, value: option.value }))
 }
@@ -105,6 +111,13 @@ function sortChoices(properties: Readonly<Record<string, JsonValue>>): readonly 
     { label: 'Actualizados recientemente', value: 'updatedAt:desc' },
     { label: 'ID ascendente', value: 'id:asc' },
   ]
+}
+
+function pageWindow(page: number, pageCount: number, size = 7): readonly number[] {
+  if (pageCount <= size) return Array.from({ length: pageCount }, (_, index) => index + 1)
+  const half = Math.floor(size / 2)
+  const start = Math.min(Math.max(1, page - half), pageCount - size + 1)
+  return Array.from({ length: size }, (_, index) => start + index)
 }
 
 function FilterShell({ children, count, label, showCount }: { readonly children: ReactNode; readonly count: number; readonly label: string; readonly showCount: boolean }) {
@@ -130,10 +143,10 @@ function ChoiceMenu({ choices, label, onChange, value }: { readonly choices: rea
       </button>
       {open ? (
         <div aria-label={label} className="absolute left-0 right-0 z-30 mt-1 grid max-h-56 gap-1 overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-lg" role="listbox">
-          <button aria-selected={value === ''} className={`min-h-10 rounded px-2 text-left text-xs ${value === '' ? ACTIVE : 'hover:bg-muted'}`} onClick={() => { onChange(''); setOpen(false) }} role="option" type="button">Todos</button>
+          <button aria-selected={value === ''} className={`min-h-11 rounded px-2 text-left text-xs ${value === '' ? ACTIVE : 'hover:bg-muted'}`} onClick={() => { onChange(''); setOpen(false) }} role="option" type="button">Todos</button>
           {choices.map((choice, index) => {
             const active = jsonEqual(choice.value, value)
-            return <button aria-selected={active} className={`min-h-10 rounded px-2 text-left text-xs ${active ? ACTIVE : 'hover:bg-muted'}`} key={`${displayValue(choice.value)}-${index}`} onClick={() => { onChange(choice.value); setOpen(false) }} role="option" type="button">{choice.label}</button>
+            return <button aria-selected={active} className={`min-h-11 rounded px-2 text-left text-xs ${active ? ACTIVE : 'hover:bg-muted'}`} key={`${displayValue(choice.value)}-${index}`} onClick={() => { onChange(choice.value); setOpen(false) }} role="option" type="button">{choice.label}</button>
           })}
         </div>
       ) : null}
@@ -154,7 +167,7 @@ function ChoiceGroup({ choices, label, multiple, onChange, value }: { readonly c
         return (
           <button
             aria-checked={active}
-            className={`min-h-10 rounded-full border px-3 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${active ? ACTIVE : 'border-border bg-surface text-foreground hover:bg-muted'}`}
+            className={`min-h-11 rounded-full border px-3 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${active ? ACTIVE : 'border-border bg-surface text-foreground hover:bg-muted'}`}
             key={`${displayValue(choice.value)}-${index}`}
             onClick={toggle}
             role={multiple ? 'checkbox' : 'radio'}
@@ -203,6 +216,7 @@ export function SmartFilterRuntime({ nodeId, projectStore, properties, widgetTyp
   const registration = useMemo<SmartFilterRegistration | null>(() => kind && queryId ? {
     applyMode,
     dateField: text(properties, 'dateField', 'createdAt') === 'updatedAt' ? 'updatedAt' : 'createdAt',
+    debounceMs: debounceFor(widgetType),
     fieldId: text(properties, 'fieldId'),
     initialValue: initialValue(widgetType, properties),
     kind,
@@ -225,7 +239,7 @@ export function SmartFilterRuntime({ nodeId, projectStore, properties, widgetTyp
   if (widgetType === 'filter.pagination') {
     const pageCount = Math.max(1, snapshot.meta.pageCount)
     const page = Math.min(snapshot.page, pageCount)
-    const pages = Array.from({ length: Math.min(pageCount, 7) }, (_, index) => index + 1)
+    const pages = pageWindow(page, pageCount)
     return (
       <FilterShell count={snapshot.meta.count} label="Paginación" showCount={showCount}>
         <nav aria-label="Paginación de resultados" className="flex flex-wrap items-center gap-1">
@@ -238,9 +252,10 @@ export function SmartFilterRuntime({ nodeId, projectStore, properties, widgetTyp
   }
 
   if (widgetType === 'filter.load-more') {
+    const disabled = boolean(properties, 'disabled') || !snapshot.meta.hasNextPage
     return (
       <FilterShell count={snapshot.meta.count} label={label} showCount={showCount}>
-        <button className={`${ACTION} w-full`} disabled={!snapshot.meta.hasNextPage} onClick={() => runtimeStore.loadMore(queryId)} type="button">{snapshot.meta.hasNextPage ? label : 'Todo cargado'}</button>
+        <button className={`${ACTION} w-full`} disabled={disabled} onClick={() => runtimeStore.loadMore(queryId)} type="button">{snapshot.meta.hasNextPage ? label : 'Todo cargado'}</button>
       </FilterShell>
     )
   }
@@ -258,6 +273,7 @@ export function SmartFilterRuntime({ nodeId, projectStore, properties, widgetTyp
   const value = entry?.draft ?? registration.initialValue
   const setValue = (next: JsonValue) => runtimeStore.setDraft(queryId, nodeId, next)
   const pendingApply = applyMode === 'apply' && entry ? !jsonEqual(entry.applied, entry.draft) : false
+  const pendingRealtime = applyMode === 'realtime' && entry ? !jsonEqual(entry.applied, entry.draft) : false
   const fieldId = text(properties, 'fieldId')
   const options = fieldChoices(cms, fieldId, strings(properties, 'options'))
   let control: ReactNode
@@ -284,6 +300,7 @@ export function SmartFilterRuntime({ nodeId, projectStore, properties, widgetTyp
     <FilterShell count={snapshot.meta.count} label={label} showCount={showCount}>
       {control}
       {applyMode === 'apply' ? <button className={`${ACTION} w-full ${pendingApply ? 'border-primary bg-primary text-on-primary hover:bg-primary-strong' : ''}`} disabled={!pendingApply} onClick={() => runtimeStore.apply(queryId, nodeId)} type="button">Aplicar filtro</button> : null}
+      {pendingRealtime ? <span aria-live="polite" className="sr-only">Actualizando filtro…</span> : null}
       {entry?.registration.persistState ? <span className="sr-only">El estado de este filtro se conserva localmente.</span> : null}
     </FilterShell>
   )
