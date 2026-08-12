@@ -62,6 +62,7 @@ function validateNormalizedKeys(
     ['taxonomies', cms.taxonomies],
     ['fields', cms.fields],
     ['records', cms.records],
+    ['recordRevisions', cms.recordRevisions],
     ['taxonomyTerms', cms.taxonomyTerms],
     ['relations', cms.relations],
     ['relationEntries', cms.relationEntries],
@@ -239,9 +240,11 @@ function validateRecordsAndTerms(cms: CmsBackend, diagnostics: DiagnosticSink): 
         report(diagnostics, 'invalid-record-field', `El campo ${fieldId} no pertenece al tipo ${contentType.id}.`, [...path, 'values', fieldId])
       }
     }
-    for (const fieldId of contentType.fieldIds) {
-      if (cms.fields[fieldId]?.required && !(fieldId in record.values)) {
-        report(diagnostics, 'missing-required-field', `Falta el campo obligatorio ${fieldId}.`, [...path, 'values'])
+    if (record.status !== 'draft') {
+      for (const fieldId of contentType.fieldIds) {
+        if (cms.fields[fieldId]?.required && !(fieldId in record.values)) {
+          report(diagnostics, 'missing-required-field', `Falta el campo obligatorio ${fieldId}.`, [...path, 'values'])
+        }
       }
     }
     for (const termId of record.taxonomyTermIds) {
