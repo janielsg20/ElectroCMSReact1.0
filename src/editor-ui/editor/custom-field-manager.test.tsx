@@ -82,7 +82,7 @@ describe('M09.3 gestor de campos personalizados', () => {
     fireEvent.change(typeSelect, { target: { value: 'relation' } })
     expect(screen.getByText(/La creación de relaciones pertenece a M09\.4/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /crear relación/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Registros' })).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('tab', { name: 'Registros y relaciones' })).toHaveAttribute('aria-selected', 'false')
     expect(screen.queryByRole('tab', { name: 'Bindings' })).not.toBeInTheDocument()
   })
 })
