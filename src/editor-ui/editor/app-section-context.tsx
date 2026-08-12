@@ -1,18 +1,12 @@
-import { createContext, useContext, useMemo, useState, type PropsWithChildren } from 'react'
+import { createContext, useContext } from 'react'
 import type { AppSection } from './app-sections'
 
-interface AppSectionContextValue {
+export interface AppSectionContextValue {
   readonly section: AppSection
   readonly setSection: (section: AppSection) => void
 }
 
-const AppSectionContext = createContext<AppSectionContextValue | null>(null)
-
-export function AppSectionProvider({ children }: PropsWithChildren) {
-  const [section, setSection] = useState<AppSection>('editor')
-  const value = useMemo<AppSectionContextValue>(() => ({ section, setSection }), [section])
-  return <AppSectionContext.Provider value={value}>{children}</AppSectionContext.Provider>
-}
+export const AppSectionContext = createContext<AppSectionContextValue | null>(null)
 
 export function useAppSection(): AppSectionContextValue {
   const value = useContext(AppSectionContext)
