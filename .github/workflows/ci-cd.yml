@@ -50,6 +50,7 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID' EXIT
           node scripts/browser-audit.mjs
+          node scripts/assert-browser-audit.mjs
 
       - name: Upload browser audit
         if: always()

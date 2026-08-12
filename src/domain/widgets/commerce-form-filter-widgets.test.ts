@@ -37,11 +37,23 @@ describe('M06.4 catálogo de comercio, formularios y filtros', () => {
     expect(registry.diagnoseExporter('commerce.price', 'wordpress')).toEqual([])
   })
 
-  it('mantiene acciones sensibles como contratos declarativos', () => {
+  it('mantiene acciones sensibles seguras y convierte filtros en runtime configurable', () => {
     const registry = createCompleteWidgetRegistry()
     expect(registry.get('commerce.checkout')?.defaults).toEqual({ message: 'Checkout no ejecutado', state: 'idle' })
     expect(registry.get('form.submit')?.defaults).toEqual({ disabled: true, label: 'Enviar' })
     expect(registry.get('form.captcha')?.defaults).toEqual({ enabled: false, provider: 'none' })
-    expect(registry.get('filter.load-more')?.defaults).toEqual({ disabled: true, label: 'Cargar más', state: 'idle' })
+    expect(registry.get('filter.load-more')?.defaults).toMatchObject({
+      applyMode: 'realtime',
+      disabled: true,
+      label: 'Cargar más',
+      persistState: false,
+      queryId: '',
+      showCount: true,
+      state: 'idle',
+      urlKey: '',
+    })
+    for (const definition of FILTER_WIDGET_DEFINITIONS) {
+      expect(definition.defaults).toMatchObject({ applyMode: 'realtime', persistState: false, queryId: '', showCount: true, urlKey: '' })
+    }
   })
 })

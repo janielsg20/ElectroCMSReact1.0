@@ -87,6 +87,50 @@
     min-height: 44px;
     touch-action: manipulation;
   }
+
+  [aria-label="Datos del proyecto"] > [role="tab"] {
+    width: auto !important;
+    min-width: 5.75rem !important;
+    min-height: 44px !important;
+    flex: 0 0 auto !important;
+    touch-action: manipulation;
+  }
+}
+
+/*
+ * Tablet landscape sigue usando el shell compacto, pero un puntero táctil no
+ * debe heredar los targets de 30–36 px reservados para escritorio de alta
+ * densidad. Estas reglas solo amplían el área interactiva: no cambian el
+ * modelo de navegación ni duplican controles.
+ */
+@media (pointer: coarse) and (min-width: 48rem) and (max-width: 63.999rem) {
+  .app-navigation > div > div:nth-child(2) {
+    padding-inline: 0 !important;
+  }
+
+  .app-navigation .nav-option {
+    width: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .canvas-toolbar button {
+    flex-shrink: 0 !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .canvas-toolbar select {
+    min-height: 44px !important;
+  }
+
+  .library-panel [role="tab"] {
+    min-height: 44px !important;
+  }
+
+  #library-panel-layers [role="tree"] button {
+    min-height: 44px !important;
+  }
 }
 
 @media (min-width: 48rem) {

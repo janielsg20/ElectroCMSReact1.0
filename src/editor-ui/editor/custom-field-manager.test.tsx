@@ -40,6 +40,7 @@ async function renderFields() {
     </EditorProjectContext>,
   )
   fireEvent.click(screen.getByRole('tab', { name: 'Campos' }))
+  await screen.findByRole('textbox', { name: 'Etiqueta' })
   return session
 }
 
