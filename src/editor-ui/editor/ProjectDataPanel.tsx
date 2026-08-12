@@ -49,7 +49,7 @@ export function ProjectDataPanel() {
         </button>
         <button
           aria-controls="project-data-records"
-          aria-label="Registros"
+          aria-label="Registros y relaciones"
           aria-selected={activeTab === 'records'}
           className={`min-h-11 min-w-0 rounded-md px-1 text-xs font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${activeTab === 'records' ? 'bg-primary-soft text-primary-strong' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
           id="project-data-tab-records"
