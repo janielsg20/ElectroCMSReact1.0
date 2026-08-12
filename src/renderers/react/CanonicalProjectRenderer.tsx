@@ -78,6 +78,7 @@ function DefaultNodeFrame({ children, className, snapshot, style, styleScope, st
       aria-description={accessibility.description}
       aria-label={accessibility.label}
       className={`relative ${className}`.trim()}
+      data-node-data-state={snapshot.dataState}
       data-node-id={snapshot.node.id}
       data-node-locked={snapshot.node.locked ? 'true' : 'false'}
       data-node-name={snapshot.node.name}
@@ -121,8 +122,34 @@ class NodeErrorBoundary extends Component<NodeErrorBoundaryProps, NodeErrorBound
   }
 }
 
+function NodeDataStateView({ snapshot }: { readonly snapshot: NodeRenderSnapshot }) {
+  if (snapshot.dataState === 'loading') {
+    return (
+      <div aria-label="Estado de carga de contenido" className="grid min-h-16 place-items-center rounded-md border border-dashed border-border bg-muted/30 p-3 text-center text-xs text-muted-foreground" data-data-preview="loading" role="status">
+        <span><strong className="block text-foreground">Cargando contenido…</strong><span className="mt-1 block text-[0.625rem]">Preview local; no ejecuta una petición remota.</span></span>
+      </div>
+    )
+  }
+  if (snapshot.dataState === 'empty') {
+    return (
+      <div className="grid min-h-16 place-items-center rounded-md border border-dashed border-border bg-muted/20 p-3 text-center text-xs text-muted-foreground" data-data-preview="empty" role="status">
+        <span><strong className="block text-foreground">Sin contenido</strong><span className="mt-1 block text-[0.625rem]">El binding actual no produce un valor visible.</span></span>
+      </div>
+    )
+  }
+  if (snapshot.dataState === 'error') {
+    return (
+      <div className="grid min-h-16 place-items-center rounded-md border border-danger/40 bg-danger/10 p-3 text-center text-xs text-danger" data-data-preview="error" role="alert">
+        <span><strong className="block">No se pudo resolver el contenido</strong><span className="mt-1 block text-[0.625rem]">{snapshot.diagnostics[0]?.message ?? 'Estado de error simulado para revisar el diseño.'}</span></span>
+      </div>
+    )
+  }
+  return null
+}
+
 function CanonicalNodeView({ NodeFrame, renderWidget, slots, snapshot, themeTokens }: CanonicalNodeViewProps) {
   const compiled = compileCanonicalStyles(snapshot.responsive.styles, { scopeId: snapshot.node.id, tokens: themeTokens })
+  const dataStateView = snapshot.dataState === 'ready' ? null : <NodeDataStateView snapshot={snapshot} />
   return (
     <NodeFrame
       className={compiled.className}
@@ -132,7 +159,7 @@ function CanonicalNodeView({ NodeFrame, renderWidget, slots, snapshot, themeToke
       styleSheet={compiled.stateCssText}
     >
       {snapshot.node.locked ? <span className="sr-only">Nodo bloqueado.</span> : null}
-      {renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })}
+      {dataStateView ?? renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })}
     </NodeFrame>
   )
 }
