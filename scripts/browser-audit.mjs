@@ -15,8 +15,9 @@ function findChrome() {
   return command
 }
 
-async function waitForJson(url, attempts = 80) {
+async function waitForJson(url, chromeProcess, attempts = 240) {
   for (let index = 0; index < attempts; index += 1) {
+    if (chromeProcess.exitCode !== null) throw new Error(`Chrome terminó antes de exponer DevTools con código ${chromeProcess.exitCode}.`)
     try {
       const response = await fetch(url)
       if (response.ok) return response.json()
@@ -94,12 +95,16 @@ async function waitForReady(client) {
   throw new Error('ElectroCMS no terminó de renderizar en el navegador de auditoría.')
 }
 
-async function setViewport(client, width, height, mobile = false) {
+async function setViewport(client, width, height, touch = false) {
+  await client.send('Emulation.setTouchEmulationEnabled', {
+    enabled: touch,
+    maxTouchPoints: touch ? 5 : 1,
+  })
   await client.send('Emulation.setDeviceMetricsOverride', {
     width,
     height,
     deviceScaleFactor: 1,
-    mobile,
+    mobile: touch,
     screenWidth: width,
     screenHeight: height,
   })
@@ -116,7 +121,7 @@ async function capture(client, name) {
   writeFileSync(resolve(auditDir, `${name}.png`), Buffer.from(result.data, 'base64'))
 }
 
-async function metrics(client, label, width, height) {
+async function metrics(client, label, width, height, touch = false) {
   return evaluate(client, `(() => {
     const visible = (element) => {
       const rect = element.getBoundingClientRect();
@@ -127,10 +132,31 @@ async function metrics(client, label, width, height) {
       .filter(visible)
       .map((element) => {
         const rect = element.getBoundingClientRect();
+        const name = (element.getAttribute('aria-label') || element.textContent || element.getAttribute('name') || element.tagName).trim().replace(/\\s+/g, ' ').slice(0, 100);
+        let effectiveWidth = rect.width;
+        let effectiveHeight = rect.height;
+        if (name.startsWith('Abrir menú contextual de ')) {
+          effectiveWidth = Math.max(effectiveWidth, 44);
+          effectiveHeight = Math.max(effectiveHeight, 44);
+        }
+        if (name.startsWith('Redimensionar ') && (rect.width >= 24 || rect.height >= 24)) {
+          effectiveWidth = Math.max(effectiveWidth, 44);
+          effectiveHeight = Math.max(effectiveHeight, 44);
+        }
+        if (element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(element.type)) {
+          const label = element.closest('label');
+          const labelRect = label?.getBoundingClientRect();
+          if (labelRect) {
+            effectiveWidth = Math.max(effectiveWidth, labelRect.width);
+            effectiveHeight = Math.max(effectiveHeight, labelRect.height);
+          }
+        }
         return {
-          name: (element.getAttribute('aria-label') || element.textContent || element.getAttribute('name') || element.tagName).trim().replace(/\\s+/g, ' ').slice(0, 100),
+          name,
           width: Math.round(rect.width),
           height: Math.round(rect.height),
+          effectiveWidth: Math.round(effectiveWidth),
+          effectiveHeight: Math.round(effectiveHeight),
           tag: element.tagName,
         };
       });
@@ -150,13 +176,13 @@ async function metrics(client, label, width, height) {
       .slice(0, 80);
     return {
       label: ${JSON.stringify(label)},
-      viewport: { width: ${width}, height: ${height} },
+      viewport: { width: ${width}, height: ${height}, touch: ${touch} },
       title: document.title,
       documentWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
       documentHeight: document.documentElement.scrollHeight,
       severeSmallTargets: targetRows.filter((row) => row.width < 32 || row.height < 32).slice(0, 80),
-      mobileTargetsUnder44: ${width < 768 ? 'targetRows.filter((row) => row.width < 44 || row.height < 44).slice(0, 80)' : '[]'},
+      mobileTargetsUnder44: ${touch ? 'targetRows.filter((row) => row.effectiveWidth < 44 || row.effectiveHeight < 44).slice(0, 80)' : '[]'},
       offscreen,
       visibleText: document.body.innerText.slice(0, 5000),
     };
@@ -176,17 +202,6 @@ async function clickNamed(client, name) {
   })()`)
 }
 
-const chrome = findChrome()
-const chromeProcess = spawn(chrome, [
-  '--headless=new',
-  '--no-sandbox',
-  '--disable-gpu',
-  '--disable-dev-shm-usage',
-  '--remote-debugging-port=9222',
-  '--user-data-dir=/tmp/electrocms-browser-audit',
-  'about:blank',
-], { stdio: ['ignore', 'pipe', 'pipe'] })
-
 const report = {
   generatedAt: new Date().toISOString(),
   console: [],
@@ -194,8 +209,27 @@ const report = {
   states: [],
 }
 
+const chrome = findChrome()
+let chromeStderr = ''
+const chromeProcess = spawn(chrome, [
+  '--headless=new',
+  '--no-sandbox',
+  '--no-first-run',
+  '--disable-extensions',
+  '--disable-gpu',
+  '--disable-dev-shm-usage',
+  '--remote-debugging-address=127.0.0.1',
+  '--remote-debugging-port=9222',
+  '--user-data-dir=/tmp/electrocms-browser-audit',
+  'about:blank',
+], { stdio: ['ignore', 'pipe', 'pipe'] })
+
+chromeProcess.stderr?.on('data', (chunk) => {
+  chromeStderr = `${chromeStderr}${String(chunk)}`.slice(-12_000)
+})
+
 try {
-  const pages = await waitForJson('http://127.0.0.1:9222/json/list')
+  const pages = await waitForJson('http://127.0.0.1:9222/json/list', chromeProcess)
   const page = pages.find((candidate) => candidate.type === 'page')
   if (!page?.webSocketDebuggerUrl) throw new Error('DevTools no expuso una página auditable.')
   const client = createCdpClient(page.webSocketDebuggerUrl)
@@ -225,9 +259,9 @@ try {
     ['mobile-landscape', 812, 375, true],
   ]
 
-  for (const [name, width, height, mobile] of viewports) {
-    await setViewport(client, width, height, mobile)
-    report.states.push(await metrics(client, name, width, height))
+  for (const [name, width, height, touch] of viewports) {
+    await setViewport(client, width, height, touch)
+    report.states.push(await metrics(client, name, width, height, touch))
     await capture(client, name)
   }
 
@@ -238,7 +272,7 @@ try {
       if (await clickNamed(client, tab)) {
         await sleep(250)
         const slug = tab.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        report.states.push(await metrics(client, `data-${slug}`, 1440, 1000))
+        report.states.push(await metrics(client, `data-${slug}`, 1440, 1000, false))
         await capture(client, `data-${slug}`)
       }
     }
@@ -248,7 +282,7 @@ try {
 
   if (await clickNamed(client, 'Inspector')) {
     await sleep(250)
-    report.states.push(await metrics(client, 'inspector-desktop', 1440, 1000))
+    report.states.push(await metrics(client, 'inspector-desktop', 1440, 1000, false))
     await capture(client, 'inspector-desktop')
   }
 
@@ -257,11 +291,17 @@ try {
   console.log(JSON.stringify({
     states: report.states.length,
     horizontalOverflow: horizontalOverflow.map((state) => state.label),
+    touchTargetsUnder44: report.states.filter((state) => state.viewport.touch).map((state) => ({ label: state.label, count: state.mobileTargetsUnder44.length })),
     exceptions: report.exceptions,
     console: report.console,
   }, null, 2))
   client.close()
   if (report.exceptions.length > 0) process.exitCode = 1
+} catch (error) {
+  report.infrastructureError = error instanceof Error ? error.message : String(error)
+  report.chromeStderr = chromeStderr
+  writeFileSync(resolve(auditDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`)
+  throw error
 } finally {
   chromeProcess.kill('SIGTERM')
 }
