@@ -181,7 +181,7 @@ describe('M11.1 form builder engine', () => {
     if (!created.ok) return
     const candidate = structuredClone(created.value)
     candidate.documents[documentId] = {
-      conditions: [], id: documentId, kind: 'page', name: 'Administración', nodes: {}, rootNodeIds: [], routePath: '/admin', seo: { description: '', title: '' },
+      conditions: [], id: documentId, kind: 'page', name: 'Administración', nodes: {}, rootNodeIds: [], routePath: '/admin',
     }
     if (!candidate.cms) throw new Error('Falta CMS de prueba.')
     candidate.cms.backendScreens[screenId] = {
