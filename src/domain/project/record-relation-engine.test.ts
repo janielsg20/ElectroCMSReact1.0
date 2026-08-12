@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { EMPTY_CMS_BACKEND } from './cms-defaults'
 import type { ContentRecord, ContentType, FieldDefinition, Relation, Taxonomy, TaxonomyTerm } from './cms-schema'
+import { deleteCustomField } from './custom-field-engine'
 import { DEFAULT_BREAKPOINTS } from './default-breakpoints'
 import {
   parseContentRecordId,
@@ -26,6 +27,7 @@ import {
   updateRelation,
 } from './record-relation-engine'
 import { ProjectStructureSchema, type ProjectStructure } from './structure-schema'
+import { deleteTaxonomyTerm } from './taxonomy-engine'
 import { DEFAULT_PROJECT_THEMES } from './theme-schema'
 
 const articleTypeId = parseContentTypeId('11111111-aaaa-4111-8111-111111111111')
@@ -233,6 +235,29 @@ describe('M09.4 records and relations engine', () => {
     expect(restored.value.cms?.records[articleId]?.values[titleFieldId]).toBe('Primera versión')
     expect(restored.value.cms?.records[articleId]?.updatedAt).toBe(restoredAt)
     expect(listContentRecordRevisions(restored.value, articleId)).toHaveLength(2)
+  })
+
+  it('protege campos y términos que solo sobreviven dentro de una revisión', () => {
+    const created = createContentRecord(structure(), article(articleId, 'draft', { [titleFieldId]: 'Versión histórica' }))
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+
+    const cleaned = updateContentRecord(created.value, articleId, {
+      taxonomyTermIds: [],
+      values: {},
+    }, { now: updatedAt, revisionId })
+    expect(cleaned.ok).toBe(true)
+    if (!cleaned.ok) return
+    expect(cleaned.value.cms?.records[articleId]?.values).toEqual({})
+    expect(cleaned.value.cms?.records[articleId]?.taxonomyTermIds).toEqual([])
+
+    const blockedField = deleteCustomField(cleaned.value, titleFieldId)
+    expect(blockedField.ok).toBe(false)
+    if (!blockedField.ok) expect(blockedField.error[0]?.code).toBe('field-in-use')
+
+    const blockedTerm = deleteTaxonomyTerm(cleaned.value, categoryTermId)
+    expect(blockedTerm.ok).toBe(false)
+    if (!blockedTerm.ok) expect(blockedTerm.error[0]?.code).toBe('term-in-use')
   })
 
   it('valida términos del CPT y deduplica taxonomyTermIds', () => {
