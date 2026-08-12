@@ -97,7 +97,7 @@ Actualizado: 2026-08-12.
 
 ### Puerta final F10
 
-GitHub Actions run `31608617420` sobre el head de cierre de F10:
+GitHub Actions run `31608617420` sobre `02c99a54d6536535159a3fcbc857c9e131fb3904`:
 
 - lint: `VERDE`.
 - typecheck: `VERDE`.
@@ -112,8 +112,9 @@ GitHub Actions run `31608617420` sobre el head de cierre de F10:
 - console warnings/errors de la app capturados: `0`.
 - `assert-browser-audit.mjs` convierte los targets táctiles <44×44 en fallo real de CI.
 - build principal: `372.23 kB` (`98.82 kB gzip`).
+- Cloudflare PR preview: `VERDE`.
 - producción: `SKIPPED` por PR draft.
-- preview Cloudflare: despliegue del build validado asociado al run.
+- Documento consolidado: `F10_QUERY_LISTING_FILTER_SYSTEM.md`.
 
 ## M11.1 — alcance activo
 
@@ -150,5 +151,5 @@ No cambiar de microfase sin evidencia reproducible verde. Desde F09, una fase ta
 - Temas: `THEME_SYSTEM.md`; paquetes: `THEME_PACKAGE_SYSTEM.md`.
 - CPT: `CONTENT_TYPE_SYSTEM.md`; taxonomías: `TAXONOMY_SYSTEM.md`; campos: `CUSTOM_FIELD_SYSTEM.md`.
 - Registros/relaciones: `RECORD_RELATION_SYSTEM.md`; binding dinámico: `DYNAMIC_BINDING_SYSTEM.md`.
-- Consultas: `QUERY_SYSTEM.md`.
+- Consultas: `QUERY_SYSTEM.md`; F10 consolidada: `F10_QUERY_LISTING_FILTER_SYSTEM.md`.
 - Historial: `CHANGELOG.md`.
