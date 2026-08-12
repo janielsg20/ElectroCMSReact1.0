@@ -5,6 +5,8 @@ import {
   executeCmsQuery,
   type QueryEngineDiagnostic,
   type QueryEngineDiagnosticCode,
+  type QueryExecutionMetrics,
+  type QueryExecutionOptions,
 } from './query-engine'
 
 export type CmsListingDiagnosticCode = QueryEngineDiagnosticCode | 'invalid-page' | 'invalid-page-size'
@@ -28,6 +30,7 @@ export interface CmsListingResult {
   readonly availableCount: number
   readonly hasNextPage: boolean
   readonly hasPreviousPage: boolean
+  readonly metrics: QueryExecutionMetrics
   readonly page: number
   readonly pageCount: number
   readonly pageSize: number
@@ -57,6 +60,7 @@ export function executeCmsListingQuery(
   cms: CmsBackend,
   query: Query,
   request: CmsListingPageRequest = {},
+  options: QueryExecutionOptions = {},
 ): Result<CmsListingResult, readonly CmsListingDiagnostic[]> {
   const page = request.page ?? 1
   if (!Number.isInteger(page) || page < 1) {
@@ -68,7 +72,7 @@ export function executeCmsListingQuery(
     return failure([diagnostic('invalid-page-size', 'El tamaño de página debe estar entre 1 y 1000.', ['listing', 'pageSize'])])
   }
 
-  const summary = executeCmsQuery(cms, query)
+  const summary = executeCmsQuery(cms, query, options)
   if (!summary.ok) return failure(queryDiagnostics(summary.error))
 
   const availableCount = Math.min(
@@ -85,6 +89,7 @@ export function executeCmsListingQuery(
       availableCount,
       hasNextPage: false,
       hasPreviousPage: page > 1 && pageCount > 0,
+      metrics: summary.value.metrics,
       page,
       pageCount,
       pageSize,
@@ -99,13 +104,14 @@ export function executeCmsListingQuery(
     limit: pageLimit,
     offset: query.offset + relativeOffset,
     pageSize,
-  })
+  }, options)
   if (!executed.ok) return failure(queryDiagnostics(executed.error))
 
   return success({
     availableCount,
     hasNextPage: page < pageCount,
     hasPreviousPage: page > 1,
+    metrics: executed.value.metrics,
     page,
     pageCount,
     pageSize,
@@ -123,6 +129,7 @@ export function executeCmsListingQuery(
 export function executeCmsListing(
   cms: CmsBackend,
   request: CmsListingRequest,
+  options: QueryExecutionOptions = {},
 ): Result<CmsListingResult, readonly CmsListingDiagnostic[]> {
   const parsedId = QueryIdSchema.safeParse(request.queryId)
   if (!parsedId.success) {
@@ -134,5 +141,5 @@ export function executeCmsListing(
     return failure([diagnostic('query-not-found', `La consulta ${parsedId.data} no existe.`, ['listing', 'queryId'])])
   }
 
-  return executeCmsListingQuery(cms, query, request)
+  return executeCmsListingQuery(cms, query, request, options)
 }
