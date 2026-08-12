@@ -103,6 +103,30 @@ describe('M10.5 query index', () => {
     expect(indexed.value.metrics).toMatchObject({ candidateRecords: 2, indexUsed: true, sourceRecords: 3 })
   })
 
+  it('no produce falsos negativos para operandos complejos no indexables', () => {
+    const cms = fixture()
+    const beta = cms.records[betaId]
+    if (!beta) throw new Error('Falta registro beta de prueba.')
+    cms.records[betaId] = { ...beta, values: { ...beta.values, [segmentFieldId]: { code: 'beta' } } }
+    const input: Query = {
+      ...query(),
+      groups: [{
+        operator: 'all',
+        predicates: [
+          { fieldId: null, operator: 'equals', relationId: null, source: 'status', taxonomyId: null, value: 'published' },
+          { fieldId: segmentFieldId, operator: 'equals', relationId: null, source: 'field', taxonomyId: null, value: { code: 'beta' } },
+        ],
+      }],
+    }
+    const plain = executeCmsQuery(cms, input)
+    const indexed = executeCmsQuery(cms, input, { index: buildCmsQueryIndex(cms) })
+
+    expect(ids(indexed)).toEqual(ids(plain))
+    expect(ids(indexed)).toEqual([betaId])
+    if (!indexed.ok) throw new Error('La consulta indexada debería ser válida.')
+    expect(indexed.value.metrics).toMatchObject({ candidateRecords: 2, indexUsed: true, sourceRecords: 3 })
+  })
+
   it('ignora índices construidos para otra instancia del backend', () => {
     const cms = fixture()
     const staleIndex = buildCmsQueryIndex(cms)
