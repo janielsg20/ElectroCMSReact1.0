@@ -45,18 +45,18 @@ function parseDraft(field: GeneratedInspectorField, source: string): { readonly 
   return parsed.success ? { ok: true, value: parsed.data } : { error: parsed.error.issues[0]?.message ?? 'Valor no válido.', ok: false }
 }
 
-function QueryChoice({
+function BindingChoice({
   active,
-  contentType,
   disabled,
-  name,
+  label,
   onSelect,
+  secondary,
 }: {
   readonly active: boolean
-  readonly contentType: string
   readonly disabled: boolean
-  readonly name: string
+  readonly label: string
   readonly onSelect: () => void
+  readonly secondary: string
 }) {
   return (
     <button
@@ -67,10 +67,14 @@ function QueryChoice({
       role="option"
       type="button"
     >
-      <strong className="block truncate text-[0.625rem]">{name}</strong>
-      <span className="block truncate text-[0.5625rem] text-muted-foreground">{contentType}</span>
+      <strong className="block truncate text-[0.625rem]">{label}</strong>
+      <span className="block truncate text-[0.5625rem] text-muted-foreground">{secondary}</span>
     </button>
   )
+}
+
+function EmptyBinding({ message, id }: { readonly id: string; readonly message: string }) {
+  return <div className="mt-1 rounded-md border border-dashed border-border bg-muted/15 p-2 text-[0.625rem] leading-4 text-muted-foreground" id={id} role="status">{message}</div>
 }
 
 export function InspectorFieldControl({ definition, field, node }: InspectorFieldControlProps) {
@@ -81,11 +85,25 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   const [pending, setPending] = useState(false)
   const isComplex = Array.isArray(field.value) || (typeof field.value === 'object' && field.value !== null)
   const isQueryBinding = field.control === 'binding' && field.key === 'queryId'
+  const isFieldBinding = field.control === 'binding' && field.key === 'fieldId'
+  const isTaxonomyBinding = field.control === 'binding' && field.key === 'taxonomy'
   const cms = session.store.structure.cms
   const queries = useMemo(
     () => Object.values(cms?.queries ?? {}).sort((left, right) => left.name === right.name ? 0 : left.name < right.name ? -1 : 1),
     [cms],
   )
+  const queryId = node.kind === 'widget' && typeof node.properties.queryId === 'string' ? node.properties.queryId : ''
+  const targetQuery = cms?.queries[queryId as keyof typeof cms.queries]
+  const targetFields = useMemo(() => targetQuery
+    ? Object.values(cms?.fields ?? {})
+      .filter((item) => item.owner.kind === 'content-type' && item.owner.contentTypeId === targetQuery.contentTypeId)
+      .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label, 'es'))
+    : [], [cms, targetQuery])
+  const targetTaxonomies = useMemo(() => targetQuery
+    ? Object.values(cms?.taxonomies ?? {})
+      .filter((item) => item.contentTypeIds.includes(targetQuery.contentTypeId))
+      .sort((left, right) => left.pluralName.localeCompare(right.pluralName, 'es'))
+    : [], [cms, targetQuery])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -141,19 +159,34 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
         queries.length > 0 ? (
           <div aria-label="Consultas guardadas" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
             {queries.map((query) => (
-              <QueryChoice
+              <BindingChoice
                 active={draft === query.id}
-                contentType={cms?.contentTypes[query.contentTypeId]?.pluralName ?? 'Tipo no disponible'}
                 disabled={disabled}
                 key={query.id}
-                name={query.name}
+                label={query.name}
                 onSelect={() => setDraft(query.id)}
+                secondary={cms?.contentTypes[query.contentTypeId]?.pluralName ?? 'Tipo no disponible'}
               />
             ))}
           </div>
-        ) : (
-          <div className="mt-1 rounded-md border border-dashed border-border bg-muted/15 p-2 text-[0.625rem] leading-4 text-muted-foreground" id={inputId} role="status">No hay consultas guardadas. Créala primero desde Contenido → Consultas.</div>
-        )
+        ) : <EmptyBinding id={inputId} message="No hay consultas guardadas. Créala primero desde Contenido → Consultas." />
+      ) : isFieldBinding ? (
+        targetQuery ? (
+          targetFields.length > 0 ? (
+            <div aria-label="Campos del tipo consultado" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+              {node.kind === 'widget' && node.widgetType === 'filter.search' ? <BindingChoice active={draft === ''} disabled={disabled} label="Todos los campos textuales" onSelect={() => setDraft('')} secondary="Búsqueda global del tipo" /> : null}
+              {targetFields.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.label} onSelect={() => setDraft(item.id)} secondary={`${item.key} · ${item.type}`} />)}
+            </div>
+          ) : <EmptyBinding id={inputId} message="El tipo consultado no tiene campos disponibles." />
+        ) : <EmptyBinding id={inputId} message="Selecciona primero la Query objetivo del filtro." />
+      ) : isTaxonomyBinding ? (
+        targetQuery ? (
+          targetTaxonomies.length > 0 ? (
+            <div aria-label="Taxonomías del tipo consultado" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+              {targetTaxonomies.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.pluralName} onSelect={() => setDraft(item.id)} secondary={item.slug} />)}
+            </div>
+          ) : <EmptyBinding id={inputId} message="El tipo consultado no tiene taxonomías asociadas." />
+        ) : <EmptyBinding id={inputId} message="Selecciona primero la Query objetivo del filtro." />
       ) : field.control === 'select' && field.options ? (
         <div aria-label={field.label} className="mt-1 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
           {field.options.map((option) => (
