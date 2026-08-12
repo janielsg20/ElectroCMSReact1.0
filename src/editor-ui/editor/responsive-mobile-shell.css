@@ -52,6 +52,21 @@
     max-width: 100vw;
     min-width: 0;
   }
+
+  .m04-tablet-shell[data-mobile-shell="active"] .app-topbar button,
+  .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar button {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar {
+    grid-template-columns: auto minmax(0, 1fr) 0;
+  }
+
+  .m04-tablet-shell[data-mobile-shell="active"] .canvas-toolbar > :nth-child(2) {
+    justify-self: end;
+  }
 }
 
 @media (min-width: 48rem) {
