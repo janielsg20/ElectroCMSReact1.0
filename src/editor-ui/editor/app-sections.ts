@@ -10,31 +10,31 @@ export interface AppSectionDefinition {
 
 export const APP_SECTIONS: Readonly<Record<AppSection, AppSectionDefinition>> = {
   editor: {
-    description: 'Canvas, estructura y widgets del documento actual.',
+    description: 'Diseña la página visualmente, añade elementos y ajusta sus propiedades.',
     icon: 'editor',
     label: 'Editor',
-    panelTitle: 'Estructura',
-    shortLabel: 'Editor',
+    panelTitle: 'Editor visual',
+    shortLabel: 'Diseñar',
   },
   documents: {
-    description: 'Páginas, plantillas y documentos del proyecto.',
+    description: 'Gestiona las páginas y plantillas reutilizables del sitio.',
     icon: 'content',
-    label: 'Documentos',
-    panelTitle: 'Documentos',
-    shortLabel: 'Docs',
+    label: 'Páginas',
+    panelTitle: 'Páginas y plantillas',
+    shortLabel: 'Páginas',
   },
   content: {
-    description: 'Tipos, taxonomías, campos, registros y relaciones CMS.',
+    description: 'Crea y administra contenido dinámico, campos, relaciones y consultas.',
     icon: 'database',
     label: 'Contenido',
-    panelTitle: 'Contenido CMS',
-    shortLabel: 'CMS',
+    panelTitle: 'Contenido dinámico',
+    shortLabel: 'Contenido',
   },
   design: {
-    description: 'Temas, presets y paquetes visuales del proyecto.',
+    description: 'Configura la apariencia global, temas y estilos reutilizables.',
     icon: 'palette',
     label: 'Diseño',
-    panelTitle: 'Diseño',
+    panelTitle: 'Diseño global',
     shortLabel: 'Diseño',
   },
 }
