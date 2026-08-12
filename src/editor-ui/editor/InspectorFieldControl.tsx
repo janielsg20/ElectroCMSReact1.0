@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { JsonValueSchema, type JsonValue, type Node, type WidgetDefinition } from '../../domain'
+import { HelpTip } from '../primitives'
 import { useEditorProject } from './editor-project-context'
+import { getInspectorFieldHelp } from './feature-help'
 import { formatInspectorValue, type GeneratedInspectorField } from './inspector-schema-model'
 
 interface InspectorFieldControlProps {
@@ -11,11 +13,11 @@ interface InspectorFieldControlProps {
 
 const controlLabels = {
   asset: 'Recurso',
-  binding: 'Binding',
-  boolean: 'Booleano',
+  binding: 'Dato dinámico',
+  boolean: 'Activar / desactivar',
   color: 'Color',
   number: 'Número',
-  select: 'Selección',
+  select: 'Elegir opción',
   spacing: 'Espaciado',
   text: 'Texto',
   textarea: 'Texto largo',
@@ -38,7 +40,7 @@ function parseDraft(field: GeneratedInspectorField, source: string): { readonly 
     try {
       candidate = JSON.parse(source) as unknown
     } catch {
-      return { error: 'El valor debe usar JSON válido.', ok: false }
+      return { error: 'El valor debe usar un formato válido.', ok: false }
     }
   }
   const parsed = JsonValueSchema.safeParse(candidate)
@@ -87,6 +89,7 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   const isQueryBinding = field.control === 'binding' && field.key === 'queryId'
   const isFieldBinding = field.control === 'binding' && field.key === 'fieldId'
   const isTaxonomyBinding = field.control === 'binding' && field.key === 'taxonomy'
+  const help = getInspectorFieldHelp(field.key, field.control)
   const cms = session.store.structure.cms
   const queries = useMemo(
     () => Object.values(cms?.queries ?? {}).sort((left, right) => left.name === right.name ? 0 : left.name < right.name ? -1 : 1),
@@ -135,9 +138,13 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
   const disabled = node.locked || pending
   return (
     <form className="rounded-md border border-border bg-surface px-2 py-1.5" data-inspector-field={field.key} onSubmit={(event) => { void submit(event) }}>
-      <div className="flex items-start justify-between gap-2">
-        <label className="min-w-0 flex-1" htmlFor={inputId}><strong className="block truncate text-xs text-foreground">{field.label}</strong><span className="block truncate text-[0.625rem] text-muted-foreground">{field.key} · {controlLabels[field.control]}</span></label>
-        <span className={`shrink-0 rounded px-1 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wide ${field.source === 'node' ? 'bg-primary-soft text-primary-strong' : 'bg-muted text-muted-foreground'}`}>{field.source === 'node' ? 'Nodo' : 'Predeterminado'}</span>
+      <div className="flex items-start justify-between gap-1">
+        <label className="min-w-0 flex-1" htmlFor={inputId}>
+          <strong className="block truncate text-xs text-foreground">{field.label}</strong>
+          <span className="block truncate text-[0.625rem] text-muted-foreground">{controlLabels[field.control]}</span>
+        </label>
+        <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} />
+        <span className={`mt-1 shrink-0 rounded px-1 py-0.5 text-[0.5625rem] font-bold ${field.source === 'node' ? 'bg-primary-soft text-primary-strong' : 'bg-muted text-muted-foreground'}`}>{field.source === 'node' ? 'Personalizado' : 'Global'}</span>
       </div>
 
       {field.control === 'boolean' ? (
@@ -169,24 +176,24 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
               />
             ))}
           </div>
-        ) : <EmptyBinding id={inputId} message="No hay consultas guardadas. Créala primero desde Contenido → Consultas." />
+        ) : <EmptyBinding id={inputId} message="Todavía no hay una selección de contenido guardada. Créala en Contenido → Consultas." />
       ) : isFieldBinding ? (
         targetQuery ? (
           targetFields.length > 0 ? (
-            <div aria-label="Campos del tipo consultado" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
-              {node.kind === 'widget' && node.widgetType === 'filter.search' ? <BindingChoice active={draft === ''} disabled={disabled} label="Todos los campos textuales" onSelect={() => setDraft('')} secondary="Búsqueda global del tipo" /> : null}
-              {targetFields.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.label} onSelect={() => setDraft(item.id)} secondary={`${item.key} · ${item.type}`} />)}
+            <div aria-label="Campos del contenido" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+              {node.kind === 'widget' && node.widgetType === 'filter.search' ? <BindingChoice active={draft === ''} disabled={disabled} label="Todos los campos de texto" onSelect={() => setDraft('')} secondary="Buscar en todo el contenido" /> : null}
+              {targetFields.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.label} onSelect={() => setDraft(item.id)} secondary={item.type} />)}
             </div>
-          ) : <EmptyBinding id={inputId} message="El tipo consultado no tiene campos disponibles." />
-        ) : <EmptyBinding id={inputId} message="Selecciona primero la Query objetivo del filtro." />
+          ) : <EmptyBinding id={inputId} message="Este tipo de contenido todavía no tiene campos disponibles." />
+        ) : <EmptyBinding id={inputId} message="Selecciona primero qué contenido utilizará este elemento." />
       ) : isTaxonomyBinding ? (
         targetQuery ? (
           targetTaxonomies.length > 0 ? (
-            <div aria-label="Taxonomías del tipo consultado" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
-              {targetTaxonomies.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.pluralName} onSelect={() => setDraft(item.id)} secondary={item.slug} />)}
+            <div aria-label="Clasificaciones del contenido" className="mt-1 grid max-h-44 gap-1 overflow-y-auto rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
+              {targetTaxonomies.map((item) => <BindingChoice active={draft === item.id} disabled={disabled} key={item.id} label={item.pluralName} onSelect={() => setDraft(item.id)} secondary="Clasificación disponible" />)}
             </div>
-          ) : <EmptyBinding id={inputId} message="El tipo consultado no tiene taxonomías asociadas." />
-        ) : <EmptyBinding id={inputId} message="Selecciona primero la Query objetivo del filtro." />
+          ) : <EmptyBinding id={inputId} message="Este contenido no tiene clasificaciones asociadas." />
+        ) : <EmptyBinding id={inputId} message="Selecciona primero qué contenido utilizará este elemento." />
       ) : field.control === 'select' && field.options ? (
         <div aria-label={field.label} className="mt-1 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
           {field.options.map((option) => (
@@ -221,16 +228,16 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
         </div>
       )}
 
-      {field.options && field.control !== 'select' ? <p className="mt-1 truncate text-[0.5625rem] text-muted-foreground">Opciones: {field.options.join(', ')}</p> : null}
-      {field.required ? <p className="mt-1 text-[0.5625rem] font-semibold text-primary-strong">Campo obligatorio</p> : null}
+      {field.options && field.control !== 'select' ? <p className="mt-1 truncate text-[0.5625rem] text-muted-foreground">Opciones disponibles: {field.options.join(', ')}</p> : null}
+      {field.required ? <p className="mt-1 text-[0.5625rem] font-semibold text-primary-strong">Obligatorio</p> : null}
       {error ? <p className="mt-1 rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="mt-1.5 flex gap-1">
-        <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={disabled} type="submit">{pending ? 'Guardando…' : 'Aplicar'}</button>
-        <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Reset</button>
+        <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={disabled} type="submit">{pending ? 'Guardando…' : 'Guardar'}</button>
+        <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Restablecer</button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
-      <span className="sr-only">Schema: {definition.id}</span>
+      <span className="sr-only">Schema: {definition.id} · clave: {field.key}</span>
     </form>
   )
 }
