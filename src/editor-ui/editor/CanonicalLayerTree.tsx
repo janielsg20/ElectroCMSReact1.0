@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { NodeId } from '../../domain'
 import { ChoiceField, Icon, type IconName } from '../primitives'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId, useEditorSelection } from './editor-project-context'
@@ -142,7 +142,18 @@ export function CanonicalLayerTree() {
   const entries = useMemo(() => document ? buildLayerTreeEntries(document) : [], [document])
   const entryById = useMemo(() => new Map(entries.map((entry) => [entry.node.id, entry])), [entries])
   const [collapsedIds, setCollapsedIds] = useState<ReadonlySet<NodeId>>(() => new Set<NodeId>())
-  const visibleEntries = useMemo(() => visibleLayerTreeEntries(entries, collapsedIds), [collapsedIds, entries])
+  const selectedAncestors = useMemo(() => {
+    if (!selectedNodeId) return [] as readonly NodeId[]
+    const selectedEntry = entryById.get(selectedNodeId)
+    return selectedEntry ? layerAncestorIds(selectedEntry, entries) : []
+  }, [entries, entryById, selectedNodeId])
+  const effectiveCollapsedIds = useMemo(() => {
+    if (selectedAncestors.length === 0) return collapsedIds
+    const next = new Set(collapsedIds)
+    for (const ancestorId of selectedAncestors) next.delete(ancestorId)
+    return next
+  }, [collapsedIds, selectedAncestors])
+  const visibleEntries = useMemo(() => visibleLayerTreeEntries(entries, effectiveCollapsedIds), [effectiveCollapsedIds, entries])
   const [menuNodeId, setMenuNodeId] = useState<NodeId | null>(null)
   const [targetId, setTargetId] = useState<NodeId | ''>('')
   const [relation, setRelation] = useState<MoveRelation>('after')
@@ -160,20 +171,6 @@ export function CanonicalLayerTree() {
     useSensor(TouchSensor, { activationConstraint: { delay: LAYER_DRAG_POLICY.touchDelay, tolerance: LAYER_DRAG_POLICY.touchTolerance } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
-
-  useEffect(() => {
-    if (!selectedNodeId) return
-    const selectedEntry = entryById.get(selectedNodeId)
-    if (!selectedEntry) return
-    const ancestors = layerAncestorIds(selectedEntry, entries)
-    if (ancestors.length === 0) return
-    setCollapsedIds((current) => {
-      const next = new Set(current)
-      let changed = false
-      for (const ancestorId of ancestors) changed = next.delete(ancestorId) || changed
-      return changed ? next : current
-    })
-  }, [entries, entryById, selectedNodeId])
 
   if (!document) return <p className="p-2 text-xs text-destructive">El documento activo no está disponible.</p>
 
@@ -215,6 +212,7 @@ export function CanonicalLayerTree() {
   }
 
   function toggleNode(nodeId: NodeId): void {
+    if (selectedNodeId && selectedAncestors.includes(nodeId)) selection.selectNode(nodeId)
     setCollapsedIds((current) => {
       const next = new Set(current)
       if (next.has(nodeId)) next.delete(nodeId)
@@ -254,7 +252,7 @@ export function CanonicalLayerTree() {
             <SortableLayer
               activeId={menuNodeId}
               entry={entry}
-              expanded={!collapsedIds.has(entry.node.id)}
+              expanded={!effectiveCollapsedIds.has(entry.node.id)}
               insertion={insertion}
               key={entry.node.id}
               onOpenMove={openMoveMenu}
