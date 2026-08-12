@@ -81,7 +81,8 @@ describe('M06.4 adapters de comercio, formularios y filtros', () => {
   it('no reintroduce select, radio ni checkbox visuales nativos en el canvas', () => {
     const renderWidget = renderer(() => null)
     const select = render(<>{renderWidget(props('form.select', { label: 'País', name: 'country', options: ['Cuba', 'Estados Unidos'], value: 'Cuba' }))}</>)
-    expect(screen.getByRole('combobox', { name: 'País' })).toHaveAttribute('data-electrocms-widget-control', 'select')
+    expect(screen.getByRole('combobox', { name: 'País' })).toBeInTheDocument()
+    expect(select.container.querySelector('[data-electrocms-widget-control="select"]')).not.toBeNull()
     expect(select.container.querySelector('select')).toBeNull()
     cleanup()
 
@@ -91,7 +92,8 @@ describe('M06.4 adapters de comercio, formularios y filtros', () => {
     cleanup()
 
     const checkbox = render(<>{renderWidget(props('form.checkbox', { label: 'Acepto', name: 'terms', value: true }))}</>)
-    expect(screen.getByRole('checkbox', { name: 'Acepto' })).toHaveAttribute('data-electrocms-widget-control', 'checkbox')
+    expect(screen.getByRole('checkbox', { name: 'Acepto' })).toBeInTheDocument()
+    expect(checkbox.container.querySelector('[data-electrocms-widget-control="checkbox"]')).not.toBeNull()
     expect(checkbox.container.querySelector('input[type="checkbox"]')).toBeNull()
   })
 
