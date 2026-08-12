@@ -67,7 +67,7 @@ function parseJson(source: string, label: string): { readonly ok: true; readonly
 }
 
 function parseBindingMap(source: string): Readonly<Record<string, BindingSource>> | null {
-  const parsed = parseJson(source, 'Bindings')
+  const parsed = parseJson(source, 'Conexiones')
   if (!parsed.ok || !parsed.value || Array.isArray(parsed.value) || typeof parsed.value !== 'object') return null
   const result = NodeDataSettingsSchema.shape.bindings.safeParse(parsed.value)
   return result.success ? result.data : null
@@ -83,6 +83,14 @@ function bindingSourceLabel(source: BindingSource, structure: ProjectStructure):
   if (source.kind === 'cms-record-property') return `${recordLabel} · ${recordProperties.find((item) => item.value === source.property)?.label ?? source.property}`
   const field = structure.cms?.fields[source.fieldId]
   return `${recordLabel} · ${field?.label ?? 'Campo'}`
+}
+
+function resolvedStateLabel(state: string): string {
+  if (state === 'ready') return 'Listo'
+  if (state === 'loading') return 'Cargando'
+  if (state === 'empty') return 'Sin datos'
+  if (state === 'error') return 'Error'
+  return state
 }
 
 export function DataConditionAccessibilityControl({ definition, node, structure }: DataConditionAccessibilityControlProps) {
@@ -106,10 +114,10 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
   const [previewMode, setPreviewMode] = useState<NodeDataPreviewMode>(() => session.store.getNodeDataPreviewMode(node.id))
   const resolved = resolveNodeDataState(structure, node, node.properties)
   const bindings = parseBindingMap(draft.bindings)
-  const selectedRecord = records.find((record) => record.id === recordId)
-  const recordFields = selectedRecord
+  const selectedRecord = useMemo(() => records.find((record) => record.id === recordId), [recordId, records])
+  const recordFields = useMemo(() => selectedRecord
     ? fields.filter((field) => field.owner.kind === 'content-type' && field.owner.contentTypeId === selectedRecord.contentTypeId)
-    : []
+    : [], [fields, selectedRecord])
   const hasSettings = Object.keys(node.bindings).length > 0 || node.conditions.length > 0 || Object.keys(node.accessibility ?? {}).length > 0
   const recordOptions = useMemo(() => [
     { label: 'Selecciona contenido', value: '', description: 'Elige un registro existente.' },
@@ -176,7 +184,7 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
     event.preventDefault()
     setError('')
     setStatus('')
-    const parsedBindings = parseJson(draft.bindings, 'Bindings')
+    const parsedBindings = parseJson(draft.bindings, 'Conexiones')
     const conditions = parseJson(draft.conditions, 'Condiciones')
     const accessibility = parseJson(draft.accessibility, 'Accesibilidad')
     const parseError = [parsedBindings, conditions, accessibility].find((item) => !item.ok)
@@ -247,7 +255,7 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
         </section>
 
         <section aria-labelledby={`preview-state-title-${node.id}`} className="grid gap-1.5 border-b border-border/70 pb-2">
-          <div className="flex items-center justify-between gap-2"><strong className="text-[0.625rem]" id={`preview-state-title-${node.id}`}>Vista previa de datos</strong><span className={`rounded px-1.5 py-0.5 text-[0.625rem] font-bold ${resolved.state === 'error' ? 'bg-danger-soft text-danger' : 'bg-muted text-muted-foreground'}`}>{previewModeOptions.find((item) => item.value === resolved.state)?.label ?? resolved.state}</span></div>
+          <div className="flex items-center justify-between gap-2"><strong className="text-[0.625rem]" id={`preview-state-title-${node.id}`}>Vista previa de datos</strong><span className={`rounded px-1.5 py-0.5 text-[0.625rem] font-bold ${resolved.state === 'error' ? 'bg-danger-soft text-danger' : 'bg-muted text-muted-foreground'}`}>{resolvedStateLabel(resolved.state)}</span></div>
           <ChoiceField label="Estado de vista previa" onChange={(value) => changePreviewMode(value as NodeDataPreviewMode)} options={previewModeOptions} value={previewMode} />
           <p className="text-[0.625rem] leading-4 text-muted-foreground">Los estados de prueba solo cambian el lienzo durante esta sesión y no alteran el proyecto guardado.</p>
         </section>
