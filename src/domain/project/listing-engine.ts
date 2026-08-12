@@ -55,6 +55,11 @@ function queryDiagnostics(items: readonly QueryEngineDiagnostic[]): readonly Cms
  * Ejecuta una página sobre una definición de query ya materializada. Esta variante
  * existe para runtimes transitorios (filtros, URL, preview) y nunca persiste la
  * definición recibida en `CmsBackend`.
+ *
+ * El Query Engine se ejecuta una sola vez. Su resultado ya contiene la ventana
+ * canónica `offset/limit`; la paginación de presentación únicamente corta esa
+ * ventana en memoria. Así se conserva exactamente la semántica del motor sin
+ * repetir validación, filtrado, ordenamiento ni recorrido de candidatos.
  */
 export function executeCmsListingQuery(
   cms: CmsBackend,
@@ -72,51 +77,29 @@ export function executeCmsListingQuery(
     return failure([diagnostic('invalid-page-size', 'El tamaño de página debe estar entre 1 y 1000.', ['listing', 'pageSize'])])
   }
 
-  const summary = executeCmsQuery(cms, query, options)
-  if (!summary.ok) return failure(queryDiagnostics(summary.error))
+  const executed = executeCmsQuery(cms, query, options)
+  if (!executed.ok) return failure(queryDiagnostics(executed.error))
 
   const availableCount = Math.min(
     query.limit,
-    Math.max(0, summary.value.totalMatched - query.offset),
+    Math.max(0, executed.value.totalMatched - query.offset),
   )
   const pageCount = availableCount === 0 ? 0 : Math.ceil(availableCount / pageSize)
   const relativeOffset = (page - 1) * pageSize
-  const remaining = Math.max(0, availableCount - relativeOffset)
-  const pageLimit = Math.min(pageSize, remaining)
-
-  if (pageLimit === 0) {
-    return success({
-      availableCount,
-      hasNextPage: false,
-      hasPreviousPage: page > 1 && pageCount > 0,
-      metrics: summary.value.metrics,
-      page,
-      pageCount,
-      pageSize,
-      queryId: query.id,
-      records: [],
-      totalMatched: summary.value.totalMatched,
-    })
-  }
-
-  const executed = executeCmsQuery(cms, {
-    ...query,
-    limit: pageLimit,
-    offset: query.offset + relativeOffset,
-    pageSize,
-  }, options)
-  if (!executed.ok) return failure(queryDiagnostics(executed.error))
+  const records = relativeOffset >= executed.value.records.length
+    ? []
+    : executed.value.records.slice(relativeOffset, relativeOffset + pageSize)
 
   return success({
     availableCount,
     hasNextPage: page < pageCount,
-    hasPreviousPage: page > 1,
+    hasPreviousPage: page > 1 && pageCount > 0,
     metrics: executed.value.metrics,
     page,
     pageCount,
     pageSize,
     queryId: query.id,
-    records: executed.value.records,
+    records,
     totalMatched: executed.value.totalMatched,
   })
 }
