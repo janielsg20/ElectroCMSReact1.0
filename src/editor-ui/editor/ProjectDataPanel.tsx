@@ -7,12 +7,12 @@ import { TaxonomyManager } from './TaxonomyManager'
 
 type DataTab = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries'
 
-const tabs: readonly { readonly id: DataTab; readonly label: string; readonly compact: string }[] = [
-  { id: 'content-types', label: 'Tipos de contenido', compact: 'Tipos' },
-  { id: 'taxonomies', label: 'Taxonomías', compact: 'Tax.' },
-  { id: 'fields', label: 'Campos personalizados', compact: 'Campos' },
-  { id: 'records', label: 'Registros y relaciones', compact: 'Reg.' },
-  { id: 'queries', label: 'Consultas', compact: 'Queries' },
+const tabs: readonly { readonly id: DataTab; readonly label: string; readonly compact: string; readonly title: string }[] = [
+  { id: 'content-types', label: 'Tipos', compact: 'Tipos', title: 'Tipos de contenido' },
+  { id: 'taxonomies', label: 'Taxonomías', compact: 'Tax.', title: 'Taxonomías' },
+  { id: 'fields', label: 'Campos', compact: 'Campos', title: 'Campos personalizados' },
+  { id: 'records', label: 'Registros y relaciones', compact: 'Reg.', title: 'Registros y relaciones' },
+  { id: 'queries', label: 'Consultas', compact: 'Queries', title: 'Consultas' },
 ]
 
 export function ProjectDataPanel() {
@@ -32,7 +32,7 @@ export function ProjectDataPanel() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               role="tab"
-              title={tab.label}
+              title={tab.title}
               type="button"
             >
               {tab.compact}
