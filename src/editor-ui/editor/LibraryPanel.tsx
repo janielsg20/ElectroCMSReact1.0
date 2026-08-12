@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { createCompleteWidgetRegistry, type WidgetCategory, type WidgetDefinition } from '../../domain'
-import { Icon } from '../primitives'
+import { ControlInput, Icon, Select } from '../primitives'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
 import { TemplateManager } from './TemplateManager'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
@@ -109,7 +109,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
   }, [category, deferredQuery, library.preferences.favoriteWidgetIds, library.preferences.recentWidgetIds, library.preferences.savedWidgets, scope])
 
   return (
-    <aside aria-label="Biblioteca y capas" className={`library-panel flex min-h-0 flex-col border-r border-border bg-surface ${className}`}>
+    <aside aria-label="Biblioteca y capas" className={`library-panel flex min-h-0 flex-col border-r border-border bg-surface ${className}`} data-electrocms-surface="library-panel">
       <div className="grid shrink-0 grid-cols-3 border-b border-border bg-muted/60 p-1.5 lg:p-1" role="tablist" aria-label="Panel izquierdo">
         <button aria-controls="library-panel-layers" aria-selected={activeTab === 'layers'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-9 ${activeTab === 'layers' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-layers" onClick={() => onTabChange('layers')} role="tab" type="button"><Icon name="layers" size={14} />Capas</button>
         <button aria-controls="library-panel-widgets" aria-selected={activeTab === 'widgets'} className={`flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded px-1 text-xs font-bold text-primary transition-colors active:bg-primary/15 lg:min-h-9 ${activeTab === 'widgets' ? 'bg-primary-soft shadow-sm' : 'hover:bg-primary-soft'}`} id="library-tab-widgets" onClick={() => onTabChange('widgets')} role="tab" type="button"><Icon name="columns" size={14} />Widgets</button>
@@ -120,28 +120,38 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
         <div aria-labelledby="library-tab-widgets" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 lg:p-1.5" id="library-panel-widgets" role="tabpanel">
           <div className="mb-2 flex items-start justify-between gap-1 lg:mb-1.5">
             <span className="min-w-0"><strong className="block text-xs leading-4 text-primary">Biblioteca</strong><span className="block text-[0.625rem] leading-4 text-muted-foreground">{widgetDefinitions.length} widgets registrados</span></span>
-            <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button"><span className="inline-flex items-center gap-1"><Icon name="plus" size={11} />Guardar</span></button>
+            <button aria-label="Guardar widget seleccionado" className="min-h-9 shrink-0 cursor-pointer rounded-md border border-border bg-surface px-2 text-[0.625rem] font-bold text-primary-strong transition-colors hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50" disabled={!canSaveSelection} onClick={() => library.saveSelectedWidget()} type="button"><span className="inline-flex items-center gap-1"><Icon name="plus" size={11} />Guardar</span></button>
           </div>
 
-          <label className="relative block">
+          <label className="relative block" htmlFor="widget-library-search">
             <span className="sr-only">Buscar widgets registrados</span>
-            <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground lg:left-2.5" name="search" size={16} />
-            <input aria-describedby="widget-search-status" className="min-h-11 w-full rounded-md border border-primary/30 bg-surface pl-9 pr-9 text-xs outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:pl-8" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, categoría o ID" type="search" value={query} />
-            {query ? <button aria-label="Limpiar búsqueda" className="absolute right-1 top-1/2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setQuery('')} type="button"><Icon name="close" size={12} /></button> : null}
+            <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground lg:left-2.5" name="search" size={16} />
+            <ControlInput aria-describedby="widget-search-status" aria-label="Buscar widgets registrados" className="w-full pl-9 pr-9 lg:pl-8" controlSize="compact" id="widget-library-search" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, categoría o ID" role="searchbox" type="text" value={query} />
+            {query ? <button aria-label="Limpiar búsqueda" className="absolute right-1 top-1/2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus" onClick={() => setQuery('')} type="button"><Icon name="close" size={12} /></button> : null}
           </label>
 
           <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1">
-            <label className="min-w-0"><span className="sr-only">Filtrar por categoría</span><select className="min-h-9 w-full rounded-md border border-border bg-surface px-2 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => setCategory(event.target.value as WidgetCategory | 'all')} value={category}><option value="all">Todas las categorías</option>{Object.entries(categoryLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+            <Select
+              controlSize="compact"
+              label="Filtrar por categoría"
+              labelHidden
+              onValueChange={(value) => setCategory(value as WidgetCategory | 'all')}
+              options={[
+                { label: 'Todas las categorías', value: 'all' },
+                ...Object.entries(categoryLabels).map(([id, label]) => ({ label, value: id })),
+              ]}
+              value={category}
+            />
             <output className="grid min-h-9 min-w-9 place-items-center rounded-md border border-border bg-muted px-1 text-[0.625rem] font-bold text-muted-foreground" aria-label={`${visibleItems.length} elementos visibles`}>{visibleItems.length}</output>
           </div>
 
           <div aria-label="Filtros de biblioteca" className="mt-1.5 grid grid-cols-4 gap-0.5" role="group">
-            {(Object.keys(scopeLabels) as LibraryScope[]).map((id) => <button aria-pressed={scope === id} className={`min-h-9 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold focus-visible:ring-2 focus-visible:ring-focus ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>)}
+            {(Object.keys(scopeLabels) as LibraryScope[]).map((id) => <button aria-pressed={scope === id} className={`min-h-9 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold transition-colors focus-visible:ring-2 focus-visible:ring-focus ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>)}
           </div>
 
           <p aria-live="polite" className="sr-only" id="widget-search-status">{visibleItems.length} widgets encontrados. {library.status}</p>
           {visibleItems.length > 0 ? (
-            <ul className="widget-library-grid mt-2 grid gap-1.5 lg:mt-1.5">
+            <ul className="widget-library-grid mt-2 grid list-none gap-1.5 p-0 lg:mt-1.5">
               {visibleItems.map((item) => (
                 <WidgetLibraryCard
                   definition={item.definition}
@@ -161,7 +171,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
             <div className="widget-empty-state mt-2 grid place-items-center rounded-md border border-dashed border-border px-2 py-5 text-center">
               <Icon className="text-muted-foreground" name="search" size={18} />
               <p className="mt-2 text-xs font-semibold text-foreground">Sin elementos en este filtro</p>
-              <button className="mt-2 min-h-9 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong hover:bg-primary-soft" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
+              <button className="mt-2 min-h-9 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong transition-colors hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
             </div>
           )}
         </div>
