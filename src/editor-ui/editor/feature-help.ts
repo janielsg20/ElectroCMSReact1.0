@@ -22,9 +22,9 @@ export const SECTION_HELP: Readonly<Record<AppSection, FeatureHelp>> = {
   },
   content: {
     label: 'Contenido dinámico',
-    description: 'Crea estructuras de contenido, campos personalizados, clasificaciones, entradas, relaciones y consultas para reutilizar datos en el diseño.',
-    reference: 'WordPress + ACF + JetEngine',
-    example: 'Crea “Propiedades”, añade Precio y Habitaciones, y muéstralos dinámicamente en una plantilla.',
+    description: 'Crea estructuras de contenido, campos personalizados, clasificaciones, entradas, relaciones, consultas y formularios para reutilizar datos en el diseño.',
+    reference: 'WordPress + ACF + JetEngine + JetFormBuilder',
+    example: 'Crea “Propiedades”, añade Precio y Habitaciones, y permite registrar datos con un formulario.',
   },
   design: {
     label: 'Diseño global',
@@ -34,7 +34,7 @@ export const SECTION_HELP: Readonly<Record<AppSection, FeatureHelp>> = {
   },
 }
 
-export type DataHelpId = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries'
+export type DataHelpId = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries' | 'forms'
 
 export const DATA_HELP: Readonly<Record<DataHelpId, FeatureHelp>> = {
   'content-types': {
@@ -51,7 +51,7 @@ export const DATA_HELP: Readonly<Record<DataHelpId, FeatureHelp>> = {
   },
   fields: {
     label: 'Campos personalizados',
-    description: 'Añade información específica a tus contenidos con campos como precio, teléfono, galería, fecha, relación o repetidor.',
+    description: 'Añade información específica a tus contenidos con campos como precio, teléfono, galería, fecha, relación o lista repetible.',
     reference: 'Advanced Custom Fields (ACF) · JetEngine — Meta Fields',
     example: 'Añade Precio, Habitaciones y Galería al tipo de contenido Propiedades.',
   },
@@ -63,16 +63,54 @@ export const DATA_HELP: Readonly<Record<DataHelpId, FeatureHelp>> = {
   },
   queries: {
     label: 'Qué contenido mostrar',
-    description: 'Define qué entradas deben aparecer, cómo se filtran y en qué orden. ElectroCMS guarda la consulta para reutilizarla en listados y filtros.',
+    description: 'Define qué entradas deben aparecer, cómo se filtran y en qué orden. ElectroCMS guarda la selección para reutilizarla en listados y filtros.',
     reference: 'JetEngine — Query Builder',
     example: 'Mostrar solo Propiedades disponibles en Houston, ordenadas de menor a mayor precio.',
   },
+  forms: {
+    label: 'Formularios',
+    description: 'Crea formularios visualmente, decide qué campos pedir y conecta las respuestas con campos de tu contenido cuando quieras guardar datos.',
+    reference: 'JetFormBuilder · Elementor Forms',
+    example: 'Crea un formulario “Solicitar información” con Nombre, Email y Teléfono.',
+  },
 }
+
+export const FORM_HELP = {
+  contentType: {
+    label: 'Dónde guardar las respuestas',
+    description: 'Conecta el formulario con un tipo de contenido para que sus campos puedan guardar información en los campos personalizados compatibles.',
+    reference: 'JetFormBuilder — Insert/Update Post · JetEngine Meta Fields',
+    example: 'Guardar una solicitud como una nueva entrada de Solicitudes.',
+  },
+  fieldType: {
+    label: 'Tipo de campo',
+    description: 'Define qué clase de dato pedirá este campo y qué control verá la persona que complete el formulario.',
+    reference: 'JetFormBuilder — Form Fields · Elementor Forms — Fields',
+    example: 'Email para correo, Número para cantidad o Selector para elegir una opción.',
+  },
+  mappedField: {
+    label: 'Guardar valor en',
+    description: 'Elige el campo personalizado donde se guardará la respuesta. ElectroCMS solo muestra destinos compatibles con el tipo de dato.',
+    reference: 'JetFormBuilder — Field mapping · JetEngine/ACF — Meta Fields',
+    example: 'El campo Teléfono del formulario guarda su respuesta en el campo personalizado Teléfono.',
+  },
+  fieldKey: {
+    label: 'Clave interna del campo',
+    description: 'Identificador estable que usa ElectroCMS para conectar el campo con acciones y datos. Normalmente se genera automáticamente y no necesitas cambiarlo.',
+    reference: 'JetFormBuilder — Field Name · Elementor Forms — Field ID',
+    example: 'telefono o email_cliente.',
+  },
+  order: {
+    label: 'Orden de los campos',
+    description: 'Define el orden en que las personas verán los campos. Puedes moverlos arriba o abajo sin arrastrar.',
+    reference: 'JetFormBuilder / Elementor Forms — Orden de campos',
+  },
+} as const satisfies Readonly<Record<string, FeatureHelp>>
 
 const FIELD_HELP_BY_KEY: Readonly<Record<string, FeatureHelp>> = {
   queryId: {
     label: 'Fuente de contenido',
-    description: 'Elige la consulta que proporciona los datos a este elemento. Así puedes reutilizar la misma selección de contenido en varios widgets.',
+    description: 'Elige la selección guardada que proporciona los datos a este elemento. Así puedes reutilizar el mismo contenido en varios widgets.',
     reference: 'JetEngine — Query Builder / Listing Grid',
   },
   fieldId: {
