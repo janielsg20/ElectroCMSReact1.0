@@ -51,7 +51,7 @@ export function ProjectDataPanel() {
               aria-controls={`project-data-${tab.id}`}
               aria-label={tab.label}
               aria-selected={activeTab === tab.id}
-              className={`min-h-11 min-w-[5.75rem] rounded-md px-2 text-xs font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:min-w-[5.25rem] ${activeTab === tab.id ? 'bg-primary-soft text-primary-strong shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+              className={`min-h-11 min-w-[5.75rem] shrink-0 rounded-md px-2 text-xs font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:min-w-[5.25rem] ${activeTab === tab.id ? 'bg-primary-soft text-primary-strong shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
               id={`project-data-tab-${tab.id}`}
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
