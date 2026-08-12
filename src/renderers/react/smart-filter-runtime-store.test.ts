@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SmartFilterRuntimeStore, type SmartFilterRegistration } from './smart-filter-runtime-store'
 
 function registration(overrides: Partial<SmartFilterRegistration> = {}): SmartFilterRegistration {
   return {
     applyMode: 'realtime',
+    debounceMs: 0,
     fieldId: 'field-1',
     initialValue: '',
     kind: 'search',
@@ -16,7 +17,7 @@ function registration(overrides: Partial<SmartFilterRegistration> = {}): SmartFi
   }
 }
 
-describe('M10.4 SmartFilterRuntimeStore', () => {
+describe('M10.4/M10.5 SmartFilterRuntimeStore', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/editor')
     window.localStorage.clear()
@@ -61,5 +62,29 @@ describe('M10.4 SmartFilterRuntimeStore', () => {
     store.reset(config.queryId)
     expect(store.getSnapshot(config.queryId).activeFilters).toEqual([])
     expect(store.getSnapshot(config.queryId)).toMatchObject({ loadMoreMultiplier: 1, page: 1 })
+  })
+
+  it('cancela trabajo obsoleto y solo aplica el último valor tras el debounce', () => {
+    vi.useFakeTimers()
+    try {
+      const store = new SmartFilterRuntimeStore()
+      const config = registration({ debounceMs: 180, persistState: false })
+      store.register(config)
+      store.setDraft(config.queryId, config.nodeId, 'G')
+      vi.advanceTimersByTime(100)
+      store.setDraft(config.queryId, config.nodeId, 'Ga')
+      vi.advanceTimersByTime(100)
+      store.setDraft(config.queryId, config.nodeId, 'Gamma')
+
+      expect(store.getSnapshot(config.queryId).activeFilters).toEqual([])
+      expect(store.getSnapshot(config.queryId).entries[config.nodeId]?.draft).toBe('Gamma')
+
+      vi.advanceTimersByTime(179)
+      expect(store.getSnapshot(config.queryId).activeFilters).toEqual([])
+      vi.advanceTimersByTime(1)
+      expect(store.getSnapshot(config.queryId).activeFilters).toMatchObject([{ value: 'Gamma' }])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
