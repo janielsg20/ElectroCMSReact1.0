@@ -52,6 +52,14 @@ function setup() {
 }
 
 describe('M07.4 administrador de breakpoints', () => {
+  it('cambia la resolución activa con un selector ElectroCMS en lugar del select nativo', () => {
+    setup()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Resolución activa' }))
+    fireEvent.click(screen.getByRole('option', { name: /Desktop · 1440px/ }))
+    expect(screen.getByRole('button', { name: 'Resolución activa' })).toHaveTextContent('Desktop · 1440px')
+  })
+
   it('selecciona cualquier breakpoint canónico y edita sus metadatos', async () => {
     const { activeId, updateBreakpoint } = setup()
     fireEvent.click(screen.getByRole('button', { name: 'Configurar tamaños de pantalla' }))
@@ -59,8 +67,10 @@ describe('M07.4 administrador de breakpoints', () => {
     expect(within(dialog).getByRole('list', { name: 'Orden de tamaños de pantalla' })).toBeInTheDocument()
     fireEvent.change(within(dialog).getByLabelText('Nombre'), { target: { value: 'Móvil UI' } })
     fireEvent.change(within(dialog).getByLabelText('Ancho (px)'), { target: { value: '520' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Orientación' }))
+    fireEvent.click(screen.getByRole('option', { name: /Horizontal/ }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar cambios' }))
-    await waitFor(() => expect(updateBreakpoint).toHaveBeenCalledWith(activeId, expect.objectContaining({ name: 'Móvil UI', width: 520 })))
+    await waitFor(() => expect(updateBreakpoint).toHaveBeenCalledWith(activeId, expect.objectContaining({ name: 'Móvil UI', orientation: 'landscape', width: 520 })))
   })
 
   it('crea, reordena y restablece el override activo con alternativas por botón', async () => {
