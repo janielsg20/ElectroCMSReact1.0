@@ -1,22 +1,46 @@
-import { useState } from 'react'
-import { ContentTypeManager } from './ContentTypeManager'
-import { CustomFieldManager } from './CustomFieldManager'
-import { QueryManager } from './QueryManager'
-import { RecordRelationManager } from './RecordRelationManager'
-import { TaxonomyManager } from './TaxonomyManager'
+import { lazy, Suspense, useState, type ComponentType, type LazyExoticComponent } from 'react'
 
 type DataTab = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries'
 
-const tabs: readonly { readonly id: DataTab; readonly label: string; readonly compact: string; readonly title: string }[] = [
-  { id: 'content-types', label: 'Tipos', compact: 'Tipos', title: 'Tipos de contenido' },
-  { id: 'taxonomies', label: 'Taxonomías', compact: 'Tax.', title: 'Taxonomías' },
-  { id: 'fields', label: 'Campos', compact: 'Campos', title: 'Campos personalizados' },
-  { id: 'records', label: 'Registros y relaciones', compact: 'Reg.', title: 'Registros y relaciones' },
-  { id: 'queries', label: 'Consultas', compact: 'Queries', title: 'Consultas' },
+interface DataTabDefinition {
+  readonly compact: string
+  readonly id: DataTab
+  readonly label: string
+  readonly overflow: 'auto' | 'hidden'
+  readonly panel: LazyExoticComponent<ComponentType>
+  readonly title: string
+}
+
+const ContentTypeManager = lazy(() => import('./ContentTypeManager').then((module) => ({ default: module.ContentTypeManager })))
+const TaxonomyManager = lazy(() => import('./TaxonomyManager').then((module) => ({ default: module.TaxonomyManager })))
+const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((module) => ({ default: module.CustomFieldManager })))
+const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
+const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
+
+const tabs: readonly DataTabDefinition[] = [
+  { id: 'content-types', label: 'Tipos', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
+  { id: 'taxonomies', label: 'Taxonomías', compact: 'Tax.', title: 'Taxonomías', overflow: 'auto', panel: TaxonomyManager },
+  { id: 'fields', label: 'Campos', compact: 'Campos', title: 'Campos personalizados', overflow: 'auto', panel: CustomFieldManager },
+  { id: 'records', label: 'Registros y relaciones', compact: 'Reg.', title: 'Registros y relaciones', overflow: 'auto', panel: RecordRelationManager },
+  { id: 'queries', label: 'Consultas', compact: 'Queries', title: 'Consultas', overflow: 'hidden', panel: QueryManager },
 ]
+
+function DataPanelFallback({ label }: { readonly label: string }) {
+  return (
+    <div aria-live="polite" className="grid min-h-32 place-items-center p-4 text-center text-xs text-muted-foreground" role="status">
+      <span>
+        <strong className="block text-foreground">Cargando {label.toLocaleLowerCase('es')}…</strong>
+        <span className="mt-1 block text-[0.625rem]">Solo se carga el módulo activo para mantener el editor ligero.</span>
+      </span>
+    </div>
+  )
+}
 
 export function ProjectDataPanel() {
   const [activeTab, setActiveTab] = useState<DataTab>('content-types')
+  const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
+  if (!active) throw new Error('El módulo de datos requiere al menos una pestaña.')
+  const ActivePanel = active.panel
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -41,11 +65,16 @@ export function ProjectDataPanel() {
         </div>
       </div>
 
-      <div aria-labelledby="project-data-tab-content-types" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" hidden={activeTab !== 'content-types'} id="project-data-content-types" role="tabpanel"><ContentTypeManager /></div>
-      <div aria-labelledby="project-data-tab-taxonomies" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" hidden={activeTab !== 'taxonomies'} id="project-data-taxonomies" role="tabpanel"><TaxonomyManager /></div>
-      <div aria-labelledby="project-data-tab-fields" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" hidden={activeTab !== 'fields'} id="project-data-fields" role="tabpanel"><CustomFieldManager /></div>
-      <div aria-labelledby="project-data-tab-records" className="min-h-0 flex-1 overflow-y-auto overscroll-contain" hidden={activeTab !== 'records'} id="project-data-records" role="tabpanel"><RecordRelationManager /></div>
-      <div aria-labelledby="project-data-tab-queries" className="min-h-0 flex-1 overflow-hidden" hidden={activeTab !== 'queries'} id="project-data-queries" role="tabpanel"><QueryManager /></div>
+      <div
+        aria-labelledby={`project-data-tab-${active.id}`}
+        className={`min-h-0 flex-1 ${active.overflow === 'hidden' ? 'overflow-hidden' : 'overflow-y-auto overscroll-contain'}`}
+        id={`project-data-${active.id}`}
+        role="tabpanel"
+      >
+        <Suspense fallback={<DataPanelFallback label={active.label} />}>
+          <ActivePanel />
+        </Suspense>
+      </div>
     </div>
   )
 }
