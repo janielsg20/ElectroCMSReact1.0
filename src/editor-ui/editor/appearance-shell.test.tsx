@@ -86,8 +86,10 @@ describe('M04.5 temas del editor', () => {
   it('ubica temas y paquetes exportables en Diseño, separados de la apariencia local', async () => {
     render(<App />)
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Diseño' }))
+    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Diseño' }))
 
+    expect(screen.getByRole('region', { name: /diseño · módulo principal/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Diseño del proyecto' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Tema' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tab', { name: 'Paquetes' })).toHaveAttribute('aria-selected', 'false')
