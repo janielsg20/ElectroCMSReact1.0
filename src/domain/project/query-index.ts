@@ -45,7 +45,7 @@ export function buildCmsQueryIndex(cms: CmsBackend): CmsQueryIndex {
 
   for (const record of records) {
     addToNestedIndex(byContentType, record.contentTypeId, record.id)
-    addToNestedIndex(byStatus, record.status, record.id)
+    addToNestedIndex(byStatus, scalarKey(record.status) ?? record.status, record.id)
     addToNestedIndex(byAuthor, record.authorId ?? 'null:', record.id)
     for (const termId of record.taxonomyTermIds) addToNestedIndex(byTaxonomyTerm, termId, record.id)
     for (const [fieldId, value] of Object.entries(record.values)) {
