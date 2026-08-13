@@ -20,13 +20,13 @@ const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((modul
 const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
 const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
 const FormManager = lazy(() => import('./FormManager').then((module) => ({ default: module.FormManager })))
-const BackendShellManager = lazy(() => import('./BackendShellManager').then((module) => ({ default: module.BackendShellManager })))
+const BackendAdminWorkspace = lazy(() => import('./BackendAdminWorkspace').then((module) => ({ default: module.BackendAdminWorkspace })))
 
 const backendHelp: FeatureHelp = {
   label: 'Administración visual',
-  description: 'Convierte el lienzo actual en una pantalla del backend y controla cómo aparece en la navegación administrativa sin crear otro editor.',
+  description: 'Construye el shell y conecta CRUD, vistas guardadas, filtros y formularios a los mismos datos del proyecto.',
   reference: 'WordPress Admin · Elementor-style visual editing',
-  example: 'Convierte un lienzo en Dashboard y sigue diseñándolo con Widgets, Capas e Inspector.',
+  example: 'Convierte un lienzo en Dashboard y añade una tabla de pedidos filtrada por una consulta guardada.',
 }
 
 const tabs: readonly DataTabDefinition[] = [
@@ -36,7 +36,7 @@ const tabs: readonly DataTabDefinition[] = [
   { id: 'records', label: 'Entradas y relaciones', compact: 'Entradas', title: 'Entradas y relaciones', overflow: 'auto', panel: RecordRelationManager },
   { id: 'queries', label: 'Qué contenido mostrar', compact: 'Consultas', title: 'Consultas de contenido', overflow: 'hidden', panel: QueryManager },
   { id: 'forms', label: 'Formularios', compact: 'Formularios', title: 'Formularios', overflow: 'auto', panel: FormManager },
-  { id: 'backend', label: 'Administración', compact: 'Admin', title: 'Administración visual', overflow: 'auto', panel: BackendShellManager, help: backendHelp },
+  { id: 'backend', label: 'Administración', compact: 'Admin', title: 'Administración visual', overflow: 'auto', panel: BackendAdminWorkspace, help: backendHelp },
 ]
 
 function DataPanelFallback({ label }: { readonly label: string }) {
