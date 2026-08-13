@@ -63,7 +63,7 @@ describe('M11.4 form action pipeline', () => {
         expect(context.mappedValues[fieldId]).toBe('Ada')
         return { ok: true, output: 'shown' }
       },
-      redirect: async (_action, context) => {
+      redirect: (_action, context) => {
         order.push('redirect')
         expect(context.actionIndex).toBe(1)
         return { ok: true, output: '/gracias' }
