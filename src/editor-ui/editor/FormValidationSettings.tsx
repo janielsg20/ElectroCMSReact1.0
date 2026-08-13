@@ -23,10 +23,6 @@ function ruleSummary(field: FieldDefinition | undefined, control: FormControl): 
   return items
 }
 
-function resultMessage(error: readonly { readonly message: string }[]): string {
-  return error.map((item) => item.message).join(' ')
-}
-
 export function FormValidationSettings({ cms, control, form }: { readonly cms: CmsBackend; readonly control: FormControl; readonly form: Form }) {
   const forms = useFormSession()
   const [successMessage, setSuccessMessage] = useState(form.successMessage)
@@ -57,7 +53,7 @@ export function FormValidationSettings({ cms, control, form }: { readonly cms: C
     setMessagePending(true)
     const result = await forms.updateForm(form.id, { errorMessage: errorMessage.trim(), successMessage: successMessage.trim() })
     setMessagePending(false)
-    setMessageNotice(result.ok ? { kind: 'success', text: 'Mensajes guardados.' } : { kind: 'error', text: resultMessage(result.error) })
+    setMessageNotice(result.ok ? { kind: 'success', text: 'Mensajes guardados.' } : { kind: 'error', text: result.error })
   }
 
   async function saveConditions(): Promise<void> {
@@ -65,7 +61,7 @@ export function FormValidationSettings({ cms, control, form }: { readonly cms: C
     setConditionPending(true)
     const result = await forms.updateFormControl(form.id, control.id, { conditions })
     setConditionPending(false)
-    setConditionNotice(result.ok ? { kind: 'success', text: conditions.length ? 'Reglas de visibilidad guardadas.' : 'El campo volverá a mostrarse siempre.' } : { kind: 'error', text: resultMessage(result.error) })
+    setConditionNotice(result.ok ? { kind: 'success', text: conditions.length ? 'Reglas de visibilidad guardadas.' : 'El campo volverá a mostrarse siempre.' } : { kind: 'error', text: result.error })
   }
 
   return (
