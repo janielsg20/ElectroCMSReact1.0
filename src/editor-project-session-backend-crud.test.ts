@@ -106,8 +106,8 @@ describe('M12.2 persisted admin CRUD views', () => {
     const backend = requireBackendShellSession(session)
 
     expect((await contentTypes.createContentType(contentType(articleTypeId, 'Artículo', 'Artículos', 'articles'))).ok).toBe(true)
-    expect((await contentTypes.createContentType(contentType(orderTypeId as typeof articleTypeId, 'Pedido', 'Pedidos', 'orders'))).ok).toBe(true)
-    expect((await queries.createSavedQuery(savedQuery(orderQueryId as typeof publishedQueryId, orderTypeId as typeof articleTypeId, 'Pedidos publicados'))).ok).toBe(true)
+    expect((await contentTypes.createContentType(contentType(orderTypeId, 'Pedido', 'Pedidos', 'orders'))).ok).toBe(true)
+    expect((await queries.createSavedQuery(savedQuery(orderQueryId, orderTypeId, 'Pedidos publicados'))).ok).toBe(true)
     expect((await backend.createAdminShell({
       documentId: session.documentId,
       menuId,
