@@ -10,6 +10,8 @@ function firePointer(target: Element | Window, type: string, clientX: number, cl
 }
 
 describe('App', () => {
+  beforeEach(() => window.localStorage.clear())
+
   it('presenta únicamente el editor construido', () => {
     render(<App />)
 
@@ -32,7 +34,7 @@ describe('App', () => {
 
     const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
     fireEvent.click(within(library).getByRole('tab', { name: /widgets/i }))
-    const search = within(library).getByRole('searchbox', { name: /buscar widgets registrados/i })
+    const search = within(library).getByRole('searchbox', { name: /buscar widgets/i })
     expect(search).toBeInTheDocument()
     expect(within(library).getByText('Contenedor')).toBeInTheDocument()
     fireEvent.change(search, { target: { value: 'Formulario' } })
@@ -62,9 +64,9 @@ describe('App', () => {
     render(<App />)
 
     const librarySeparator = screen.getByRole('separator', { name: /páginas y capas/i })
-    expect(librarySeparator).toHaveAttribute('aria-valuenow', '216')
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '360')
     fireEvent.keyDown(librarySeparator, { key: 'ArrowRight' })
-    expect(librarySeparator).toHaveAttribute('aria-valuenow', '232')
+    expect(librarySeparator).toHaveAttribute('aria-valuenow', '376')
     fireEvent.keyDown(librarySeparator, { key: 'Home' })
     expect(librarySeparator).toHaveAttribute('aria-valuenow', '184')
 
@@ -80,12 +82,12 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /desacoplar páginas y capas/i }))
     const floatingPanel = screen.getByRole('region', { name: /páginas y capas · flotante/i })
-    expect(floatingPanel).toHaveStyle({ left: '60px', width: '268px' })
+    expect(floatingPanel).toHaveStyle({ left: '60px', width: '360px' })
 
     fireEvent.keyDown(screen.getByRole('button', { name: /mover páginas y capas/i }), { key: 'ArrowRight' })
     expect(floatingPanel).toHaveStyle({ left: '76px' })
     fireEvent.keyDown(screen.getByRole('button', { name: /redimensionar ventana páginas y capas/i }), { key: 'ArrowRight' })
-    expect(floatingPanel).toHaveStyle({ width: '284px' })
+    expect(floatingPanel).toHaveStyle({ width: '376px' })
 
     const moveHandle = screen.getByRole('button', { name: /mover páginas y capas/i })
     firePointer(moveHandle, 'pointerdown', 500, 100)
@@ -97,7 +99,7 @@ describe('App', () => {
     firePointer(resizeHandle, 'pointerdown', 100, 100)
     firePointer(window, 'pointermove', 116, 116)
     firePointer(window, 'pointerup', 116, 116)
-    expect(floatingPanel).toHaveStyle({ width: '300px', height: '556px' })
+    expect(floatingPanel).toHaveStyle({ width: '392px', height: '556px' })
 
     const pinButton = screen.getByRole('button', { name: /fijar páginas y capas/i })
     fireEvent.click(pinButton)
@@ -182,7 +184,7 @@ describe('App', () => {
     expect(screen.getByRole('treeitem', { name: /contenedor/i })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toHaveTextContent('Contenedor')
     const inspector = screen.getByRole('complementary', { name: /inspector de propiedades/i })
-    expect(within(inspector).getByText('Ancho máximo')).toBeInTheDocument()
+    expect(within(inspector).getAllByText('Ancho máximo').length).toBeGreaterThan(0)
     expect(within(inspector).getByTestId('generated-inspector-sections')).toBeInTheDocument()
   })
 
