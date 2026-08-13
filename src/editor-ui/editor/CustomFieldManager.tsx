@@ -9,6 +9,7 @@ import { listCustomFields } from '../../domain/project/custom-field-engine'
 import { Button, ChoiceField, HelpTip, Icon } from '../primitives'
 import { useCustomFieldSession, useEditorProjectStructure } from './editor-project-context'
 import { DATA_HELP } from './feature-help'
+import { FieldConditionEditor } from './FieldConditionEditor'
 
 type FieldType = FieldDefinition['type']
 type OwnerKind = FieldDefinition['owner']['kind']
@@ -17,7 +18,7 @@ interface FieldDraft {
   readonly allowedRoleIds: readonly string[]
   readonly calculatedExpression: string
   readonly childFieldIds: readonly string[]
-  readonly conditionsJson: string
+  readonly conditions: FieldDefinition['conditions']
   readonly defaultValue: string
   readonly description: string
   readonly group: string
@@ -43,7 +44,7 @@ const EMPTY_DRAFT: FieldDraft = {
   allowedRoleIds: [],
   calculatedExpression: '',
   childFieldIds: [],
-  conditionsJson: '[]',
+  conditions: [],
   defaultValue: '',
   description: '',
   group: '',
@@ -120,7 +121,7 @@ function draftFromField(field: FieldDefinition): FieldDraft {
     allowedRoleIds: [...field.allowedRoleIds],
     calculatedExpression: field.calculatedExpression ?? '',
     childFieldIds: [...field.childFieldIds],
-    conditionsJson: JSON.stringify(field.conditions, null, 2),
+    conditions: structuredClone(field.conditions),
     defaultValue: serializedDefault(field.defaultValue),
     description: field.description,
     group: field.group,
@@ -230,7 +231,7 @@ export function CustomFieldManager() {
   }
 
   function setOwnerKind(ownerKind: OwnerKind) {
-    patchDraft({ ownerKind, ownerId: ownerKind === 'content-type' ? contentTypes[0]?.id ?? '' : taxonomies[0]?.id ?? '', childFieldIds: [], relationId: '', taxonomyId: '', conditionsJson: '[]' })
+    patchDraft({ ownerKind, ownerId: ownerKind === 'content-type' ? contentTypes[0]?.id ?? '' : taxonomies[0]?.id ?? '', childFieldIds: [], relationId: '', taxonomyId: '', conditions: [] })
   }
 
   function toggleStringList(key: 'allowedRoleIds' | 'childFieldIds', value: string) {
@@ -238,8 +239,6 @@ export function CustomFieldManager() {
   }
 
   function buildCandidate(): ReturnType<typeof FieldDefinitionSchema.safeParse> {
-    let conditions: unknown
-    try { conditions = JSON.parse(draft.conditionsJson || '[]') } catch { return FieldDefinitionSchema.safeParse({ invalid: 'conditions-json' }) }
     let options: unknown[]
     try { options = parseOptions(draft.optionsText) } catch { return FieldDefinitionSchema.safeParse({ invalid: 'options-text' }) }
     const owner = draft.ownerKind === 'content-type' ? contentTypes.find((item) => item.id === draft.ownerId) : taxonomies.find((item) => item.id === draft.ownerId)
@@ -248,7 +247,7 @@ export function CustomFieldManager() {
       allowedRoleIds: draft.allowedRoleIds,
       calculatedExpression: draft.type === 'calculated' ? draft.calculatedExpression : null,
       childFieldIds: draft.type === 'group' || draft.type === 'repeater' ? draft.childFieldIds : [],
-      conditions,
+      conditions: draft.conditions,
       defaultValue: parseDefault(draft.type, draft.defaultValue),
       description: draft.description,
       group: draft.group,
@@ -345,7 +344,7 @@ export function CustomFieldManager() {
 
         <div className="grid gap-2 md:grid-cols-2">
           <ChoiceField disabled={Boolean(selected)} label="Usar en" onChange={(value) => setOwnerKind(value === 'taxonomy' ? 'taxonomy' : 'content-type')} options={[...(contentTypes.length ? [{ label: 'Tipos de contenido', description: 'Como Productos, Propiedades o Artículos', value: 'content-type' }] : []), ...(taxonomies.length ? [{ label: 'Clasificaciones', description: 'Como Categorías, Marcas o Ciudades', value: 'taxonomy' }] : [])]} value={draft.ownerKind} />
-          <ChoiceField disabled={Boolean(selected)} label={draft.ownerKind === 'content-type' ? 'Contenido' : 'Clasificación'} onChange={(value) => patchDraft({ ownerId: value, childFieldIds: [], conditionsJson: '[]', relationId: '', taxonomyId: '' })} options={(draft.ownerKind === 'content-type' ? contentTypes : taxonomies).map((item) => ({ label: item.pluralName, value: item.id }))} value={draft.ownerId} />
+          <ChoiceField disabled={Boolean(selected)} label={draft.ownerKind === 'content-type' ? 'Contenido' : 'Clasificación'} onChange={(value) => patchDraft({ ownerId: value, childFieldIds: [], conditions: [], relationId: '', taxonomyId: '' })} options={(draft.ownerKind === 'content-type' ? contentTypes : taxonomies).map((item) => ({ label: item.pluralName, value: item.id }))} value={draft.ownerId} />
           <label className="grid gap-1 text-xs font-semibold">Nombre visible<input className={inputClass} maxLength={160} onChange={(event) => { const next = event.target.value; patchDraft({ label: next, key: !draft.key || draft.key === keyFromLabel(draft.label) ? keyFromLabel(next) : draft.key }) }} placeholder="Precio" value={draft.label} /></label>
           <ChoiceField help={<HelpTip description="Define qué clase de información guardará el campo y qué control utilizará ElectroCMS para editarla." example="Número para Precio, Imagen para Portada o Contenido relacionado para conectar entradas." label="Tipo de campo" reference="ACF — Field Type · JetEngine — Meta Field Type" />} label="Tipo de información" onChange={(value) => patchDraft({ type: value as FieldType, relationId: '', taxonomyId: '', childFieldIds: [], calculatedExpression: '', optionsText: '', defaultValue: '' })} options={fieldGroups.flatMap(([group, types]) => types.map((type) => ({ description: group, label: typeLabels[type], value: type })))} value={draft.type} />
           <label className="grid gap-1 text-xs font-semibold">Texto de ayuda<input className={inputClass} maxLength={500} onChange={(event) => patchDraft({ placeholder: event.target.value })} placeholder="Ej. Introduce el precio" value={draft.placeholder} /></label>
@@ -371,7 +370,7 @@ export function CustomFieldManager() {
             <label className="grid gap-1 text-xs font-semibold">Grupo / pestaña<input className={inputClass} maxLength={160} onChange={(event) => patchDraft({ group: event.target.value })} placeholder="Información principal" value={draft.group} /></label>
             <label className="grid gap-1 text-xs font-semibold">Valor predeterminado<span className="font-normal text-muted-foreground">{numeric ? 'Introduce un número.' : draft.type === 'switch' ? 'Usa true o false.' : usesChildren || draft.type === 'checkbox' || draft.type === 'gallery' || draft.type === 'map' ? 'Puede usar JSON cuando corresponda.' : 'Se usará si no hay un valor guardado.'}</span>{usesChildren || draft.type === 'checkbox' || draft.type === 'gallery' || draft.type === 'map' ? <textarea className="min-h-16 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs font-normal focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => patchDraft({ defaultValue: event.target.value })} value={draft.defaultValue} /> : <input className={inputClass} onChange={(event) => patchDraft({ defaultValue: event.target.value })} type={numeric ? 'number' : 'text'} value={draft.defaultValue} />}</label>
             <div className="grid gap-1 rounded-md border border-border p-2"><div className="flex items-center gap-1"><strong className="text-xs">Validación</strong><HelpTip description="Limita longitudes, valores o formatos aceptados antes de guardar." label="Validación avanzada" reference="ACF — Validation · JetEngine — Field Validation" /></div><div className="grid grid-cols-2 gap-1.5"><label className="grid gap-1 text-[0.625rem] font-semibold">Longitud mínima<input className={inputClass} min="0" onChange={(event) => patchDraft({ minLength: event.target.value })} type="number" value={draft.minLength} /></label><label className="grid gap-1 text-[0.625rem] font-semibold">Longitud máxima<input className={inputClass} min="0" onChange={(event) => patchDraft({ maxLength: event.target.value })} type="number" value={draft.maxLength} /></label><label className="grid gap-1 text-[0.625rem] font-semibold">Valor mínimo<input className={inputClass} onChange={(event) => patchDraft({ min: event.target.value })} type="number" value={draft.min} /></label><label className="grid gap-1 text-[0.625rem] font-semibold">Valor máximo<input className={inputClass} onChange={(event) => patchDraft({ max: event.target.value })} type="number" value={draft.max} /></label><label className="col-span-2 grid gap-1 text-[0.625rem] font-semibold">Patrón de formato<input className={`${inputClass} font-mono`} maxLength={500} onChange={(event) => patchDraft({ pattern: event.target.value })} value={draft.pattern} /></label></div></div>
-            <div className="grid gap-1"><div className="flex items-center gap-1"><strong className="text-xs">Condiciones técnicas</strong><HelpTip description="Configuración avanzada de visibilidad/uso basada en otros campos. El editor visual de condiciones se consolidará en su fase correspondiente; este JSON mantiene el contrato completo disponible sin perder funcionalidad." label="Condiciones técnicas" reference="ACF — Conditional Logic · JetEngine — Conditional Logic" /></div><textarea aria-label="Condiciones técnicas" className="min-h-24 resize-y rounded-md border border-border bg-surface p-2 font-mono text-[0.6875rem] focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => patchDraft({ conditionsJson: event.target.value })} value={draft.conditionsJson} /></div>
+            <FieldConditionEditor fields={ownerFields} label="Cuándo mostrar este campo" onChange={(conditions) => patchDraft({ conditions })} value={draft.conditions} />
             <fieldset className="grid gap-1"><legend className="flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Quién puede verlo <HelpTip description="Restringe este campo a roles concretos. Si no seleccionas ninguno se aplica la política general del contenido." label="Visibilidad por rol" reference="WordPress — Roles & Capabilities · JetEngine" /></legend>{roles.length === 0 ? <p className="text-[0.625rem] text-muted-foreground">Todavía no hay roles personalizados.</p> : roles.map((role) => { const checked = draft.allowedRoleIds.includes(role.id); return <button aria-checked={checked} className={`flex min-h-11 items-center gap-2 rounded-md border px-2 text-xs lg:min-h-9 ${checked ? 'border-primary/40 bg-primary-soft' : 'border-border bg-surface hover:bg-muted'}`} key={role.id} onClick={() => toggleStringList('allowedRoleIds', role.id)} role="checkbox" type="button"><span aria-hidden="true" className={`grid size-4 place-items-center rounded border ${checked ? 'border-primary bg-primary text-on-primary' : 'border-border'}`}>{checked ? <Icon name="check" size={11} /> : null}</span>{role.name}</button> })}</fieldset>
             {selected ? <p className="rounded bg-muted px-1.5 py-1 font-mono text-[0.5625rem] text-muted-foreground">ID interno: {selected.id}</p> : null}
           </div> : null}
