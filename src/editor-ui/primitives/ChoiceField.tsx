@@ -35,10 +35,13 @@ const MENU_MIN_HEIGHT = 96
 export function ChoiceField({ compact = false, disabled = false, help, label, labelHidden = false, onChange, options, placeholder = 'Seleccionar', value }: ChoiceFieldProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<MenuPosition | null>(null)
+  const [keyboardIndex, setKeyboardIndex] = useState(-1)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([])
   const listboxId = useId()
-  const selected = options.find((option) => option.value === value)
+  const selectedIndex = options.findIndex((option) => option.value === value)
+  const selected = selectedIndex >= 0 ? options[selectedIndex] : undefined
 
   const updatePosition = useCallback((): void => {
     const trigger = triggerRef.current
@@ -66,12 +69,18 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
   }, [open, options.length, updatePosition, value])
 
   useEffect(() => {
+    if (!open || keyboardIndex < 0) return
+    optionRefs.current[keyboardIndex]?.focus()
+  }, [keyboardIndex, open])
+
+  useEffect(() => {
     if (!open) return
     function closeOnOutsidePointer(event: globalThis.PointerEvent): void {
       const target = event.target
       if (!(target instanceof Node)) return
       if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return
       setOpen(false)
+      setKeyboardIndex(-1)
     }
     window.addEventListener('resize', updatePosition)
     window.addEventListener('scroll', updatePosition, true)
@@ -83,16 +92,61 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
     }
   }, [open, updatePosition])
 
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+  function closeAndReturnFocus(): void {
+    setOpen(false)
+    setKeyboardIndex(-1)
+    requestAnimationFrame(() => triggerRef.current?.focus())
+  }
+
+  function openFromKeyboard(index: number): void {
+    if (options.length === 0) return
+    setKeyboardIndex(Math.min(Math.max(index, 0), options.length - 1))
+    setOpen(true)
+  }
+
+  function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key === 'Escape') {
+      if (!open) return
       event.preventDefault()
-      setOpen(false)
+      closeAndReturnFocus()
       return
     }
-    if ((event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') && !open) {
+    if (event.key === 'ArrowDown') {
       event.preventDefault()
+      openFromKeyboard(selectedIndex >= 0 ? selectedIndex : 0)
+      return
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      openFromKeyboard(selectedIndex >= 0 ? selectedIndex : options.length - 1)
+      return
+    }
+    if ((event.key === 'Enter' || event.key === ' ') && !open) {
+      event.preventDefault()
+      setKeyboardIndex(-1)
       setOpen(true)
     }
+  }
+
+  function handleOptionKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeAndReturnFocus()
+      return
+    }
+    if (event.key === 'Tab') {
+      setOpen(false)
+      setKeyboardIndex(-1)
+      return
+    }
+    let nextIndex: number | null = null
+    if (event.key === 'ArrowDown') nextIndex = (index + 1) % options.length
+    else if (event.key === 'ArrowUp') nextIndex = (index - 1 + options.length) % options.length
+    else if (event.key === 'Home') nextIndex = 0
+    else if (event.key === 'End') nextIndex = options.length - 1
+    if (nextIndex === null) return
+    event.preventDefault()
+    setKeyboardIndex(nextIndex)
   }
 
   const menuStyle: CSSProperties | undefined = position ? {
@@ -115,8 +169,11 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
         aria-label={label}
         className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-surface px-2 text-left text-xs text-foreground outline-none transition-colors hover:border-primary/35 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 ${compact ? 'min-h-11 lg:min-h-8' : 'min-h-11 lg:min-h-9'}`}
         disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
-        onKeyDown={handleKeyDown}
+        onClick={() => {
+          setKeyboardIndex(-1)
+          setOpen((current) => !current)
+        }}
+        onKeyDown={handleTriggerKeyDown}
         ref={triggerRef}
         type="button"
       >
@@ -132,16 +189,17 @@ export function ChoiceField({ compact = false, disabled = false, help, label, la
           role="listbox"
           style={menuStyle}
         >
-          {options.length ? options.map((option) => (
+          {options.length ? options.map((option, index) => (
             <button
               aria-selected={option.value === value}
               className={`flex min-h-11 w-full items-center gap-2 rounded-md px-2 text-left text-xs outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${option.value === value ? 'bg-primary-soft text-primary-strong' : 'text-foreground'}`}
               key={option.value || '__empty'}
               onClick={() => {
                 onChange(option.value)
-                setOpen(false)
-                requestAnimationFrame(() => triggerRef.current?.focus())
+                closeAndReturnFocus()
               }}
+              onKeyDown={(event) => handleOptionKeyDown(event, index)}
+              ref={(element) => { optionRefs.current[index] = element }}
               role="option"
               type="button"
             >
