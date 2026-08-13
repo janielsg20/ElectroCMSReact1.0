@@ -40,7 +40,7 @@ function action(id: string, kind: Form['actions'][number]['kind']): Form['action
   return { config: {}, id, kind }
 }
 
-describe('M11.4 form action pipeline', () => {
+describe('M11.4/M11.5 form action pipeline', () => {
   it('valida antes de ejecutar y no llama handlers si el formulario es inválido', async () => {
     const handler = vi.fn(() => ({ ok: true as const }))
     const current = form([action('86000000-0000-4000-8000-000000000001', 'show-message')])
@@ -74,6 +74,24 @@ describe('M11.4 form action pipeline', () => {
     expect(result.mappedValues).toEqual({ [fieldId]: 'Ada' })
     expect(order).toEqual(['message', 'redirect'])
     expect(result.records.map((record) => record.status)).toEqual(['success', 'success'])
+  })
+
+  it('normaliza el payload y rechaza controles inyectados antes de adapters', async () => {
+    const handler = vi.fn((_action, context) => {
+      expect(context.values[firstControlId]).toBe('<b>Ada</b>\nLovelace')
+      return { ok: true as const }
+    })
+    const current = form([action('86000000-0000-4000-8000-000000000007', 'show-message')])
+    const normalized = await executeFormActionPipeline(current, cms(), { [firstControlId]: '<b>Ada</b>\r\n\u0000Lovelace' }, { 'show-message': handler })
+    expect(normalized.completed).toBe(true)
+    expect(handler).toHaveBeenCalledTimes(1)
+
+    handler.mockClear()
+    const injected = await executeFormActionPipeline(current, cms(), { [firstControlId]: 'Ada', intruder: 'admin' }, { 'show-message': handler })
+    expect(injected.completed).toBe(false)
+    expect(injected.error?.code).toBe('security-failed')
+    expect(injected.securityDiagnostics[0]).toMatchObject({ code: 'unknown-control', controlId: 'intruder' })
+    expect(handler).not.toHaveBeenCalled()
   })
 
   it('se detiene si falta el adapter o una acción falla', async () => {
