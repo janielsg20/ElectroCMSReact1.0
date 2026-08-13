@@ -6,7 +6,12 @@ import type {
   RelationEntryId,
   Timestamp,
 } from './identity'
-import type { FormActionHandler, FormActionHandlers, FormMappedValues } from './form-action-engine'
+import type {
+  FormActionHandler,
+  FormActionHandlerResult,
+  FormActionHandlers,
+  FormMappedValues,
+} from './form-action-engine'
 import {
   createContentRecord,
   createRelationEntry,
@@ -51,7 +56,8 @@ function mappedForContentType(
   mappedValues: FormMappedValues,
 ): ContentRecord['values'] {
   const cms = projectCmsBackend(structure.cms)
-  const fieldIds = new Set(cms.contentTypes[contentTypeId]?.fieldIds ?? [])
+  const contentType = Object.values(cms.contentTypes).find((candidate) => candidate.id === contentTypeId)
+  const fieldIds = new Set<string>(contentType?.fieldIds ?? [])
   return Object.fromEntries(Object.entries(mappedValues).filter(([fieldId]) => fieldIds.has(fieldId)))
 }
 
@@ -60,9 +66,9 @@ export function createProjectFormActionAdapter(options: ProjectFormActionOptions
   let currentRecordId = options.currentRecordId ?? null
   let lastRecordId: ContentRecordId | null = null
 
-  function createRecord(contentTypeId: string, mappedValues: FormMappedValues): ReturnType<FormActionHandler> {
+  function createRecord(contentTypeId: string, mappedValues: FormMappedValues): FormActionHandlerResult {
     const cms = projectCmsBackend(structure.cms)
-    const contentType = cms.contentTypes[contentTypeId]
+    const contentType = Object.values(cms.contentTypes).find((candidate) => candidate.id === contentTypeId)
     if (!contentType) return { ok: false, message: 'El tipo de contenido elegido ya no existe.' }
     const now = options.identity.now()
     const id = options.identity.recordId()
@@ -84,7 +90,7 @@ export function createProjectFormActionAdapter(options: ProjectFormActionOptions
     return { ok: true, output: id }
   }
 
-  function updateRecord(recordId: ContentRecordId, mappedValues: FormMappedValues): ReturnType<FormActionHandler> {
+  function updateRecord(recordId: ContentRecordId, mappedValues: FormMappedValues): FormActionHandlerResult {
     const cms = projectCmsBackend(structure.cms)
     const record = cms.records[recordId]
     if (!record) return { ok: false, message: 'El contenido que debía actualizarse ya no existe.' }
@@ -124,7 +130,7 @@ export function createProjectFormActionAdapter(options: ProjectFormActionOptions
     if (!relationId || !controlId) return { ok: false, message: 'Elige una relación y el campo que contiene el contenido relacionado.' }
 
     const cms = projectCmsBackend(structure.cms)
-    const relation = cms.relations[relationId]
+    const relation = Object.values(cms.relations).find((candidate) => candidate.id === relationId)
     if (!relation) return { ok: false, message: 'La relación elegida ya no existe.' }
     const baseRecordId = lastRecordId ?? currentRecordId
     const baseRecord = baseRecordId ? cms.records[baseRecordId] : undefined
@@ -137,7 +143,7 @@ export function createProjectFormActionAdapter(options: ProjectFormActionOptions
     let connected = 0
     for (const relatedId of relatedIds) {
       const currentCms = projectCmsBackend(structure.cms)
-      const relatedRecord = currentCms.records[relatedId]
+      const relatedRecord = Object.values(currentCms.records).find((candidate) => candidate.id === relatedId)
       if (!relatedRecord) return { ok: false, message: 'Uno de los registros relacionados ya no existe.' }
 
       let sourceRecordId: ContentRecordId
