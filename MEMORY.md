@@ -19,21 +19,41 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F10 completadas.
 - Fase activa: `F11 — Formularios y acciones`.
-- Microfase activa: `M11.1 — Builder y campos`.
-- F12–F18 y F19–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
-- M11.1 incorpora edición canónica de `required` y orden de campos mediante drag pointer/touch/teclado, conservando botones subir/bajar. El diálogo de tamaños usa portal al body; no colocarlo dentro de superficies transformadas del canvas.
-- Widgets usa 360 px como ancho desktop inicial y dos columnas desde 300 px útiles; migra exclusivamente el default histórico de 216 px y respeta cualquier ancho personalizado. La estrella significa Favoritos y el control de cuatro direcciones significa arrastrar; ambos conservan explicación accesible.
-- Puerta final F10: run `31608617420`, 88 archivos / 364 pruebas, lint/typecheck/build/browser audit verdes.
+- M11.1 `COMPLETADA`.
+- Microfase activa: `M11.2 — Validación y lógica condicional`.
+- M11.3–M11.5 y F12–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - Producción no se despliega desde este PR draft.
+
+## Última puerta verde
+
+M11.1 cerró con GitHub Actions run `31659028320` sobre `00c222e45dca83f18e717b9a08f8b5e016476d96`:
+
+- lint: verde.
+- typecheck: verde.
+- suite completa: 92 archivos / 380 pruebas verdes.
+- build: verde.
+- auditoría Chromium: 20 estados, 0 overflow, 0 targets touch <44×44, 0 errores de arquitectura, 0 excepciones y 0 warnings/errors de consola.
+- Cloudflare PR preview: verde.
+- producción: skipped por PR draft.
+
+## M11.1 consolidada — Builder y campos
+
+- `FormManager` vive en `Contenido → Formularios` y usa `CmsBackend.forms`; no existe store/schema paralelo.
+- 27 tipos de campo disponibles.
+- Layout canónico actual = orden de controles en `FormStep.controlIds`; el schema no define filas/columnas. No inventar geometría persistente antes de que el contrato lo requiera.
+- Mapeo visual solo hacia Custom Fields compatibles.
+- Añadir, seleccionar, editar, reordenar y eliminar funciona con puntero, touch y teclado; DnD conserva alternativa por botones.
+- `ChoiceField` es el selector ElectroCMS compartido: portal al body, límites del viewport, click exterior, Escape, ArrowUp/ArrowDown, Home/End, Tab y retorno de foco.
+- `CanonicalLayerTree` y las filas del builder protegen targets >=44 px en touch y regresan a densidad compacta en escritorio.
+- `HelpTip` usa portal, colisión/viewport y lenguaje orientado a tareas con referencias conocidas.
 
 ## Regla de calidad
 
 - Cada microfase pasa lint + typecheck + suite completa + build antes de avanzar.
-- Al finalizar cada fase se abre la aplicación compilada en Chromium y se realiza auditoría funcional/visual real.
+- Al cerrar microfases de UI/runtime, ejecutar también auditoría Chromium real sobre producción compilada.
 - La auditoría cubre desktop/tablet/móvil, overflow, jerarquía, densidad, foco/teclado, accesibilidad, consola y funciones visibles no implementadas.
 - `assert-browser-audit.mjs` bloquea CI si cualquier estado touch auditado contiene un target <44×44 CSS px.
 - No cerrar una fase solo porque compile.
-- Última auditoría UX: Chromium producción, 20 estados, sin overflow, targets touch deficientes, errores de arquitectura, excepciones ni consola. Suite focal 23 pruebas verde; la global llegó a 370/373, se corrigieron las tres expectativas/timeouts y pasaron aisladas, pero el rerun serial total excedió el límite de 6 minutos.
 
 ## Decisiones vigentes
 
@@ -48,20 +68,17 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 ## UI/UX vigente
 
-- High Density + Minimal Clean, pero orientado a tareas de CMS visual en vez de exponer un IDE al usuario final.
+- High Density + Minimal Clean, orientado a tareas de CMS visual en vez de exponer un IDE al usuario final.
 - Targets: ~44 px touch / ~36 px escritorio denso.
-- Navegación principal visible: grupos `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
+- Navegación principal: `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
 - `Capas`: exclusivamente árbol/estructura del documento actual.
 - `Widgets`: exclusivamente biblioteca insertable.
 - `Inspector`: propiedades del elemento seleccionado con vocabulario común, ayudas contextuales y referencias funcionales conocidas.
-- `Contenido`: tipos de contenido, clasificaciones, campos, entradas/relaciones y consultas; los gestores globales futuros siguen esta arquitectura.
+- `Contenido`: tipos, clasificaciones, campos, entradas/relaciones, consultas y formularios.
 - `Diseño`: apariencia global, temas y paquetes. `Páginas`: páginas/plantillas del proyecto.
-- Móvil conserva acceso a `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
+- Móvil conserva `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
 - Tablet retira paneles contextuales al entrar a un módulo global.
-- Nunca volver a ubicar módulos globales de CMS/proyecto dentro de Capas o Widgets.
 - Divulgación progresiva obligatoria: opciones esenciales primero; parámetros técnicos o poco frecuentes dentro de `Opciones avanzadas`.
-- Toda opción no obvia debe usar ayuda contextual ElectroCMS accesible por teclado/puntero/touch.
-- Cuando exista equivalencia clara, la ayuda referencia WordPress, Elementor, ACF, JetEngine, JetFormBuilder, JetSmartFilters o JetStyleManager según `UX_SIMPLICITY_SYSTEM.md`.
 - No usar nombres de schemas, AST, stores, IDs internos, fases o microfases como lenguaje principal del producto.
 
 ## F09 completada
@@ -78,36 +95,32 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Listings repiten plantilla por registro, paginan la ventana canónica y ejecutan Query Engine una sola vez por página.
 - Smart Filters: 11 tipos, realtime/apply, URL/localStorage, contador, pagination/load-more/reset y composición sin mutar query guardada.
 - Runtime store con debounce/cancelación; caché LRU con invalidación por identidad CMS.
-- `query-index.ts` reduce candidatos de manera semánticamente segura.
-- Gestores CMS pesados usan lazy loading.
-- Bundle principal pasó de ~639.70 kB a 372.23 kB; sin warning >500 kB.
-- Audit final: 14 estados, 0 overflow, 0 targets touch <44, 0 architecture errors, 0 runtime exceptions y 0 warnings/errors de consola de la app.
+- Gestores CMS pesados usan lazy loading; bundle principal sin warning >500 kB.
 
-## M11.1 activa — Builder y campos
+## M11.2 activa — Validación y lógica condicional
 
-Requisitos exactos:
+Objetivo exacto: implementar validación de formularios y condiciones reutilizando el estado canónico, con mensajes comprensibles y foco accesible en el primer error.
 
-- Reutilizar `CmsBackend.forms`, `FormSchema` y `FormControlSchema`.
-- No crear un store/schema paralelo de formularios.
-- CRUD y cambios persistentes por Command Bus + IndexedDB + undo/redo.
-- Todos los campos previstos por el alcance y catálogo existente deben poder componerse en el builder.
-- Layout, orden y mapeo visual a Custom Fields.
-- Añadir, seleccionar, reordenar y eliminar mediante teclado, puntero y touch; DnD con alternativa por una sola activación/teclado.
-- Formularios como gestor global; controles insertables en Widgets e Inspector.
-- Controles y menús de la UI del builder deben usar diseño ElectroCMS, no apariencia nativa dependiente del sistema.
-- El builder debe usar modelo mental JetFormBuilder/Elementor Forms: campo → propósito → dato relacionado → opciones avanzadas; la arquitectura interna no se expone como flujo principal.
-- >=44×44 en touch; densidad compacta en escritorio.
-- No iniciar M11.2 hasta pasar el gate completo de M11.1.
+Contratos ya existentes:
 
-## Trabajo M11.1 ya iniciado
+- `FormControlSchema`: `conditions`, `required`, tipo, mapping y metadatos del control.
+- `FieldValidationSchema`: `minLength`, `maxLength`, `min`, `max`, `pattern`.
+- `FieldConditionGroupSchema`: grupos `all/any` con condiciones por `fieldId`, operador y valor.
+- `FormSchema`: `successMessage` y `errorMessage` ya son canónicos.
+- `custom-field-engine.ts` valida integridad y referencias, pero no evalúa condiciones en runtime.
+- Los React adapters de widgets de formulario solo representan controles y previenen submit; todavía no ejecutan `CmsBackend.forms`.
 
-- Existe `form-builder-engine.ts` canónico con CRUD, orden y mapeo de controles y pruebas dedicadas.
-- La navegación y los gestores CMS en la rama F11 comenzaron una refactorización transversal de simplicidad sin alterar contratos.
-- Existe el primitive accesible `HelpTip` y el catálogo `feature-help.ts` para explicar opciones y equivalencias funcionales.
-- `ContentTypeManager` aplica flujo esencial + `Opciones avanzadas`; el Inspector oculta claves técnicas del lenguaje principal y explica cada propiedad con ayuda contextual.
-- Auditoría UX/UI incremental: Capas se nombra como estructura de página y refuerza la jerarquía visual; Widgets explica inserción/arrastre y se distribuye en dos columnas solo cuando el panel conserva tarjetas legibles. `HelpTip` usa posicionamiento dentro del viewport, scroll/resize y Escape para evitar popovers recortados.
-- La auditoría Chromium de producción cubrió 17 estados desktop/tablet/móvil sin overflow, targets touch <44, excepciones ni avisos de consola. Se corrigió una regla heredada que comprimía el árbol de Capas al aplicar ancho completo a todos sus botones.
+Reglas M11.2:
+
+- Crear un runtime de dominio reutilizable para validación/condiciones; no incrustar reglas de negocio en `FormManager`.
+- Los controles mapeados deben heredar/respetar la validación del Custom Field destino para mantener paridad cliente/destino.
+- Los controles no mapeados deben validar tipo y `required`; ampliar schema solo si es necesario y compatible con proyectos existentes.
+- Evaluar `FormControl.conditions` determinísticamente usando valores del mismo formulario.
+- Mostrar errores junto al campo y mover foco al primer error en la experiencia de prueba/ejecución.
+- Mantener `successMessage`/`errorMessage` como única fuente persistida de mensajes.
+- No adelantar multipaso/borradores (M11.3), acciones post-submit (M11.4) ni seguridad/spam (M11.5).
+- No iniciar M11.3 antes del gate completo de M11.2.
 
 ## Próximo paso exacto
 
-Cerrar la refactorización UX de los gestores tocados por M11.1, montar el gestor visual de formularios sobre el motor canónico y validar lint + typecheck + suite completa + build + auditoría Chromium antes de iniciar M11.2.
+Implementar primero el runtime puro de M11.2 con pruebas de tipo, required, reglas del Custom Field y condiciones; después conectarlo al builder mediante una experiencia de configuración/preview accesible y finalmente pasar lint + typecheck + suite completa + build + auditoría Chromium.
