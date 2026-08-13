@@ -14,9 +14,27 @@ const secondRoleId = parseRoleId('e3000000-0000-4000-8000-000000000002')
 const userId = parseUserId('e4000000-0000-4000-8000-000000000001')
 
 function structure(): ProjectStructure {
+  const cms = structuredClone(EMPTY_CMS_BACKEND)
+  cms.contentTypes[contentTypeId] = {
+    archiveTemplateId: null,
+    capabilities: [],
+    description: '',
+    fieldIds: [],
+    icon: 'content',
+    id: contentTypeId,
+    order: 0,
+    pluralName: 'Artículos',
+    public: true,
+    showInMenu: true,
+    singleTemplateId: null,
+    singularName: 'Artículo',
+    slug: 'articles',
+    supports: [],
+    taxonomyIds: [],
+  }
   return ProjectStructureSchema.parse({
     breakpoints: structuredClone(DEFAULT_BREAKPOINTS),
-    cms: structuredClone(EMPTY_CMS_BACKEND),
+    cms,
     documents: {
       [documentId]: { conditions: [], id: documentId, kind: 'page', name: 'Inicio', nodes: {}, rootNodeIds: [], routePath: '/' },
     },
