@@ -26,7 +26,8 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - M12.3 cerrada: RBAC con denegación por defecto, CRUD de roles por Command Bus y gestor visual de Roles y permisos. La puerta local pasó con 110 archivos / 438 pruebas, lint, TypeScript y build; se corrigió el orden asíncrono de acciones de formularios.
 - M12.4 cerrada: CRUD canónico de personas por Command Bus, selección local persistente de persona activa y paneles/ítems de menú filtrados por RBAC antes de mostrarse. La configuración sigue separada como espacio de construcción del proyecto.
-- Siguiente paso: M12.5, registro auditable de acciones, cambios y actor.
+- Microfase activa: M12.5, auditoría de implementación y navegación. El registro auditable de acciones, cambios y actor permanece como alcance pendiente de esta microfase.
+- Auditoría correctiva M12.5: el modo de configuración ya lista todos los paneles cuando no se simula un usuario; al simularlo, las vistas administrativas vuelven a comprobar permisos de lectura, CRUD, acciones masivas y campos, con denegación por defecto. Se puede salir explícitamente de la simulación para volver a configurar.
 - Auditoría correctiva transversal en curso: se corrigió regresión F05.1; el editor ahora elimina nodos y descendientes mediante Command Bus e historial, y el árbol expone también duplicar, renombrar, ocultar y bloquear con alternativas accesibles.
 
 ## Última puerta verde
@@ -122,4 +123,4 @@ Objetivo inmediato:
 
 ## Próximo paso exacto
 
-Continuar M12.3 aplicando el evaluador RBAC en los casos de uso administrativos sin crear otro modelo de roles. `rbac-engine.ts` niega por defecto y cubre capacidades, rutas, pantallas, CRUD por tipo, campos y menús; cuatro pruebas verdes validan el contrato y las ocho plantillas iniciales de rol. El contexto persistente de usuario pertenece a M12.4. M12.2 quedó cerrada: lint, typecheck, build y 98 archivos / 416 pruebas verdes por lotes; auditoría Edge headless sobre build de producción a 390×844, 768×1024 y 1440×900 sin overflow visible.
+Continuar M12.5 con el registro auditable de acciones, cambios y actor, sin relajar la auditoría correctiva transversal. La integración actual corrigió los bloqueos de lint/build, la simulación de personas y la autorización efectiva de las vistas administrativas. Lint, typecheck, build y 447 pruebas por lotes están verdes; la auditoría Chromium no puede ejecutarse en este runner por falta de un navegador compatible.

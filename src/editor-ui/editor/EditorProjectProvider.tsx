@@ -1,6 +1,6 @@
 import { useSyncExternalStore, useState, type PropsWithChildren } from 'react'
 import { EditorProjectContext, EditorSelectionContext, type EditorProjectSession, type EditorSelection } from './editor-project-context'
-import { ActiveUserProvider } from './active-user-context'
+import { ActiveUserProvider } from './ActiveUserProvider'
 import { WidgetLibraryProvider } from './WidgetLibraryProvider'
 
 interface EditorProjectProviderProps extends PropsWithChildren {

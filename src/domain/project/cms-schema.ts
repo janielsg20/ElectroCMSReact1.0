@@ -294,6 +294,7 @@ export type Query = z.infer<typeof QuerySchema>
 export type Form = z.infer<typeof FormSchema>
 export type Role = z.infer<typeof RoleSchema>
 export type User = z.infer<typeof UserSchema>
+export type UserStatus = User['status']
 export type MenuItem = z.infer<typeof MenuItemSchema>
 export type Menu = z.infer<typeof MenuSchema>
 export type BackendScreen = z.infer<typeof BackendScreenSchema>

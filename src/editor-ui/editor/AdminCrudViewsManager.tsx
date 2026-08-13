@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import {
   deleteContentRecord,
+  canManageContent,
+  editableFields,
   executeSavedCmsQuery,
   listContentRecords,
   parseContentRecordId,
@@ -19,10 +21,12 @@ import {
   type FormId,
   type JsonValue,
   type QueryId,
+  visibleFields,
 } from '../../domain'
 import { projectCmsBackend } from '../../domain/project/cms-defaults'
 import { Button, ChoiceField, HelpTip, Icon, TextField } from '../primitives'
 import { useBackendShellSession } from './backend-shell-session-context'
+import { useActiveUser } from './active-user-context'
 import { useEditorProjectStructure, useRecordRelationSession } from './editor-project-context'
 
 type AdminViewKind = Extract<BackendScreen['kind'], 'table' | 'form' | 'detail' | 'calendar' | 'kanban' | 'chart' | 'metrics' | 'listing'>
@@ -218,15 +222,19 @@ function AdminFieldControl({ cms, descriptor, onChange, value }: {
   return <JsonAdminField field={field} label={label} onChange={onChange} value={value} />
 }
 
-function AdminRecordEditor({ cms, contentTypeId, form, record, onClose }: {
+function AdminRecordEditor({ canCreate, canDelete, canUpdate, cms, contentTypeId, editableFieldIds, form, record, onClose }: {
+  readonly canCreate: boolean
+  readonly canDelete: boolean
+  readonly canUpdate: boolean
   readonly cms: CmsBackend
   readonly contentTypeId: ContentTypeId
+  readonly editableFieldIds: ReadonlySet<FieldDefinition['id']>
   readonly form: Form | null
   readonly record: ContentRecord | null
   readonly onClose: () => void
 }) {
   const session = useRecordRelationSession()
-  const descriptors = useMemo(() => mappedEditableFields(cms, contentTypeId, form), [cms, contentTypeId, form])
+  const descriptors = useMemo(() => mappedEditableFields(cms, contentTypeId, form).filter(({ field }) => editableFieldIds.has(field.id)), [cms, contentTypeId, editableFieldIds, form])
   const [status, setStatus] = useState<ContentStatus>(record?.status ?? 'draft')
   const [values, setValues] = useState<Record<string, JsonValue>>(() => record ? structuredClone(record.values) : Object.fromEntries(descriptors.flatMap(({ field }) => field.defaultValue === null ? [] : [[field.id, structuredClone(field.defaultValue)]])))
   const [termIds, setTermIds] = useState<readonly string[]>(record?.taxonomyTermIds ?? [])
@@ -246,7 +254,7 @@ function AdminRecordEditor({ cms, contentTypeId, form, record, onClose }: {
   }
 
   async function save(): Promise<void> {
-    if (pending) return
+    if (pending || (record ? !canUpdate : !canCreate)) return
     setPending(true)
     const timestamp = parseTimestamp(new Date().toISOString())
     const result = record
@@ -267,7 +275,7 @@ function AdminRecordEditor({ cms, contentTypeId, form, record, onClose }: {
   }
 
   async function remove(): Promise<void> {
-    if (!record || pending) return
+    if (!record || pending || !canDelete) return
     if (!deleteArmed) {
       setDeleteArmed(true)
       setNotice('Pulsa de nuevo para confirmar la eliminación.')
@@ -298,8 +306,8 @@ function AdminRecordEditor({ cms, contentTypeId, form, record, onClose }: {
         })}</div></fieldset>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
-        <div>{record ? <Button disabled={pending} onClick={() => { void remove() }} size="small" variant={deleteArmed ? 'destructive' : 'ghost'}>{deleteArmed ? 'Confirmar eliminación' : 'Eliminar'}</Button> : null}</div>
-        <Button isLoading={pending} loadingLabel="Guardando" onClick={() => { void save() }} size="small"><Icon name="check" size={12} />{record ? 'Guardar cambios' : 'Crear registro'}</Button>
+        <div>{record && canDelete ? <Button disabled={pending} onClick={() => { void remove() }} size="small" variant={deleteArmed ? 'destructive' : 'ghost'}>{deleteArmed ? 'Confirmar eliminación' : 'Eliminar'}</Button> : null}</div>
+        <Button disabled={record ? !canUpdate : !canCreate} isLoading={pending} loadingLabel="Guardando" onClick={() => { void save() }} size="small"><Icon name="check" size={12} />{record ? 'Guardar cambios' : 'Crear registro'}</Button>
       </div>
     </section>
   )
@@ -327,6 +335,7 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
   const backend = useBackendShellSession()
   const recordsSession = useRecordRelationSession()
   const structure = useEditorProjectStructure()
+  const { activeUserId } = useActiveUser()
   const cms = useMemo(() => projectCmsBackend(structure.cms), [structure.cms])
   const screen = cms.backendScreens[screenId]
   const contentTypes = useMemo(() => Object.values(cms.contentTypes).sort((a, b) => a.order - b.order || a.pluralName.localeCompare(b.pluralName, 'es')), [cms.contentTypes])
@@ -348,21 +357,32 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
   const forms = useMemo(() => contentTypeId ? Object.values(cms.forms).filter((form) => form.contentTypeId === null || form.contentTypeId === contentTypeId).sort((a, b) => a.name.localeCompare(b.name, 'es')) : [], [cms.forms, contentTypeId])
   const persistedContentTypeId = screen?.contentTypeId ?? null
   const persistedContentType = persistedContentTypeId ? cms.contentTypes[persistedContentTypeId] : undefined
-  const fields = useMemo(() => persistedContentTypeId ? contentTypeFields(cms, persistedContentTypeId) : [], [cms, persistedContentTypeId])
+  const allFields = useMemo(() => persistedContentTypeId ? contentTypeFields(cms, persistedContentTypeId) : [], [cms, persistedContentTypeId])
+  const fields = useMemo(() => activeUserId ? visibleFields(cms, activeUserId, allFields) : allFields, [activeUserId, allFields, cms])
+  const editableFieldIds = useMemo(() => new Set((activeUserId ? editableFields(cms, activeUserId, allFields) : allFields).map((field) => field.id)), [activeUserId, allFields, cms])
   const configuredFormId = screen?.formId ?? null
   const configuredForm = configuredFormId ? cms.forms[configuredFormId] ?? null : null
   const persistedQueryId = screen?.queryId ?? null
   const queried = useMemo(() => persistedQueryId ? executeSavedCmsQuery(cms, persistedQueryId) : null, [cms, persistedQueryId])
   const sourceRecords = useMemo(() => {
+    if (persistedContentTypeId && activeUserId && !canManageContent(cms, activeUserId, persistedContentTypeId, 'read')) return []
     if (queried?.ok) return queried.value.records
     return persistedContentTypeId ? listContentRecords(structure, persistedContentTypeId) : []
-  }, [persistedContentTypeId, queried, structure])
+  }, [activeUserId, cms, persistedContentTypeId, queried, structure])
   const visibleRecords = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase('es')
     return sourceRecords.filter((record) => (statusFilter === 'all' || record.status === statusFilter) && (!needle || recordSearchText(record, fields).includes(needle)))
   }, [fields, search, sourceRecords, statusFilter])
   const editorRecord = editorTarget && editorTarget !== 'new' ? cms.records[editorTarget] ?? null : null
   const tableFields = fields.filter((field) => !['repeater', 'group', 'gallery'].includes(field.type)).slice(0, 4)
+  const canRead = !activeUserId || (persistedContentTypeId ? canManageContent(cms, activeUserId, persistedContentTypeId, 'read') : false)
+  const canCreate = !activeUserId || (persistedContentTypeId ? canManageContent(cms, activeUserId, persistedContentTypeId, 'create') : false)
+  const canUpdate = !activeUserId || (persistedContentTypeId ? canManageContent(cms, activeUserId, persistedContentTypeId, 'update') : false)
+  const canDelete = !activeUserId || (persistedContentTypeId ? canManageContent(cms, activeUserId, persistedContentTypeId, 'delete') : false)
+  const bulkOptions = useMemo(() => [
+    ...(canUpdate ? statuses.map((status) => ({ label: `Cambiar a ${statusLabels[status]}`, value: `status:${status}` })) : []),
+    ...(canDelete ? [{ label: 'Eliminar seleccionados', value: 'delete' }] : []),
+  ], [canDelete, canUpdate])
 
   async function saveView(): Promise<void> {
     if (!screen || !contentTypeId || pending) return
@@ -385,6 +405,8 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
 
   function preflightBulk(): string | null {
     if (selectedIds.length === 0) return 'Selecciona al menos un registro.'
+    if (bulkAction === 'delete' && !canDelete) return 'No tienes permiso para eliminar estos registros.'
+    if (bulkAction !== 'delete' && !canUpdate) return 'No tienes permiso para actualizar estos registros.'
     let candidate = structure
     const now = parseTimestamp(new Date().toISOString())
     for (const recordId of selectedIds) {
@@ -427,6 +449,10 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
   }
 
   function openRecord(record: ContentRecord): void {
+    if (!canUpdate) {
+      setNotice('Puedes consultar este registro, pero no tienes permiso para editarlo.')
+      return
+    }
     setEditorTarget(record.id)
   }
 
@@ -441,7 +467,7 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
 
       {notice ? <p className="rounded-md border border-border bg-surface px-2 py-1.5 text-xs text-muted-foreground" role="status">{notice}</p> : null}
 
-      {contentTypes.length === 0 ? <p className="rounded-md border border-dashed border-border bg-surface p-3 text-xs text-muted-foreground">Crea primero un tipo de contenido para construir su administración.</p> : (
+      {!activeUserId && (contentTypes.length === 0 ? <p className="rounded-md border border-dashed border-border bg-surface p-3 text-xs text-muted-foreground">Crea primero un tipo de contenido para construir su administración.</p> : (
         <div className="grid gap-2 rounded-lg border border-border bg-surface p-2.5 md:grid-cols-2 xl:grid-cols-4">
           <ChoiceField label="Tipo de vista" onChange={(value) => setKind(value as AdminViewKind)} options={viewKinds} value={kind} />
           <ChoiceField label="Contenido" onChange={(value) => { setContentTypeId(value as ContentTypeId); setQueryId(null); setFormId(null) }} options={contentTypes.map((type) => ({ label: type.pluralName, description: type.description || type.singularName, value: type.id }))} value={contentTypeId ?? ''} />
@@ -449,25 +475,25 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
           <ChoiceField label="Formulario de edición" onChange={(value) => setFormId(value ? value as FormId : null)} options={[{ label: 'Campos del CPT', value: '' }, ...forms.map((form) => ({ label: form.name, description: `${form.steps.length} pasos`, value: form.id }))]} value={formId ?? ''} />
           <div className="md:col-span-2 xl:col-span-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2"><p className="text-[0.625rem] text-muted-foreground">Las consultas creadas en Contenido → Consultas funcionan como vistas guardadas reutilizables; no se duplica el motor de filtros.</p><Button disabled={!contentTypeId || pending} isLoading={pending} loadingLabel="Guardando" onClick={() => { void saveView() }} size="small"><Icon name="check" size={12} />Guardar vista administrativa</Button></div>
         </div>
-      )}
+      ))}
 
       {persistedContentType && isAdminViewKind(screen.kind) ? (
-        <div className="grid gap-2">
+        !canRead ? <p className="rounded-lg border border-dashed border-border bg-surface p-4 text-center text-xs text-muted-foreground">Esta persona puede abrir el panel, pero no tiene permiso para consultar este contenido.</p> : <div className="grid gap-2">
           <div className="grid gap-2 rounded-lg border border-border bg-surface p-2 sm:grid-cols-[minmax(12rem,1fr)_minmax(9rem,0.5fr)_auto]">
             <TextField label="Buscar en esta vista" onChange={(event) => setSearch(event.target.value)} placeholder="Título, campo o estado…" type="search" value={search} />
             <ChoiceField label="Estado" onChange={(value) => setStatusFilter(value as 'all' | ContentStatus)} options={[{ label: 'Todos los estados', value: 'all' }, ...statuses.map((status) => ({ label: statusLabels[status], value: status }))]} value={statusFilter} />
-            <div className="flex items-end"><Button onClick={() => setEditorTarget('new')} size="small"><Icon name="plus" size={12} />Nuevo</Button></div>
+            <div className="flex items-end">{canCreate ? <Button onClick={() => setEditorTarget('new')} size="small"><Icon name="plus" size={12} />Nuevo</Button> : null}</div>
           </div>
 
           {queried && !queried.ok ? <p className="rounded-md bg-destructive/10 px-2 py-2 text-xs text-destructive" role="alert">{queried.error[0]?.message ?? 'La vista guardada no se pudo ejecutar.'}</p> : null}
 
-          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-surface p-2">
-            <div className="min-w-[12rem] flex-1"><ChoiceField label="Acción masiva" onChange={(value) => { setBulkAction(value); setBulkDeleteArmed(false) }} options={[...statuses.map((status) => ({ label: `Cambiar a ${statusLabels[status]}`, value: `status:${status}` })), { label: 'Eliminar seleccionados', value: 'delete' }]} value={bulkAction} /></div>
+          {bulkOptions.length > 0 ? <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-surface p-2">
+            <div className="min-w-[12rem] flex-1"><ChoiceField label="Acción masiva" onChange={(value) => { setBulkAction(value); setBulkDeleteArmed(false) }} options={bulkOptions} value={bulkOptions.some((option) => option.value === bulkAction) ? bulkAction : bulkOptions[0]?.value ?? ''} /></div>
             <Button disabled={selectedIds.length === 0 || pending} onClick={() => { void applyBulk() }} size="small" variant={bulkAction === 'delete' && bulkDeleteArmed ? 'destructive' : 'secondary'}>{bulkAction === 'delete' && bulkDeleteArmed ? 'Confirmar eliminación' : `Aplicar a ${selectedIds.length}`}</Button>
             <Button disabled={visibleRecords.length === 0} onClick={() => setSelectedIds(selectedIds.length === visibleRecords.length ? [] : visibleRecords.map((record) => record.id))} size="small" variant="ghost">{selectedIds.length === visibleRecords.length && visibleRecords.length > 0 ? 'Quitar selección' : 'Seleccionar visibles'}</Button>
-          </div>
+          </div> : null}
 
-          {editorTarget ? <AdminRecordEditor cms={cms} contentTypeId={persistedContentType.id} form={configuredForm} key={editorTarget} onClose={() => setEditorTarget(null)} record={editorRecord} /> : null}
+          {editorTarget ? <AdminRecordEditor canCreate={canCreate} canDelete={canDelete} canUpdate={canUpdate} cms={cms} contentTypeId={persistedContentType.id} editableFieldIds={editableFieldIds} form={configuredForm} key={editorTarget} onClose={() => setEditorTarget(null)} record={editorRecord} /> : null}
 
           {screen.kind === 'metrics' ? <MetricsView records={visibleRecords} /> : null}
           {screen.kind === 'chart' ? <StatusChartView records={visibleRecords} /> : null}
@@ -500,7 +526,7 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
             </div>
           ) : null}
 
-          {screen.kind === 'form' && !editorTarget ? <AdminRecordEditor cms={cms} contentTypeId={persistedContentType.id} form={configuredForm} key="new-form" onClose={() => setEditorTarget(null)} record={null} /> : null}
+          {screen.kind === 'form' && !editorTarget && canCreate ? <AdminRecordEditor canCreate={canCreate} canDelete={canDelete} canUpdate={canUpdate} cms={cms} contentTypeId={persistedContentType.id} editableFieldIds={editableFieldIds} form={configuredForm} key="new-form" onClose={() => setEditorTarget(null)} record={null} /> : null}
 
           {visibleRecords.length === 0 && screen.kind !== 'form' ? <p className="rounded-lg border border-dashed border-border bg-surface p-4 text-center text-xs text-muted-foreground">No hay registros para los filtros actuales.</p> : null}
         </div>

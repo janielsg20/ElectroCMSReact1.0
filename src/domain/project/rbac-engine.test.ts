@@ -62,7 +62,7 @@ describe('M12.3 RBAC', () => {
     ] as never
     expect(visibleFields(cms, userId, fields).map((field) => field.label)).toEqual(['Título'])
     expect(editableFields(cms, userId, fields).map((field) => field.label)).toEqual(['Título'])
-    expect(canAccessMenuItem(cms, userId, cms.menus[menuId]!.items[menuItemId]!)).toBe(true)
+    expect(canAccessMenuItem(cms, userId, cms.menus[menuId].items[menuItemId])).toBe(true)
     expect(visibleMenuItemIds(cms, userId, menuId)).toEqual([menuItemId])
     expect(visibleMenuItemIds(cms, null, menuId)).toEqual([])
   })

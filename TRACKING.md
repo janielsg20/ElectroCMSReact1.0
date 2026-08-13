@@ -7,16 +7,20 @@ Actualizado: 2026-08-13.
 ## Estado global
 
 - Fase actual: `F12 — Backend visual, usuarios y permisos`.
-- Microfase actual: `M12.4 — Contexto de usuario`.
-- Estado: `EN_CURSO — auditoría correctiva transversal; regresión F05.1 detectada en eliminación y accesibilidad del árbol`.
+- Microfase actual: `M12.5 — Auditoría`.
+- Estado: `EN_CURSO — auditoría correctiva de código, navegación, paneles y opciones`.
 - F00–F11: `COMPLETADA`.
-- F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `NO_INICIADA`.
+- F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `EN_CURSO`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 - Producción permanece omitida desde el PR draft #24; solo se permite preview hasta gate final y revisión.
 
 ## Auditoría correctiva transversal en curso
 
+- F12/M12.5: corregidos bloqueos de lint y compilación tras integrar la última versión: tipo público `UserStatus`, contexto activo seguro sin CMS inicial, separación del provider para Fast Refresh y renombrado de capas sin actualización de estado dentro de un efecto.
+- F12/M12.5: corregido un fallo de autorización en las vistas administrativas. El modo de configuración vuelve a listar los paneles sin una persona activa; al probar una persona, la vista deniega por defecto lectura, creación, edición, eliminación, acciones masivas y campos sin permiso explícito. También se añadió una salida clara del modo de comprobación de permisos.
+- Auditoría por lotes actual: 447 pruebas verdes de dominio, UI, renderers, sesiones, aplicación e infraestructura; ESLint, TypeScript y build Vite verdes. M12.5 sigue abierta hasta implementar su registro/exportación de auditoría.
+- F04/F05/F12: pruebas focalizadas verificaron el shell de escritorio/móvil, la separación de Capas/Widgets frente a módulos globales, Administración desde `Más`, RBAC, roles y árbol de capas (34 pruebas verdes). La auditoría Chromium local queda bloqueada porque el runner actual no dispone de Chrome/Chromium.
 - F05.1: se confirmó una regresión importante: el contrato/UI del editor no exponía eliminar una capa pese a ser requisito cerrado. Corregida con mutación canónica, Command Bus, confirmación, recuperación por Deshacer, atajo Supr/Retroceso y bloqueo respetado.
 - F05.1: también se expusieron en el árbol las operaciones ya existentes de duplicar, renombrar, mostrar/ocultar y bloquear/desbloquear.
 - F05.3: el árbol mantiene drag con alternativa sin arrastre, controles de 44 px, etiquetas explícitas, foco visible, estados de selección y mensajes para lector de pantalla.

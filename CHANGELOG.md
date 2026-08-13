@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-13 — Auditoría exhaustiva F12: permisos y paneles
+
+- Corregido el modo de configuración de Administración: sin una persona activa vuelve a listar todos los paneles del proyecto, en lugar de ocultarlos y bloquear su edición.
+- La simulación de una persona aplica ahora permisos efectivos de lectura, creación, edición, eliminación, acciones masivas y campos dentro de cada vista administrativa. Los datos y controles no autorizados dejan de exponerse; la denegación sigue siendo el valor predeterminado.
+- Añadida una salida explícita de la comprobación de permisos para regresar al modo de configuración.
+- Añadidas dos pruebas de integración para confirmar tanto el modo de configuración como la denegación de CRUD/datos para una persona sin lectura.
+- Validación por lotes: 447 pruebas verdes de dominio, UI, renderers, sesiones, aplicación e infraestructura; ESLint, TypeScript y build Vite verdes. La auditoría Chromium permanece pendiente por ausencia de navegador en el runner.
+
+## 2026-08-13 — Auditoría correctiva F12: código y navegación
+
+- Corregidos los bloqueos de lint y TypeScript introducidos al integrar la versión más reciente: tipo público para el estado de usuario, contexto activo seguro antes de inicializar el CMS, provider separado para Fast Refresh y fixture RBAC tipada correctamente.
+- El renombrado de capas ya no sincroniza estado dentro de un efecto; el campo conserva el nombre de la selección mediante una referencia, evitando renderizados en cascada.
+- Revisada la ubicación de módulos: Capas/Widgets se mantienen contextuales, Contenido/Administración/Diseño permanecen como workspaces globales y Administración se alcanza en móvil desde `Más`.
+- Verificado con ESLint, TypeScript, build Vite y 34 pruebas focalizadas verdes. El runner actual no aporta Chrome/Chromium, por lo que la auditoría visual automatizada queda pendiente.
+
 ## 2026-08-13 — Corrección F05: operaciones y accesibilidad del árbol
 
 - Corregida una regresión importante: faltaba eliminar elementos del lienzo aunque era un requisito de F05.1.
