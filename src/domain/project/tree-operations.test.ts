@@ -4,6 +4,7 @@ import { parseDocumentId, parseNodeId, type NodeId } from './identity'
 import { ProjectStructureSchema, type Node, type ProjectStructure } from './structure-schema'
 import {
   copyNodes,
+  deleteNodes,
   duplicateNodes,
   groupNodes,
   insertNode,
@@ -100,6 +101,23 @@ function idFactory(ids: readonly NodeId[]) {
 }
 
 describe('M05.1 operaciones canónicas del árbol', () => {
+  it('elimina un nodo con todos sus descendientes y mantiene el árbol válido', () => {
+    const deleted = deleteNodes(structure(), OWNER, [FIRST_ID])
+    expect(deleted.ok).toBe(true)
+    if (!deleted.ok) return
+    expect(documentOf(deleted.value).nodes[FIRST_ID]).toBeUndefined()
+    expect(documentOf(deleted.value).nodes[FIRST_CHILD_ID]).toBeUndefined()
+    expect(documentOf(deleted.value).nodes[ROOT_ID]?.slots.content).toEqual([SECOND_ID])
+    expectValid(deleted.value)
+  })
+
+  it('no elimina un nodo bloqueado', () => {
+    const source = structure()
+    const node = source.documents[DOCUMENT_ID]?.nodes[FIRST_ID]
+    if (!node) throw new Error('Falta el nodo de prueba.')
+    node.locked = true
+    expect(deleteNodes(source, OWNER, [FIRST_ID])).toMatchObject({ ok: false, error: { code: 'locked-node' } })
+  })
   it('ajusta el índice al reordenar hacia delante dentro del mismo slot', () => {
     const result = moveNodes(
       structure(),

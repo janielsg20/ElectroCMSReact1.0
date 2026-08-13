@@ -39,6 +39,7 @@ export type IconName =
   | 'sun'
   | 'tablet'
   | 'text'
+  | 'trash'
   | 'undo'
   | 'upload'
   | 'users'
@@ -93,6 +94,7 @@ const paths: Record<IconName, string> = {
   sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   tablet: 'M5 3h14v18H5zM10 17h4',
   text: 'M5 6h14M12 6v12M8 18h8',
+  trash: 'M4 7h16M10 11v6M14 11v6M9 7l1-2h4l1 2M6 7l1 14h10l1-14',
   undo: 'M4 7h7a6 6 0 0 1 6 6v4M4 7l4-4M4 7l4 4',
   upload: 'M12 16V4m-5 5 5-5 5 5M5 20h14',
   users: 'M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',

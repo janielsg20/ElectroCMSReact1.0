@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { createBrowserEditorProjectSession } from './editor-project-session'
-import { DEFAULT_BREAKPOINTS, parseDocumentId, type Document } from './domain'
+import { DEFAULT_BREAKPOINTS, parseDocumentId, parseRoleId, type Document } from './domain'
 import { STARTER_SELECTED_NODE_ID } from './editor-ui/editor/starter-project-structure'
 
 describe('M06.5 sesión canónica de inserción', () => {
@@ -26,6 +26,29 @@ describe('M06.5 sesión canónica de inserción', () => {
     expect(undone.ok).toBe(true)
     if (!undone.ok) return
     expect(undone.value.documents[document.id]?.conditions[0]).toMatchObject({ priority: 0, target: 'single' })
+  })
+
+  it('selecciona un documento creado para abrirlo en el editor existente', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-document-selection-test-${crypto.randomUUID()}`)
+    const document: Document = {
+      conditions: [],
+      id: parseDocumentId('bbbbbbbb-2222-4222-8222-222222222222'),
+      kind: 'page',
+      name: 'Acerca de nosotros',
+      nodes: {},
+      rootNodeIds: [],
+      routePath: '/acerca',
+    }
+    const created = await session.createDocument?.(document)
+    expect(created?.ok).toBe(true)
+
+    let notified = 0
+    const unsubscribe = session.subscribeDocumentSelection?.(() => { notified += 1 })
+    session.selectDocument?.(document.id)
+
+    expect(session.documentId).toBe(document.id)
+    expect(notified).toBe(1)
+    unsubscribe?.()
   })
 
   it('inserta dentro del contenedor seleccionado y deshace por el mismo Command Bus', async () => {
@@ -191,5 +214,20 @@ describe('M06.5 sesión canónica de inserción', () => {
     if (!undone.ok) return
     expect(undone.value.themes.frontend.tokens.color.primary).toBe('#7c3aed')
     expect(undone.value.themes.backend).toEqual(backendBefore)
+  })
+
+  it('persiste roles y permite deshacer su actualización por el Command Bus', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-role-session-test-${crypto.randomUUID()}`)
+    if (!session.createRole || !session.updateRole) throw new Error('La sesiÃ³n debe exponer la gestiÃ³n de roles.')
+    const roleId = parseRoleId('c0000000-0000-4000-8000-000000000001')
+    const created = await session.createRole({
+      capabilities: ['content.manage'], contentTypes: {}, dashboardIds: [], fields: {}, id: roleId,
+      name: 'Editor', routes: ['/admin/content'], slug: 'editor',
+    })
+    expect(created.ok).toBe(true)
+    const updated = await session.updateRole(roleId, { name: 'Editor principal' })
+    expect(updated).toMatchObject({ ok: true, value: { cms: { roles: { [roleId]: { name: 'Editor principal' } } } } })
+    const undone = await session.undo()
+    expect(undone).toMatchObject({ ok: true, value: { cms: { roles: { [roleId]: { name: 'Editor' } } } } })
   })
 })

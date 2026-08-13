@@ -116,8 +116,10 @@ function JsonAdminField({ field, label, onChange, value }: {
   const [text, setText] = useState(() => value === undefined ? '' : JSON.stringify(value, null, 2))
   const [error, setError] = useState('')
   return (
-    <div className="grid gap-1">
-      <label className="text-xs font-semibold text-muted-foreground" htmlFor={`admin-json-${field.id}`}>{label}</label>
+    <details className="rounded-md border border-border bg-muted/10">
+      <summary className="min-h-11 cursor-pointer px-2 py-2 text-xs font-semibold text-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:py-1.5">{label} <span className="font-normal text-muted-foreground">· opciones avanzadas</span></summary>
+      <div className="grid gap-1 border-t border-border p-2">
+      <label className="text-xs font-semibold text-muted-foreground" htmlFor={`admin-json-${field.id}`}>Valor estructurado</label>
       <textarea
         aria-invalid={Boolean(error)}
         className="min-h-24 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -138,8 +140,9 @@ function JsonAdminField({ field, label, onChange, value }: {
         onChange={(event) => setText(event.target.value)}
         value={text}
       />
-      {error ? <p className="text-xs font-medium text-destructive" role="alert">{error}</p> : <p className="text-[0.625rem] text-muted-foreground">Editor estructurado · {field.type}</p>}
-    </div>
+      {error ? <p className="text-xs font-medium text-destructive" role="alert">{error}</p> : <p className="text-[0.625rem] text-muted-foreground">Usa esta opción solo si el tipo de campo requiere una estructura compleja.</p>}
+      </div>
+    </details>
   )
 }
 
@@ -312,6 +315,14 @@ function MetricsView({ records }: { readonly records: readonly ContentRecord[] }
   )
 }
 
+function StatusChartView({ records }: { readonly records: readonly ContentRecord[] }) {
+  const counts = Object.fromEntries(statuses.map((status) => [status, records.filter((record) => record.status === status).length])) as Record<ContentStatus, number>
+  const max = Math.max(1, ...Object.values(counts))
+  return <div aria-label="Gráfico de registros por estado" className="grid min-h-44 grid-cols-5 items-end gap-2 rounded-lg border border-border bg-surface p-3">
+    {statuses.map((status) => <div className="grid h-full grid-rows-[minmax(7rem,1fr)_auto] items-end gap-2 text-center" key={status}><span aria-label={`${statusLabels[status]}: ${counts[status]}`} className="mx-auto w-full max-w-12 rounded-t-md bg-primary/80" style={{ height: `${Math.max(6, Math.round((counts[status] / max) * 100))}%` }} title={`${statusLabels[status]}: ${counts[status]}`} /><span className="text-[0.625rem] font-semibold text-muted-foreground">{statusLabels[status]}<br />{counts[status]}</span></div>)}
+  </div>
+}
+
 export function AdminCrudViewsManager({ screenId }: { readonly screenId: BackendScreenId }) {
   const backend = useBackendShellSession()
   const recordsSession = useRecordRelationSession()
@@ -425,8 +436,7 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
     <section aria-labelledby="admin-crud-views-title" className="grid gap-3 rounded-lg border border-border bg-muted/10 p-2.5 lg:p-3">
       <div className="flex items-start gap-2">
         <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name="database" size={16} /></span>
-        <div className="min-w-0 flex-1"><div className="flex items-center gap-1"><h3 className="text-sm font-bold text-foreground" id="admin-crud-views-title">CRUD y vistas administrativas</h3><HelpTip description="Conecta esta pantalla a un tipo de contenido, una consulta guardada y un formulario. Los datos siguen siendo los mismos registros del proyecto." example="Crea una tabla de pedidos con una vista guardada de Pendientes y usa un formulario para editar solo los campos necesarios." label="CRUD adaptable" reference="WordPress Admin list tables · JetEngine admin columns" /></div><p className="text-xs leading-4 text-muted-foreground">Tabla, formulario, detalle, calendario, kanban, métricas y listados reutilizan CPT, Query Engine y Forms existentes.</p></div>
-        <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-bold text-muted-foreground">M12.2</span>
+        <div className="min-w-0 flex-1"><div className="flex items-center gap-1"><h3 className="text-sm font-bold text-foreground" id="admin-crud-views-title">Vistas administrativas</h3><HelpTip description="Conecta esta pantalla a un tipo de contenido, una consulta guardada y un formulario. Los datos siguen siendo los mismos registros del proyecto." example="Crea una tabla de pedidos con una vista guardada de Pendientes y usa un formulario para editar solo los campos necesarios." label="Vistas administrativas" reference="WordPress Admin list tables · JetEngine admin columns" /></div><p className="text-xs leading-4 text-muted-foreground">Tabla, formulario, detalle, calendario, kanban, métricas, gráfico y listados reutilizan el contenido, las consultas guardadas y los formularios del proyecto.</p></div>
       </div>
 
       {notice ? <p className="rounded-md border border-border bg-surface px-2 py-1.5 text-xs text-muted-foreground" role="status">{notice}</p> : null}
@@ -459,7 +469,8 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
 
           {editorTarget ? <AdminRecordEditor cms={cms} contentTypeId={persistedContentType.id} form={configuredForm} key={editorTarget} onClose={() => setEditorTarget(null)} record={editorRecord} /> : null}
 
-          {screen.kind === 'metrics' || screen.kind === 'chart' ? <MetricsView records={visibleRecords} /> : null}
+          {screen.kind === 'metrics' ? <MetricsView records={visibleRecords} /> : null}
+          {screen.kind === 'chart' ? <StatusChartView records={visibleRecords} /> : null}
 
           {screen.kind === 'kanban' ? (
             <div className="grid auto-cols-[minmax(13rem,1fr)] grid-flow-col gap-2 overflow-x-auto pb-1">
@@ -485,7 +496,7 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
 
           {screen.kind === 'table' ? (
             <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-              <table className="w-full min-w-[42rem] border-collapse text-left text-xs"><thead className="bg-muted/40 text-[0.625rem] uppercase tracking-wide text-muted-foreground"><tr><th className="w-12 px-2 py-2">Sel.</th><th className="px-2 py-2">Registro</th>{tableFields.map((field) => <th className="px-2 py-2" key={field.id}>{field.label}</th>)}<th className="px-2 py-2">Estado</th><th className="w-20 px-2 py-2">Acción</th></tr></thead><tbody>{visibleRecords.map((record) => { const checked = selectedIds.includes(record.id); return <tr className="border-t border-border" key={record.id}><td className="px-2 py-1.5"><button aria-checked={checked} aria-label={`Seleccionar ${recordLabel(record, fields)}`} className={`grid size-8 place-items-center rounded-md border focus-visible:ring-2 focus-visible:ring-focus ${checked ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted-foreground'}`} onClick={() => toggleSelected(record.id)} role="checkbox" type="button">{checked ? <Icon name="check" size={12} /> : null}</button></td><td className="max-w-48 px-2 py-1.5 font-semibold"><span className="block truncate">{recordLabel(record, fields)}</span></td>{tableFields.map((field) => <td className="max-w-40 px-2 py-1.5" key={field.id}><span className="block truncate">{scalarLabel(record.values[field.id])}</span></td>)}<td className="px-2 py-1.5"><span className="rounded-md bg-muted px-1.5 py-1 text-[0.625rem] font-bold">{statusLabels[record.status]}</span></td><td className="px-2 py-1.5"><Button onClick={() => openRecord(record)} size="small" variant="ghost">Editar</Button></td></tr>})}</tbody></table>
+              <table className="w-full min-w-[42rem] border-collapse text-left text-xs"><thead className="bg-muted/40 text-[0.625rem] uppercase tracking-wide text-muted-foreground"><tr><th className="w-12 px-2 py-2">Sel.</th><th className="px-2 py-2">Registro</th>{tableFields.map((field) => <th className="px-2 py-2" key={field.id}>{field.label}</th>)}<th className="px-2 py-2">Estado</th><th className="w-20 px-2 py-2">Acción</th></tr></thead><tbody>{visibleRecords.map((record) => { const checked = selectedIds.includes(record.id); return <tr className="border-t border-border" key={record.id}><td className="px-2 py-1.5"><button aria-checked={checked} aria-label={`Seleccionar ${recordLabel(record, fields)}`} className={`grid size-11 place-items-center rounded-md border focus-visible:ring-2 focus-visible:ring-focus lg:size-8 ${checked ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted-foreground'}`} onClick={() => toggleSelected(record.id)} role="checkbox" type="button">{checked ? <Icon name="check" size={12} /> : null}</button></td><td className="max-w-48 px-2 py-1.5 font-semibold"><span className="block truncate">{recordLabel(record, fields)}</span></td>{tableFields.map((field) => <td className="max-w-40 px-2 py-1.5" key={field.id}><span className="block truncate">{scalarLabel(record.values[field.id])}</span></td>)}<td className="px-2 py-1.5"><span className="rounded-md bg-muted px-1.5 py-1 text-[0.625rem] font-bold">{statusLabels[record.status]}</span></td><td className="px-2 py-1.5"><Button onClick={() => openRecord(record)} size="small" variant="ghost">Editar</Button></td></tr>})}</tbody></table>
             </div>
           ) : null}
 

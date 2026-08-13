@@ -1,5 +1,71 @@
 # Changelog
 
+## 2026-08-13 — Corrección F05: operaciones y accesibilidad del árbol
+
+- Corregida una regresión importante: faltaba eliminar elementos del lienzo aunque era un requisito de F05.1.
+- Añadida `deleteNodes` al motor canónico, sesión y Command Bus; la eliminación incluye descendientes, respeta bloqueos y puede revertirse con el historial existente.
+- El árbol de capas ofrece ahora selección más clara, acción visible de eliminar, confirmación, atajo Supr/Retroceso y anuncio accesible de resultado.
+- Expuestas también las operaciones de duplicar, renombrar, mostrar/ocultar y bloquear/desbloquear, que existían en el dominio pero no en la interfaz.
+- Verificado con TypeScript, build Vite y 24 pruebas focalizadas verdes de operaciones y árbol.
+
+## 2026-08-13 — Cierre M12.4: personas y contexto operativo
+
+- Añadido CRUD canónico de personas, validado mediante el Command Bus y protegido frente a correos duplicados o eliminación de autorías existentes.
+- Incorporada una persona activa persistente localmente; el área Administración muestra solo los paneles y entradas de menú a los que esa persona tiene acceso explícito.
+- Agregado el gestor visual `Personas y acceso`, con asignación de roles, estados y una acción clara para probar permisos sin exponer identificadores internos.
+- Verificado con TypeScript, build Vite y 16 pruebas focalizadas verdes de sesión, RBAC y personas. La ejecución completa de ESLint excedió el límite local de 60 s sin emitir diagnóstico.
+
+## 2026-08-13 — Cierre M12.3 y corrección de regresión
+
+- Cerrada M12.3: RBAC con denegación por defecto, CRUD de roles y gestor de Roles y permisos dentro de Administración.
+- La auditoría completa por lotes pasó con 110 archivos / 438 pruebas, además de lint, TypeScript y build Vite.
+- Corregida una regresión detectada durante la auditoría: el reordenamiento de acciones de formularios usaba una instantánea anterior; ahora opera sobre el estado canónico más reciente.
+- Activada M12.4 para personas activas y filtrado operativo de paneles y menús.
+
+## 2026-08-13 — M12.3 RBAC: motor y gestor inicial
+
+- Añadido CRUD canónico de roles mediante Command Bus; la eliminación se bloquea si conserva referencias de usuarios, permisos, menús o paneles.
+- Incorporado `Roles y permisos` a Administración, con controles accesibles y divulgación progresiva para permisos generales, por contenido, panel y campo.
+- Verificado con lint focalizado, TypeScript, build Vite y 17 pruebas verdes de RBAC, motor de roles y sesión. M12.3 continúa abierta hasta aplicar autorización efectiva en las vistas administrativas.
+
+## 2026-08-13 — Cierre M12.2 y auditoría responsive
+
+- Cerrada M12.2 tras validar la build de producción en móvil 390×844, tablet 768×1024 y escritorio 1440×900, sin desbordamiento horizontal visible.
+- Confirmado el flujo completo de Páginas y el acceso a Administración sin errores de consola.
+- La cobertura automatizada del head pasa por lotes: 98 archivos / 416 pruebas, además de lint, typecheck y build.
+- Activada M12.3 para autorización real por roles y capacidades con denegación por defecto.
+
+## 2026-08-13 — Inicio M12.3: autorización centralizada
+
+- Añadido el evaluador RBAC central con denegación por defecto para capacidades, rutas, pantallas, permisos de contenido, campos y menús.
+- Solo usuarios activos con una concesión explícita obtienen acceso; los filtros se aplican antes de entregar navegación o campos a una vista.
+- Añadidas las ocho plantillas iniciales de rol y sus capacidades base. Tipos y cuatro pruebas del contrato RBAC verdes.
+
+## 2026-08-13 — Correcciones de navegación entre Páginas y Editor
+
+- Corregido el flujo de Páginas: al seleccionar una página o plantilla aparece `Editar en el editor`, que abre el documento en el lienzo visual existente y vuelve al editor.
+- La sesión ahora notifica el cambio de documento activo, por lo que Canvas, breadcrumb y paneles se actualizan sin recargar ni crear un segundo editor.
+- Corregida la paridad responsive: Administración se ofrece también en `Más` del menú móvil.
+- Añadida cobertura para la selección de documento y el acceso móvil a Administración. Validación focalizada verde: lint, typecheck y 15 pruebas.
+
+## 2026-08-13 — Rutas seguras al crear páginas
+
+- Corregida la creación de páginas: la ruta se deriva automáticamente del nombre y se puede editar, evitando que una página nueva reutilice `/` y choque con la página inicial.
+- Añadida prueba de UI para la ruta sugerida y la persistencia de la página. La auditoría local de producción confirmó crear, seleccionar y editar la página en el mismo editor sin errores de consola.
+- Se estabilizó una prueba de carga diferida de Formularios, aumentando solo su espera explícita a 5 s; el comportamiento de la aplicación no cambió.
+- Validación actual: lint, typecheck, build y cobertura completa dividida en lotes verdes: 98 archivos / 416 pruebas. La suite serial completa excede el límite de 10 minutos del ejecutor y la auditoría visual responsive aún debe repetirse para cerrar M12.2.
+
+## 2026-08-13 — Administración como workspace principal
+
+- Separada Administración como destino principal del sidebar dentro de `Administrar`; Contenido conserva únicamente sus herramientas de datos.
+- Añadido workspace central de Administración con lista de paneles y la vista seleccionada, sin crear un segundo canvas, store ni modelo de datos.
+- Eliminado lenguaje interno visible de la vista administrativa y añadida cobertura de navegación para la separación de módulos.
+- Corregido el gráfico administrativo para que represente realmente la distribución por estado, separado del resumen de métricas.
+- Añadido acceso desde un panel administrativo a su lienzo canónico en el editor; no se crea un canvas paralelo.
+- Los controles de selección de tabla cumplen 44 px en touch y los valores estructurados quedan dentro de Opciones avanzadas.
+- Estabilizada la validación UI: el setup desmonta cada render al finalizar y Vitest ejecuta archivos en serie, evitando contaminación de DOM y carreras con módulos diferidos en jsdom.
+- Validación local del head: lint, typecheck, build Vite y suite completa verde (107 archivos / 434 pruebas). La auditoría Chromium del head sigue pendiente para cerrar M12.2.
+
 ## 2026-08-12 — Reauditoría UX/UI de Widgets y workspace
 
 - La biblioteca desktop abre a 360 px y admite hasta 400 px; el antiguo valor predeterminado de 216 px se migra automáticamente sin sobrescribir anchos personalizados.

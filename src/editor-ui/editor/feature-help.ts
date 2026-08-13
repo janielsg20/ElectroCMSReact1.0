@@ -26,6 +26,12 @@ export const SECTION_HELP: Readonly<Record<AppSection, FeatureHelp>> = {
     reference: 'WordPress + ACF + JetEngine + JetFormBuilder',
     example: 'Crea “Propiedades”, añade Precio y Habitaciones, y permite registrar datos con un formulario.',
   },
+  administration: {
+    label: 'Administración del proyecto',
+    description: 'Crea los paneles que utilizará quien gestione el sitio, conecta sus vistas con el contenido y organiza su navegación.',
+    reference: 'WordPress Admin · JetEngine admin tooling',
+    example: 'Crea un panel de Pedidos con una tabla de pendientes y un formulario de edición.',
+  },
   design: {
     label: 'Diseño global',
     description: 'Define la apariencia general del proyecto y reutiliza temas, presets y paquetes visuales sin editar cada elemento por separado.',

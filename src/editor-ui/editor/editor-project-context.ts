@@ -27,6 +27,10 @@ import type {
   RelationEntryId,
   RelationId,
   Result,
+  Role,
+  RoleId,
+  User,
+  UserId,
   Taxonomy,
   TaxonomyId,
   TaxonomyTerm,
@@ -38,6 +42,8 @@ import type {
   ThemePackagePartSelection,
   ThemePackageRouteConflictPolicy,
 } from '../../domain'
+import type { RoleEditablePatch } from '../../domain/project/role-engine'
+import type { UserEditablePatch } from '../../domain/project/user-engine'
 import type { ContentTypeEditablePatch } from '../../domain/project/content-type-engine'
 import type { FieldDefinitionEditablePatch } from '../../domain/project/custom-field-engine'
 import type {
@@ -70,12 +76,19 @@ export interface BreakpointCreationResult {
 
 export interface EditorProjectSession {
   readonly documentId: DocumentId
+  selectDocument?(documentId: DocumentId): void
+  subscribeDocumentSelection?(listener: () => void): () => void
   readonly initialSelectedNodeId?: NodeId
   readonly store: ProjectStructureRenderStore
   createDocument?(document: Document): Promise<Result<ProjectStructure, string>>
   createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>>
   insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template?: WidgetInsertionTemplate): Promise<Result<WidgetInsertionResult, string>>
+  deleteNodes?(nodeIds: readonly NodeId[]): Promise<Result<ProjectStructure, string>>
+  duplicateNodes?(nodeIds: readonly NodeId[]): Promise<Result<ProjectStructure, string>>
   moveNodes(nodeIds: readonly NodeId[], placement: NodePlacement): Promise<Result<ProjectStructure, string>>
+  renameNode?(nodeId: NodeId, name: string): Promise<Result<ProjectStructure, string>>
+  setNodesHidden?(nodeIds: readonly NodeId[], hidden: boolean): Promise<Result<ProjectStructure, string>>
+  setNodesLocked?(nodeIds: readonly NodeId[], locked: boolean): Promise<Result<ProjectStructure, string>>
   reorderBreakpoint(breakpointId: BreakpointId, targetIndex: number): Promise<Result<ProjectStructure, string>>
   resetNodeBreakpointOverride(nodeId: NodeId, breakpointId: BreakpointId): Promise<Result<ProjectStructure, string>>
   resetNodeDataSettings(nodeId: NodeId): Promise<Result<ProjectStructure, string>>
@@ -90,6 +103,12 @@ export interface EditorProjectSession {
   updateNodeDataSettings(nodeId: NodeId, settings: NodeDataSettings): Promise<Result<ProjectStructure, string>>
   updateBreakpoint(breakpointId: BreakpointId, patch: BreakpointPatch): Promise<Result<ProjectStructure, string>>
   updateDocumentConditions?(documentId: DocumentId, conditions: readonly TemplateCondition[]): Promise<Result<ProjectStructure, string>>
+  createRole?(role: Role): Promise<Result<ProjectStructure, string>>
+  updateRole?(roleId: RoleId, patch: RoleEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteRole?(roleId: RoleId): Promise<Result<ProjectStructure, string>>
+  createUser?(user: User): Promise<Result<ProjectStructure, string>>
+  updateUser?(userId: UserId, patch: UserEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteUser?(userId: UserId): Promise<Result<ProjectStructure, string>>
   undo(): Promise<Result<ProjectStructure, string>>
   redo(): Promise<Result<ProjectStructure, string>>
 }
@@ -137,6 +156,18 @@ export interface RecordRelationSession {
   createRelationEntry(entry: RelationEntry): Promise<Result<ProjectStructure, string>>
   updateRelationEntry(entryId: RelationEntryId, patch: RelationEntryEditablePatch): Promise<Result<ProjectStructure, string>>
   deleteRelationEntry(entryId: RelationEntryId): Promise<Result<ProjectStructure, string>>
+}
+
+export interface RoleSession {
+  createRole(role: Role): Promise<Result<ProjectStructure, string>>
+  updateRole(roleId: RoleId, patch: RoleEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteRole(roleId: RoleId): Promise<Result<ProjectStructure, string>>
+}
+
+export interface UserSession {
+  createUser(user: User): Promise<Result<ProjectStructure, string>>
+  updateUser(userId: UserId, patch: UserEditablePatch): Promise<Result<ProjectStructure, string>>
+  deleteUser(userId: UserId): Promise<Result<ProjectStructure, string>>
 }
 
 export interface EditorSelection {
@@ -243,6 +274,28 @@ export function requireRecordRelationSession(session: EditorProjectSession): Edi
 
 export function useRecordRelationSession(): RecordRelationSession {
   return requireRecordRelationSession(useEditorProject())
+}
+
+export function requireRoleSession(session: EditorProjectSession): EditorProjectSession & RoleSession {
+  const candidate = session as EditorProjectSession & Partial<RoleSession>
+  if (typeof candidate.createRole !== 'function' || typeof candidate.updateRole !== 'function' || typeof candidate.deleteRole !== 'function') {
+    throw new Error('La sesión actual no ofrece la gestión de roles.')
+  }
+  return candidate as EditorProjectSession & RoleSession
+}
+
+export function useRoleSession(): RoleSession {
+  return requireRoleSession(useEditorProject())
+}
+
+export function requireUserSession(session: EditorProjectSession): EditorProjectSession & UserSession {
+  const candidate = session as EditorProjectSession & Partial<UserSession>
+  if (typeof candidate.createUser !== 'function' || typeof candidate.updateUser !== 'function' || typeof candidate.deleteUser !== 'function') throw new Error('La sesión actual no ofrece la gestión de personas.')
+  return candidate as EditorProjectSession & UserSession
+}
+
+export function useUserSession(): UserSession {
+  return requireUserSession(useEditorProject())
 }
 
 export function useEditorSelection(): EditorSelection {

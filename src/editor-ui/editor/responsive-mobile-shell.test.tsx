@@ -54,7 +54,7 @@ describe('M04.3 shell móvil CMS/builder', () => {
     await waitFor(() => expect(trigger).toHaveFocus())
   })
 
-  it('mantiene Capas e Inspector contextuales y abre Contenido desde Más', async () => {
+  it('mantiene Capas e Inspector contextuales y abre los módulos globales desde Más', async () => {
     render(<App />)
     const dock = builderDock()
 
@@ -69,6 +69,7 @@ describe('M04.3 shell móvil CMS/builder', () => {
     const more = within(dock).getByRole('button', { name: 'Más' })
     fireEvent.click(more)
     const modules = await screen.findByRole('dialog', { name: 'Más módulos' })
+    expect(within(modules).getByRole('button', { name: 'Administración' })).toBeInTheDocument()
     expect(within(modules).getByRole('navigation', { name: 'Módulos principales' })).toBeInTheDocument()
     fireEvent.click(within(modules).getByRole('button', { name: /Contenido/i }))
 

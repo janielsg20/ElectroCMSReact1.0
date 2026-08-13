@@ -275,6 +275,7 @@ export {
   type Relation,
   type RelationEntry,
   type Role,
+  type UserStatus,
   type Taxonomy,
   type TaxonomyTerm,
   type User,
@@ -351,6 +352,34 @@ export {
   type CmsDiagnosticCode,
 } from './validate-cms'
 export {
+  activeUser,
+  canAccessField,
+  canAccessMenuItem,
+  canAccessRoute,
+  canAccessScreen,
+  canManageContent,
+  canUseCapability,
+  editableFields,
+  visibleFields,
+  visibleMenuItemIds,
+  type ContentPermission,
+  type FieldAccess,
+  DEFAULT_ROLE_TEMPLATES,
+  RBAC_CAPABILITIES,
+} from './rbac-engine'
+export {
+  createRole,
+  deleteRole,
+  updateRole,
+  type RoleEditablePatch,
+} from './role-engine'
+export {
+  createUser,
+  deleteUser,
+  updateUser,
+  type UserEditablePatch,
+} from './user-engine'
+export {
   createMigrationRegistry,
   DEFAULT_PROJECT_MIGRATIONS,
   LegacyProjectEnvelopeV0Schema,
@@ -412,6 +441,7 @@ export {
 } from './direct-manipulation'
 export {
   copyNodes,
+  deleteNodes,
   duplicateNodes,
   groupNodes,
   insertNode,

@@ -1,6 +1,6 @@
 # MEMORY — contexto corto de ElectroCMS
 
-Actualizado: 2026-08-12.
+Actualizado: 2026-08-13.
 
 ## Objetivo
 
@@ -20,9 +20,14 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F11 completadas.
 - Fase activa: `F12 — Backend visual, usuarios y permisos`.
-- Microfase activa: `M12.1 — Shell administrativo editable`.
-- M12.2–M12.5 y F13–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- Microfase completada: `M12.4 — Contexto de usuario`; siguiente: `M12.5 — Auditoría`.
+- M12.5 y F13–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - Producción no se despliega desde el PR draft #23.
+
+- M12.3 cerrada: RBAC con denegación por defecto, CRUD de roles por Command Bus y gestor visual de Roles y permisos. La puerta local pasó con 110 archivos / 438 pruebas, lint, TypeScript y build; se corrigió el orden asíncrono de acciones de formularios.
+- M12.4 cerrada: CRUD canónico de personas por Command Bus, selección local persistente de persona activa y paneles/ítems de menú filtrados por RBAC antes de mostrarse. La configuración sigue separada como espacio de construcción del proyecto.
+- Siguiente paso: M12.5, registro auditable de acciones, cambios y actor.
+- Auditoría correctiva transversal en curso: se corrigió regresión F05.1; el editor ahora elimina nodos y descendientes mediante Command Bus e historial, y el árbol expone también duplicar, renombrar, ocultar y bloquear con alternativas accesibles.
 
 ## Última puerta verde
 
@@ -71,7 +76,7 @@ M11.5/F11 cerró con GitHub Actions run `31666856391` (run #608):
 - `form-export-compatibility.ts` refleja honestamente Local/React/LAMP/WordPress sin marcar exportadores futuros como terminados.
 - `FormSecuritySettings` expone el requisito CSRF y explica seguridad/compatibilidad con lenguaje de usuario.
 
-## F12/M12.1 activa — Shell administrativo editable
+## F12/M12.2 activa — CRUD y vistas administrativas
 
 Contrato existente:
 
@@ -111,10 +116,10 @@ Objetivo inmediato:
 
 - High Density + Minimal Clean, orientado a tareas.
 - Targets: ~44 px touch / ~36 px escritorio denso.
-- Navegación principal: `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
+- Navegación principal: `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Administración | Diseño`.
 - Divulgación progresiva obligatoria; parámetros técnicos poco frecuentes van a avanzado.
 - No usar nombres de schemas, stores, IDs internos, fases o microfases como lenguaje principal del producto.
 
 ## Próximo paso exacto
 
-Implementar M12.1 empezando por el motor canónico de `BackendScreen + Menu + Document`, después UI de shell/dashboard/navegación y apertura en el editor visual; gate completo y salto automático a M12.2.
+Continuar M12.3 aplicando el evaluador RBAC en los casos de uso administrativos sin crear otro modelo de roles. `rbac-engine.ts` niega por defecto y cubre capacidades, rutas, pantallas, CRUD por tipo, campos y menús; cuatro pruebas verdes validan el contrato y las ocho plantillas iniciales de rol. El contexto persistente de usuario pertenece a M12.4. M12.2 quedó cerrada: lint, typecheck, build y 98 archivos / 416 pruebas verdes por lotes; auditoría Edge headless sobre build de producción a 390×844, 768×1024 y 1440×900 sin overflow visible.

@@ -19,11 +19,14 @@ function createSession() {
     nodeIds: readonly NodeId[],
     placement: NodePlacement,
   ) => Promise<ReturnType<typeof success<ProjectStructure>>>>(() => Promise.resolve(success(store.structure)))
+  const remove = vi.fn<(nodeIds: readonly NodeId[]) => Promise<ReturnType<typeof success<ProjectStructure>>>>(() => Promise.resolve(success(store.structure)))
   return {
     move,
+    remove,
     session: {
       createBreakpoint: () => Promise.resolve(success({ breakpointId: store.structure.breakpoints[0].id, structure: store.structure })),
       documentId: TEST_DOCUMENT_ID,
+      deleteNodes: remove,
       insertWidget: () => Promise.resolve(success({ nodeId: TEST_SELECTED_NODE_ID, structure: store.structure })),
       moveNodes: move,
       reorderBreakpoint: () => Promise.resolve(success(store.structure)),
@@ -118,6 +121,16 @@ describe('M05.3 CanonicalLayerTree', () => {
       [entries()[0]?.node.id],
       placementRelativeTo(hero, 'after'),
     )
+  })
+
+  it('confirma la eliminación de la capa seleccionada', async () => {
+    const { remove, session } = createSession()
+    render(<EditorProjectProvider session={session}><CanonicalLayerTree /></EditorProjectProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Header' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar Header' }))
+    expect(screen.getByRole('heading', { name: '¿Eliminar Header?' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar capa' }))
+    await waitFor(() => expect(remove).toHaveBeenCalledWith([entries()[0]?.node.id]))
   })
 
   it('expone activadores de teclado y bloquea el arrastre de capas locked', () => {

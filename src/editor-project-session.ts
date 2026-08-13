@@ -3,6 +3,8 @@ import {
   applyThemePackage as applyThemePackageToStructure,
   createBreakpoint,
   createCompleteWidgetRegistry,
+  deleteNodes,
+  duplicateNodes,
   editableVisualStyles,
   failure,
   insertNode,
@@ -23,6 +25,9 @@ import {
   resizeNode,
   resolveNodeDataState,
   setNodeDataSettings,
+  setNodesHidden,
+  setNodesLocked,
+  renameNode,
   setNodeProperties,
   setNodeStyles,
   setProjectTheme,
@@ -63,6 +68,10 @@ import {
   type RelationEntryId,
   type RelationId,
   type Result,
+  type Role,
+  type RoleId,
+  type User,
+  type UserId,
   type Taxonomy,
   type TaxonomyId,
   type TaxonomyTerm,
@@ -121,6 +130,18 @@ import {
   type RelationEditablePatch,
   type RelationEntryEditablePatch,
 } from './domain/project/record-relation-engine'
+import {
+  createRole as createRoleInStructure,
+  deleteRole as deleteRoleInStructure,
+  updateRole as updateRoleInStructure,
+  type RoleEditablePatch,
+} from './domain/project/role-engine'
+import {
+  createUser as createUserInStructure,
+  deleteUser as deleteUserInStructure,
+  updateUser as updateUserInStructure,
+  type UserEditablePatch,
+} from './domain/project/user-engine'
 import {
   createSavedQuery as createSavedQueryInStructure,
   deleteSavedQuery as deleteSavedQueryInStructure,
@@ -193,7 +214,9 @@ function commandErrorMessage(error: ProjectCommandBusError): string {
 }
 
 class BrowserEditorProjectSession implements EditorProjectSession {
-  readonly documentId = STARTER_DOCUMENT_ID
+  #documentId = STARTER_DOCUMENT_ID
+  readonly #documentSelectionListeners = new Set<() => void>()
+  get documentId(): DocumentId { return this.#documentId }
   readonly initialSelectedNodeId = STARTER_SELECTED_NODE_ID
   readonly store = new ProjectStructureRenderStore(STARTER_PROJECT_STRUCTURE)
   readonly #database: ElectroCmsLocalDatabase
@@ -213,6 +236,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       now,
     })
     this.#ready = this.#initialize()
+  }
+
+  selectDocument(documentId: DocumentId): void {
+    if (!this.store.structure.documents[documentId] || this.#documentId === documentId) return
+    this.#documentId = documentId
+    for (const listener of [...this.#documentSelectionListeners]) listener()
+  }
+
+  subscribeDocumentSelection(listener: () => void): () => void {
+    this.#documentSelectionListeners.add(listener)
+    return () => this.#documentSelectionListeners.delete(listener)
   }
 
   async applyThemePackage(themePackage: ThemePackage, selection: ThemePackagePartSelection, routeConflict: ThemePackageRouteConflictPolicy): Promise<Result<ThemePackageImportReport, string>> {
@@ -327,6 +361,34 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     }))
   }
 
+  async createUser(user: User): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.create-user', `Crear persona ${user.displayName}`, (structure) => {
+      const created = createUserInStructure(structure, user)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error })
+    }))
+  }
+
+  async createRole(role: Role): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.create-role', `Crear rol ${role.name}`, (structure) => {
+      const created = createRoleInStructure(structure, role)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error })
+    }))
+  }
+
+  async updateRole(roleId: RoleId, patch: RoleEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.update-role', 'Actualizar rol', (structure) => {
+      const updated = updateRoleInStructure(structure, roleId, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error })
+    }))
+  }
+
+  async deleteRole(roleId: RoleId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.delete-role', 'Eliminar rol', (structure) => {
+      const deleted = deleteRoleInStructure(structure, roleId)
+      return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error })
+    }))
+  }
+
   async createSavedQuery(query: Query): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand('cms.create-query', `Crear consulta ${query.name}`, (structure) => {
       const created = createSavedQueryInStructure(structure, query)
@@ -352,6 +414,13 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('cms.delete-content-record', 'Eliminar registro de contenido', (structure) => {
       const deleted = deleteContentRecordInStructure(structure, recordId)
       return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El registro no se puede eliminar.' })
+    }))
+  }
+
+  async deleteUser(userId: UserId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.delete-user', 'Eliminar persona', (structure) => {
+      const deleted = deleteUserInStructure(structure, userId)
+      return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error })
     }))
   }
 
@@ -528,6 +597,39 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('cms.update-content-type', 'Editar tipo de contenido', (structure) => {
       const updated = updateContentTypeInStructure(structure, contentTypeId, patch)
       return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El tipo de contenido no es válido.' })
+    }))
+  }
+
+  async deleteNodes(nodeIds: readonly NodeId[]): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand(
+      'tree.delete', nodeIds.length === 1 ? 'Eliminar capa' : 'Eliminar capas',
+      (structure) => deleteNodes(structure, { documentId: this.documentId, kind: 'document' }, nodeIds),
+    ))
+  }
+
+  async duplicateNodes(nodeIds: readonly NodeId[]): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('tree.duplicate', nodeIds.length === 1 ? 'Duplicar capa' : 'Duplicar capas', (structure) => {
+      const duplicated = duplicateNodes(structure, { documentId: this.documentId, kind: 'document' }, nodeIds, () => parseNodeId(crypto.randomUUID()))
+      return duplicated.ok ? success(duplicated.value.structure) : duplicated
+    }))
+  }
+
+  async renameNode(nodeId: NodeId, name: string): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('tree.rename', 'Renombrar capa', (structure) => renameNode(structure, { documentId: this.documentId, kind: 'document' }, nodeId, name)))
+  }
+
+  async setNodesHidden(nodeIds: readonly NodeId[], hidden: boolean): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('tree.set-hidden', hidden ? 'Ocultar capa' : 'Mostrar capa', (structure) => setNodesHidden(structure, { documentId: this.documentId, kind: 'document' }, nodeIds, hidden)))
+  }
+
+  async setNodesLocked(nodeIds: readonly NodeId[], locked: boolean): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('tree.set-locked', locked ? 'Bloquear capa' : 'Desbloquear capa', (structure) => setNodesLocked(structure, { documentId: this.documentId, kind: 'document' }, nodeIds, locked)))
+  }
+
+  async updateUser(userId: UserId, patch: UserEditablePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.update-user', 'Editar persona', (structure) => {
+      const updated = updateUserInStructure(structure, userId, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error })
     }))
   }
 

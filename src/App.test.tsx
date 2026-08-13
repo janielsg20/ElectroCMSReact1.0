@@ -29,6 +29,19 @@ describe('App', () => {
     expect(screen.getByRole('complementary', { name: /inspector de propiedades/i })).toBeInTheDocument()
   })
 
+  it('separa Administración de Contenido en la navegación principal', async () => {
+    render(<App />)
+
+    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Contenido' }))
+    expect(await screen.findByRole('region', { name: /contenido dinámico · módulo principal/i })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Admin' })).not.toBeInTheDocument()
+
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Administración' }))
+    expect(await screen.findByRole('region', { name: /administración del proyecto · módulo principal/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Administración del proyecto' })).toHaveLength(2)
+  })
+
   it('expone una biblioteca de widgets filtrable', () => {
     render(<App />)
 

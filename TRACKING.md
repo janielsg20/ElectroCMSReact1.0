@@ -7,13 +7,20 @@ Actualizado: 2026-08-13.
 ## Estado global
 
 - Fase actual: `F12 — Backend visual, usuarios y permisos`.
-- Microfase actual: `M12.2 — CRUD y vistas administrativas`.
-- Estado: `EN_VALIDACION — implementación terminada; gate final sobre diff consolidado`.
+- Microfase actual: `M12.4 — Contexto de usuario`.
+- Estado: `EN_CURSO — auditoría correctiva transversal; regresión F05.1 detectada en eliminación y accesibilidad del árbol`.
 - F00–F11: `COMPLETADA`.
-- F12: M12.1 `COMPLETADA`; M12.2 `EN_VALIDACION`; M12.3–M12.5 `NO_INICIADA`.
+- F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `NO_INICIADA`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 - Producción permanece omitida desde el PR draft #24; solo se permite preview hasta gate final y revisión.
+
+## Auditoría correctiva transversal en curso
+
+- F05.1: se confirmó una regresión importante: el contrato/UI del editor no exponía eliminar una capa pese a ser requisito cerrado. Corregida con mutación canónica, Command Bus, confirmación, recuperación por Deshacer, atajo Supr/Retroceso y bloqueo respetado.
+- F05.1: también se expusieron en el árbol las operaciones ya existentes de duplicar, renombrar, mostrar/ocultar y bloquear/desbloquear.
+- F05.3: el árbol mantiene drag con alternativa sin arrastre, controles de 44 px, etiquetas explícitas, foco visible, estados de selección y mensajes para lector de pantalla.
+- El barrido sigue abierto para contrastar fases cerradas contra contratos y UI real; no se reclasifican funciones futuras como implementadas.
 
 ## Roadmap
 
@@ -23,7 +30,7 @@ Actualizado: 2026-08-13.
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
 | F11 | COMPLETADA | Formularios, validación, multipaso, acciones y seguridad portable |
-| F12 | EN_CURSO | M12.1 completada; M12.2 CRUD/vistas en gate final |
+| F12 | EN_CURSO | M12.1–M12.4 completadas; M12.5 auditoría pendiente |
 | F13–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -34,6 +41,9 @@ Actualizado: 2026-08-13.
 - `Widgets` contiene exclusivamente la biblioteca insertable.
 - `Inspector` contiene propiedades del elemento seleccionado, incluidos datos dinámicos, con ayuda contextual y sin exponer claves internas como lenguaje principal.
 - `Contenido` es el workspace global para tipos, clasificaciones, campos, entradas/relaciones, consultas y formularios.
+- `Administración` es un destino principal separado bajo `Administrar`: reúne paneles, vistas administrativas y su navegación. No está anidado en Contenido.
+- `Páginas` selecciona un documento y lo abre en el editor visual existente mediante una acción explícita; el cambio de documento notifica al shell para actualizar el lienzo.
+- Móvil: `Más` incluye todos los módulos globales, incluida Administración.
 - `Diseño` contiene apariencia global, temas y paquetes exportables.
 - Móvil: `Widgets | Capas | Canvas | Props | Más`; `Más` abre módulos globales.
 - Tablet: los paneles contextuales se retiran al abrir un módulo global.
@@ -153,6 +163,7 @@ Implementación:
 - Bulk status/delete usa preflight sobre una copia canónica antes de escrituras persistentes; eliminar exige confirmación.
 - Guardar después nombre/menú del shell no convierte accidentalmente una vista `table`, `kanban`, etc. de vuelta a `dashboard`/`custom`.
 - `ProjectDataPanel` carga un workspace Admin unificado: conserva M12.1 y añade M12.2 sin duplicar el editor.
+- La corrección UX separa Administración de Contenido en el sidebar principal. El workspace lista y selecciona paneles administrativos de forma central; Contenido no muestra una pestaña Admin.
 - Flujo principal evita IDs técnicos y usa primitives ElectroCMS para selección, inputs y acciones.
 
 Validación previa a consolidación:
@@ -171,13 +182,39 @@ GitHub Actions run `31709289971` (run #646):
 
 El diff fue consolidado después de este gate para retirar scaffolding e indirecciones; el último commit debe repetir la puerta completa antes de declarar M12.2 cerrada.
 
-### Siguiente — M12.3 RBAC y contexto de usuario
+### M12.2 cerrada — CRUD y vistas administrativas
 
-No iniciar M12.3 hasta que el último head de M12.2 mantenga verde el gate completo. M12.3 debe aplicar autorización real en los casos de uso; ocultar controles no se considera seguridad.
+- La build de producción pasó auditoría visual con Edge headless en móvil 390×844, tablet 768×1024 y escritorio 1440×900: sin desbordamiento horizontal visible.
+- El flujo Páginas creó una ruta única desde el nombre, seleccionó el documento y lo abrió en el editor visual existente; Administración abrió sin errores de consola.
+- Gate local: lint, typecheck, build y 98 archivos / 416 pruebas verdes en lotes reproducibles. La ejecución serial global excede el límite del ejecutor, pero todos los archivos fueron cubiertos por los lotes.
+
+### M12.3 en curso — RBAC y contexto de usuario
+
+Aplicar autorización real por rol en ruta, pantalla, acción y campo, con denegación por defecto. Ocultar controles no se considera seguridad.
+
+Avance actual:
+
+- `rbac-engine.ts` centraliza decisiones de acceso y niega por defecto cuando falta usuario activo, rol o permiso explícito.
+- Cubre capacidades, rutas, pantallas, acciones CRUD por tipo de contenido, acceso por campo y filtrado de menús antes de entregar datos a una vista.
+- Declara las ocho plantillas iniciales requeridas: Administrador, Diseñador, Editor, Autor, Gestor, Colaborador, Cliente y Usuario registrado.
+- Cuatro pruebas cubren catálogo, denegación, permisos explícitos y filtrado preventivo; falta usar el evaluador en cada caso de uso administrativo. El contexto persistente de usuario pertenece a M12.4.
+
+- `role-engine.ts` crea, actualiza y elimina roles por Command Bus, conserva undo/redo y bloquea la eliminación cuando el rol sigue asignado o referenciado por permisos, menús o paneles.
+- Administración incorpora `Roles y permisos`: perfiles iniciales, permisos generales, permisos por contenido y acceso progresivo a paneles y campos, sin exponer IDs internos. La UI escribe exclusivamente en `ProjectStructure.cms.roles`.
+- Verificación parcial M12.3: lint focalizado, `tsc -b`, build Vite y 17 pruebas de RBAC/motor/sesión verdes. Falta integrar la autorización en todas las vistas antes de cerrar M12.3.
+
+### M12.3 cerrada — RBAC
+
+- RBAC con denegación por defecto, CRUD de roles por Command Bus y gestor visual de Roles y permisos dentro de Administración.
+- Puerta local: lint, `tsc -b`, build Vite y 110 archivos / 438 pruebas verdes por lotes. Se corrigió una regresión de reordenación asíncrona en las acciones de formularios.
+
+### M12.4 en curso — Contexto de usuario
+
+- Crear y seleccionar personas del proyecto, conservar el contexto activo y filtrar paneles y menús antes de renderizarlos, sin filtrar datos no autorizados.
 
 ## Bloqueos
 
-- Ninguno técnico conocido para M12.2; solo resta revalidación final del diff consolidado.
+- Ninguno conocido.
 
 ## Regla de avance
 

@@ -418,6 +418,29 @@ export function duplicateNodes(
   }, createNodeId)
 }
 
+/** Removes selected roots and their descendants as one reversible tree mutation. */
+export function deleteNodes(
+  structure: ProjectStructure,
+  owner: TreeOwner,
+  nodeIds: readonly NodeId[],
+): Result<ProjectStructure, TreeOperationError> {
+  const next = cloneStructure(structure)
+  const tree = ownerTree(next, owner)
+  if (!tree) return operationFailure('owner-not-found', 'El documento o componente no existe.')
+  const selected = canonicalSelection(tree, nodeIds)
+  if (!selected.ok) return selected
+  const unlocked = assertUnlocked(tree, selected.value)
+  if (!unlocked.ok) return unlocked
+  const removed = new Set<NodeId>()
+  for (const nodeId of selected.value) {
+    removed.add(nodeId)
+    for (const descendantId of descendantSet(tree, nodeId)) removed.add(descendantId)
+  }
+  for (const nodeId of selected.value) removeFromLocation(tree, nodeId)
+  for (const nodeId of removed) delete tree.nodes[nodeId]
+  return validateMutation(next)
+}
+
 export function setNodesLocked(
   structure: ProjectStructure,
   owner: TreeOwner,

@@ -2,7 +2,7 @@ import { Icon } from '../primitives'
 import { useAppSection } from './app-section-context'
 import { APP_SECTIONS, type AppSection } from './app-sections'
 
-const mobileSections: readonly AppSection[] = ['editor', 'documents', 'content', 'design']
+const mobileSections: readonly AppSection[] = ['editor', 'documents', 'content', 'administration', 'design']
 
 export function MobileModuleMenu({ onNavigate }: { readonly onNavigate: () => void }) {
   const { section: activeSection, setSection } = useAppSection()

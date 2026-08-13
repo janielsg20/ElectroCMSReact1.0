@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { NodeId } from '../../domain'
 import { ChoiceField, Icon, type IconName } from '../primitives'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId, useEditorSelection } from './editor-project-context'
@@ -48,11 +48,12 @@ interface SortableLayerProps {
   readonly insertion: { readonly id: NodeId; readonly edge: 'before' | 'after' } | null
   readonly selected: boolean
   readonly onOpenMove: (nodeId: NodeId) => void
+  readonly onRequestDelete: (nodeId: NodeId) => void
   readonly onSelect: (nodeId: NodeId) => void
   readonly onToggle: (nodeId: NodeId) => void
 }
 
-function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenMove, onSelect, onToggle }: SortableLayerProps) {
+function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenMove, onRequestDelete, onSelect, onToggle }: SortableLayerProps) {
   const {
     attributes,
     isDragging,
@@ -107,7 +108,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         >
           <Icon name={entry.node.locked ? 'lock' : 'move'} size={13} />
         </button>
-        <button className="flex min-h-11 min-w-11 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(entry.node.id)} type="button">
+        <button aria-label={entry.node.name} className="flex min-h-11 min-w-11 flex-1 cursor-pointer items-center gap-1.5 rounded px-1 text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(entry.node.id)} type="button">
           <Icon className="shrink-0" name={nodeIcon(entry)} size={14} />
           <span className="truncate">{entry.node.name}</span>
           {entry.node.hidden ? <><Icon name="eye" size={12} /><span className="sr-only">Oculta</span></> : null}
@@ -122,6 +123,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         >
           <Icon name="more" size={13} />
         </button>
+        {selected ? <button aria-label={`Eliminar ${entry.node.name}`} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded text-danger hover:bg-danger-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:size-8" disabled={entry.node.locked} onClick={() => onRequestDelete(entry.node.id)} type="button"><Icon name="trash" size={13} /></button> : null}
       </div>
     </li>
   )
@@ -155,6 +157,8 @@ export function CanonicalLayerTree() {
   }, [collapsedIds, selectedAncestors])
   const visibleEntries = useMemo(() => visibleLayerTreeEntries(entries, effectiveCollapsedIds), [effectiveCollapsedIds, entries])
   const [menuNodeId, setMenuNodeId] = useState<NodeId | null>(null)
+  const [deleteNodeId, setDeleteNodeId] = useState<NodeId | null>(null)
+  const [renameValue, setRenameValue] = useState('')
   const [targetId, setTargetId] = useState<NodeId | ''>('')
   const [relation, setRelation] = useState<MoveRelation>('after')
   const [insertion, setInsertion] = useState<{ readonly id: NodeId; readonly edge: 'before' | 'after' } | null>(null)
@@ -172,12 +176,66 @@ export function CanonicalLayerTree() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+      if (!selectedNodeId || !session.deleteNodes) return
+      event.preventDefault()
+      setDeleteNodeId(selectedNodeId)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedNodeId, session])
+
+  useEffect(() => {
+    setRenameValue(selectedNodeId ? entryById.get(selectedNodeId)?.node.name ?? '' : '')
+  }, [entryById, selectedNodeId])
+
   if (!document) return <p className="p-2 text-xs text-destructive">El documento activo no está disponible.</p>
 
   async function executeMove(nodeId: NodeId, placement: ReturnType<typeof placementRelativeTo>): Promise<void> {
     setStatus('Moviendo capa…')
     const moved = await session.moveNodes([nodeId], placement)
     setStatus(moved.ok ? 'Capa movida.' : `No se pudo mover: ${moved.error}`)
+  }
+
+  async function deleteSelected(): Promise<void> {
+    if (!deleteNodeId || !session.deleteNodes) return
+    const entry = entryById.get(deleteNodeId)
+    setStatus(`Eliminando ${entry?.node.name ?? 'capa'}…`)
+    const deleted = await session.deleteNodes([deleteNodeId])
+    setDeleteNodeId(null)
+    if (deleted.ok) {
+      const nextSelection = entries.find((candidate) => candidate.node.id !== deleteNodeId)?.node.id
+      if (nextSelection) selection.selectNode(nextSelection)
+      setStatus('Capa eliminada. Puedes usar Deshacer para recuperarla.')
+    } else setStatus(`No se pudo eliminar: ${deleted.error}`)
+  }
+
+  async function runSelectedAction(action: 'duplicate' | 'hide' | 'lock'): Promise<void> {
+    if (!selectedNodeId) return
+    const entry = entryById.get(selectedNodeId)
+    if (!entry) return
+    if (action === 'duplicate' && session.duplicateNodes) {
+      const result = await session.duplicateNodes([selectedNodeId])
+      setStatus(result.ok ? 'Capa duplicada.' : `No se pudo duplicar: ${result.error}`)
+    }
+    if (action === 'hide' && session.setNodesHidden) {
+      const result = await session.setNodesHidden([selectedNodeId], !entry.node.hidden)
+      setStatus(result.ok ? (entry.node.hidden ? 'Capa visible.' : 'Capa oculta.') : `No se pudo actualizar: ${result.error}`)
+    }
+    if (action === 'lock' && session.setNodesLocked) {
+      const result = await session.setNodesLocked([selectedNodeId], !entry.node.locked)
+      setStatus(result.ok ? (entry.node.locked ? 'Capa desbloqueada.' : 'Capa bloqueada.') : `No se pudo actualizar: ${result.error}`)
+    }
+  }
+
+  async function saveRename(): Promise<void> {
+    if (!selectedNodeId || !session.renameNode || !renameValue.trim()) return
+    const result = await session.renameNode(selectedNodeId, renameValue.trim())
+    setStatus(result.ok ? 'Nombre de capa actualizado.' : `No se pudo cambiar el nombre: ${result.error}`)
   }
 
   function handleDragOver(event: DragOverEvent): void {
@@ -256,6 +314,7 @@ export function CanonicalLayerTree() {
               insertion={insertion}
               key={entry.node.id}
               onOpenMove={openMoveMenu}
+              onRequestDelete={setDeleteNodeId}
               onSelect={(nodeId) => selection.selectNode(nodeId)}
               onToggle={toggleNode}
               selected={entry.node.id === selectedNodeId}
@@ -276,6 +335,8 @@ export function CanonicalLayerTree() {
           </div>
         </fieldset>
       ) : null}
+      {selectedNodeId && entryById.get(selectedNodeId) ? <section aria-label="Acciones de la capa seleccionada" className="mx-1 mt-2 grid gap-2 rounded-lg border border-border bg-muted/20 p-2"><span className="text-[0.625rem] font-semibold text-muted-foreground">Acciones para {entryById.get(selectedNodeId)?.node.name}</span><form className="flex gap-1" onSubmit={(event) => { event.preventDefault(); void saveRename() }}><label className="sr-only" htmlFor="layer-name">Nombre de la capa</label><input className="min-h-11 min-w-0 flex-1 rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" id="layer-name" maxLength={160} onChange={(event) => setRenameValue(event.target.value)} value={renameValue} /><button className="min-h-11 cursor-pointer rounded-md border border-border bg-surface px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={!renameValue.trim() || !session.renameNode} type="submit">Renombrar</button></form><div className="flex flex-wrap gap-1"><button className="min-h-11 cursor-pointer rounded-md border border-border bg-surface px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={entryById.get(selectedNodeId)?.node.locked || !session.duplicateNodes} onClick={() => void runSelectedAction('duplicate')} type="button">Duplicar</button><button className="min-h-11 cursor-pointer rounded-md border border-border bg-surface px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={entryById.get(selectedNodeId)?.node.locked || !session.setNodesHidden} onClick={() => void runSelectedAction('hide')} type="button">{entryById.get(selectedNodeId)?.node.hidden ? 'Mostrar' : 'Ocultar'}</button><button className="min-h-11 cursor-pointer rounded-md border border-border bg-surface px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={!session.setNodesLocked} onClick={() => void runSelectedAction('lock')} type="button">{entryById.get(selectedNodeId)?.node.locked ? 'Desbloquear' : 'Bloquear'}</button><button className="min-h-11 cursor-pointer rounded-md border border-danger/40 bg-surface px-3 text-xs font-semibold text-danger hover:bg-danger-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-9" disabled={entryById.get(selectedNodeId)?.node.locked || !session.deleteNodes} onClick={() => setDeleteNodeId(selectedNodeId)} type="button">Eliminar</button></div></section> : null}
+      {deleteNodeId ? <section aria-labelledby="delete-layer-title" className="mx-1 mt-2 grid gap-2 rounded-lg border border-danger/40 bg-danger-soft p-2"><h3 className="text-xs font-bold text-foreground" id="delete-layer-title">¿Eliminar {entryById.get(deleteNodeId)?.node.name ?? 'esta capa'}?</h3><p className="text-[0.625rem] leading-4 text-muted-foreground">También se eliminarán los elementos que contiene. Podrás recuperarlos con Deshacer.</p><div className="flex justify-end gap-1"><button className="min-h-11 cursor-pointer rounded-md px-3 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onClick={() => setDeleteNodeId(null)} type="button">Cancelar</button><button className="min-h-11 cursor-pointer rounded-md bg-danger px-3 text-xs font-bold text-on-primary focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onClick={() => void deleteSelected()} type="button">Eliminar capa</button></div></section> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
     </DndContext>
   )

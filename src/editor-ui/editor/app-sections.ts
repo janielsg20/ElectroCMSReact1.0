@@ -1,4 +1,4 @@
-export type AppSection = 'editor' | 'documents' | 'content' | 'design'
+export type AppSection = 'editor' | 'documents' | 'content' | 'administration' | 'design'
 
 export interface AppSectionDefinition {
   readonly description: string
@@ -30,6 +30,13 @@ export const APP_SECTIONS: Readonly<Record<AppSection, AppSectionDefinition>> = 
     panelTitle: 'Contenido dinámico',
     shortLabel: 'Contenido',
   },
+  administration: {
+    description: 'Organiza los paneles de gestión, sus vistas y la navegación interna de tu proyecto.',
+    icon: 'content',
+    label: 'Administración',
+    panelTitle: 'Administración del proyecto',
+    shortLabel: 'Paneles',
+  },
   design: {
     description: 'Configura la apariencia global, temas y estilos reutilizables.',
     icon: 'palette',
@@ -39,4 +46,4 @@ export const APP_SECTIONS: Readonly<Record<AppSection, AppSectionDefinition>> = 
   },
 }
 
-export const APP_SECTION_ORDER: readonly AppSection[] = ['editor', 'documents', 'content', 'design']
+export const APP_SECTION_ORDER: readonly AppSection[] = ['editor', 'documents', 'content', 'administration', 'design']

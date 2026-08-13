@@ -3,6 +3,7 @@ import type { CmsBackend, Form, JsonValue } from '../../domain'
 import { FORM_ACTION_KINDS, formActionDefinition, type FormActionConfigField } from '../../domain/project/form-action-catalog'
 import type { FormEditablePatch } from '../../domain/project/form-builder-engine'
 import { Button, ChoiceField, HelpTip, Icon, TextField } from '../primitives'
+import { useEditorProject } from './editor-project-context'
 import { useFormSession } from './form-session-context'
 
 type FormAction = Form['actions'][number]
@@ -133,6 +134,7 @@ function ActionCard({ action, cms, form, index, length, pending, onDelete, onMov
 
 export function FormActionSettings({ cms, form }: { readonly cms: CmsBackend; readonly form: Form }) {
   const forms = useFormSession()
+  const project = useEditorProject()
   const [newKind, setNewKind] = useState<FormAction['kind']>('save-record')
   const [pending, setPending] = useState(false)
   const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null)
@@ -147,20 +149,24 @@ export function FormActionSettings({ cms, form }: { readonly cms: CmsBackend; re
     return result.ok
   }
 
+  function latestActions(): readonly FormAction[] {
+    return project.store.structure.cms?.forms[form.id]?.actions ?? form.actions
+  }
+
   function add(): void {
     const action: FormAction = { config: defaultConfig(newKind, cms, form), id: crypto.randomUUID(), kind: newKind }
-    void persist([...form.actions, action], `${formActionDefinition(newKind).label} añadida al pipeline.`)
+    void persist([...latestActions(), action], `${formActionDefinition(newKind).label} añadida al pipeline.`)
   }
 
   function save(action: FormAction): void {
-    void persist(form.actions.map((current) => current.id === action.id ? action : current), 'Configuración de la acción guardada.')
+    void persist(latestActions().map((current) => current.id === action.id ? action : current), 'Configuración de la acción guardada.')
   }
 
   function move(actionId: string, direction: -1 | 1): void {
-    const index = form.actions.findIndex((action) => action.id === actionId)
+    const actions = [...latestActions()]
+    const index = actions.findIndex((action) => action.id === actionId)
     const target = index + direction
-    if (index < 0 || target < 0 || target >= form.actions.length) return
-    const actions = [...form.actions]
+    if (index < 0 || target < 0 || target >= actions.length) return
     const [action] = actions.splice(index, 1)
     actions.splice(target, 0, action)
     void persist(actions, 'Orden del pipeline actualizado.')
@@ -173,7 +179,7 @@ export function FormActionSettings({ cms, form }: { readonly cms: CmsBackend; re
       return
     }
     setDeleteArmedId(null)
-    void persist(form.actions.filter((action) => action.id !== actionId), 'Acción eliminada.')
+    void persist(latestActions().filter((action) => action.id !== actionId), 'Acción eliminada.')
   }
 
   return (

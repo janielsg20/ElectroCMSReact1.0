@@ -1,6 +1,7 @@
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { HelpTip, Icon } from '../primitives'
 import { ProjectDataPanel } from './ProjectDataPanel'
+import { BackendAdminWorkspace } from './BackendAdminWorkspace'
 import { ProjectDesignPanel } from './ProjectDesignPanel'
 import { TemplateManager } from './TemplateManager'
 import { useAppSection } from './app-section-context'
@@ -22,12 +23,12 @@ interface NavigationGroup {
 
 const groups: readonly NavigationGroup[] = [
   { label: 'Crear', sections: ['editor', 'documents'] },
-  { label: 'Administrar', sections: ['content'] },
+  { label: 'Administrar', sections: ['content', 'administration'] },
   { label: 'Apariencia', sections: ['design'] },
 ]
 
 function sectionCategory(section: Exclude<AppSection, 'editor'>): string {
-  if (section === 'content') return 'Administrar'
+  if (section === 'content' || section === 'administration') return 'Administrar'
   if (section === 'documents') return 'Crear'
   return 'Apariencia'
 }
@@ -65,6 +66,7 @@ function ModuleWorkspace({ section }: { readonly section: Exclude<AppSection, 'e
       <div className="min-h-0 flex-1 overflow-hidden">
         {section === 'documents' ? <div className="h-full overflow-y-auto p-2 lg:p-3"><TemplateManager /></div> : null}
         {section === 'content' ? <ProjectDataPanel /> : null}
+        {section === 'administration' ? <div className="h-full overflow-y-auto"><BackendAdminWorkspace /></div> : null}
         {section === 'design' ? <ProjectDesignPanel /> : null}
       </div>
     </section>

@@ -1,5 +1,6 @@
-import { useState, type PropsWithChildren } from 'react'
+import { useSyncExternalStore, useState, type PropsWithChildren } from 'react'
 import { EditorProjectContext, EditorSelectionContext, type EditorProjectSession, type EditorSelection } from './editor-project-context'
+import { ActiveUserProvider } from './active-user-context'
 import { WidgetLibraryProvider } from './WidgetLibraryProvider'
 
 interface EditorProjectProviderProps extends PropsWithChildren {
@@ -7,6 +8,11 @@ interface EditorProjectProviderProps extends PropsWithChildren {
 }
 
 export function EditorProjectProvider({ children, session }: EditorProjectProviderProps) {
+  useSyncExternalStore(
+    (listener) => session.subscribeDocumentSelection?.(listener) ?? (() => {}),
+    () => session.documentId,
+    () => session.documentId,
+  )
   const [selection] = useState<EditorSelection>(() => {
     let selectedNodeId = session.initialSelectedNodeId ?? null
     const listeners = new Set<() => void>()
@@ -27,7 +33,7 @@ export function EditorProjectProvider({ children, session }: EditorProjectProvid
   return (
     <EditorProjectContext value={session}>
       <EditorSelectionContext value={selection}>
-        <WidgetLibraryProvider>{children}</WidgetLibraryProvider>
+        <ActiveUserProvider><WidgetLibraryProvider>{children}</WidgetLibraryProvider></ActiveUserProvider>
       </EditorSelectionContext>
     </EditorProjectContext>
   )

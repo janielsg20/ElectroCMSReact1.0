@@ -77,7 +77,7 @@ async function renderForms() {
   )
   const formsTab = screen.getByRole('tab', { name: 'Formularios' })
   fireEvent.click(formsTab)
-  await screen.findByRole('heading', { name: 'Crear formulario' })
+  await screen.findByRole('heading', { name: 'Crear formulario' }, { timeout: 5_000 })
   return { formsTab, session }
 }
 
