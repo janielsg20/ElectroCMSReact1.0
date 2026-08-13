@@ -125,7 +125,7 @@ describe('M11.2 form runtime', () => {
       [emailControlId]: 'a@example.com',
     }
 
-    expect(isFormControlVisible(current, current.controls[conditionalControlId]!, values)).toBe(false)
+    expect(isFormControlVisible(current, current.controls[conditionalControlId], values)).toBe(false)
     const result = validateFormSubmission(current, cms(), values)
     expect(result.valid).toBe(true)
     expect(result.visibleControlIds).not.toContain(conditionalControlId)
@@ -140,7 +140,7 @@ describe('M11.2 form runtime', () => {
       [emailControlId]: 'a@example.com',
     }
 
-    expect(isFormControlVisible(current, current.controls[conditionalControlId]!, values)).toBe(true)
+    expect(isFormControlVisible(current, current.controls[conditionalControlId], values)).toBe(true)
     const result = validateFormSubmission(current, cms(), values)
     expect(result.valid).toBe(false)
     expect(result.visibleControlIds).toContain(conditionalControlId)
@@ -149,7 +149,7 @@ describe('M11.2 form runtime', () => {
 
   it('trata varios grupos como alternativas y respeta all/any dentro de cada grupo', () => {
     const current = form()
-    current.controls[conditionalControlId]!.conditions = [
+    current.controls[conditionalControlId].conditions = [
       {
         conditions: [
           { fieldId: ageFieldId, operator: 'greater-than', value: 50 },
@@ -166,7 +166,7 @@ describe('M11.2 form runtime', () => {
       },
     ]
 
-    expect(isFormControlVisible(current, current.controls[conditionalControlId]!, {
+    expect(isFormControlVisible(current, current.controls[conditionalControlId], {
       [ageControlId]: 30,
       [nameControlId]: 'Alfredo',
     })).toBe(true)
