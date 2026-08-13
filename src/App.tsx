@@ -1,9 +1,9 @@
-import { createBrowserEditorProjectSession } from './editor-project-session'
+import { createRoleEnabledEditorProjectSession } from './editor-project-role-session'
 import { AppSectionProvider } from './editor-ui/editor/AppSectionProvider'
 import { EditorProjectProvider } from './editor-ui/editor/EditorProjectProvider'
 import { ResponsiveEditorShell } from './editor-ui/editor/ResponsiveEditorShell'
 
-const editorProjectSession = createBrowserEditorProjectSession()
+const editorProjectSession = createRoleEnabledEditorProjectSession()
 
 export function App() {
   return (
