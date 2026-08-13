@@ -1,6 +1,6 @@
 import { failure, success, type Result } from '../common/result'
 import { projectCmsBackend } from './cms-defaults'
-import type { BackendScreen, Menu } from './cms-schema'
+import type { BackendScreen, Menu, MenuItem } from './cms-schema'
 import type { BackendScreenId, DocumentId, MenuId, MenuItemId } from './identity'
 import type { ProjectStructure } from './structure-schema'
 import { validateCmsBackend } from './validate-cms'
@@ -43,7 +43,7 @@ export interface AdminShellUpdate {
 
 export interface AdminShellRecord {
   readonly menu: Menu
-  readonly menuItem: Menu['items'][string]
+  readonly menuItem: MenuItem
   readonly screen: BackendScreen
 }
 
@@ -55,10 +55,10 @@ function normalize(value: string): string {
   return value.trim().toLocaleLowerCase('es')
 }
 
-function menuContainingScreen(structure: ProjectStructure, screenId: BackendScreenId): { readonly menu: Menu; readonly item: Menu['items'][string] } | null {
+function menuContainingScreen(structure: ProjectStructure, screenId: BackendScreenId): { readonly menu: Menu; readonly item: MenuItem } | null {
   const cms = projectCmsBackend(structure.cms)
   for (const menu of Object.values(cms.menus)) {
-    const item = Object.values(menu.items).find((candidate) => candidate.kind === 'screen' && candidate.screenId === screenId)
+    const item = (Object.values(menu.items) as MenuItem[]).find((candidate) => candidate.kind === 'screen' && candidate.screenId === screenId)
     if (item) return { item, menu }
   }
   return null
@@ -200,13 +200,13 @@ export function deleteAdminShell(
   if (!cms.backendScreens[screenId]) return failure([diagnostic('screen-not-found', 'La pantalla administrativa ya no existe.', ['cms', 'backendScreens', screenId])])
 
   for (const menu of Object.values(cms.menus)) {
-    const removedIds = Object.values(menu.items)
+    const removedIds = (Object.values(menu.items) as MenuItem[])
       .filter((item) => item.kind === 'screen' && item.screenId === screenId)
       .map((item) => item.id)
     if (removedIds.length === 0) continue
     const removed = new Set(removedIds)
     menu.rootItemIds = menu.rootItemIds.filter((id) => !removed.has(id))
-    for (const item of Object.values(menu.items)) {
+    for (const item of Object.values(menu.items) as MenuItem[]) {
       item.childIds = item.childIds.filter((id) => !removed.has(id))
     }
     for (const itemId of removedIds) delete menu.items[itemId]
