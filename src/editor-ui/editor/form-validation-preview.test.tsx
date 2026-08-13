@@ -51,7 +51,7 @@ describe('M11.2 FormValidationPreview', () => {
     render(<FormValidationPreview cms={cms()} form={form()} />)
 
     expect(screen.queryByRole('textbox', { name: /Experiencia/ })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Comprobar formulario' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar y ejecutar' }))
 
     const age = screen.getByRole('spinbutton', { name: 'Edad' })
     await waitFor(() => expect(age).toHaveFocus())
@@ -66,11 +66,12 @@ describe('M11.2 FormValidationPreview', () => {
     const experience = screen.getByRole('textbox', { name: /Experiencia/ })
     expect(experience).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Comprobar formulario' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar y ejecutar' }))
     await waitFor(() => expect(experience).toHaveFocus())
     expect(screen.getByRole('alert')).toHaveTextContent('Experiencia es obligatorio.')
 
     fireEvent.change(experience, { target: { value: 'Cinco años' } })
-    expect(screen.getByRole('status')).toHaveTextContent('Todo está correcto.')
+    fireEvent.click(screen.getByRole('button', { name: 'Comprobar y ejecutar' }))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Todo está correcto.'))
   })
 })
