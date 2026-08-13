@@ -1,6 +1,6 @@
 # TRACKING — ElectroCMS
 
-Actualizado: 2026-08-12.
+Actualizado: 2026-08-13.
 
 > Estado operativo actual. El historial detallado permanece en `CHANGELOG.md` y en los documentos de sistema de cada fase.
 
@@ -8,7 +8,7 @@ Actualizado: 2026-08-12.
 
 - Fase actual: `F12 — Backend visual, usuarios y permisos`.
 - Microfase actual: `M12.1 — Shell administrativo editable`.
-- Estado: `EN_CURSO`.
+- Estado: `EN_CURSO — gate final en validación`.
 - F00–F11: `COMPLETADA`.
 - F12: M12.1 activa; M12.2–M12.5 `NO_INICIADA`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
@@ -23,7 +23,7 @@ Actualizado: 2026-08-12.
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
 | F11 | COMPLETADA | Formularios, validación, multipaso, acciones y seguridad portable |
-| F12 | EN_CURSO | M12.1 Shell administrativo editable activa |
+| F12 | EN_CURSO | M12.1 Shell administrativo editable en gate final |
 | F13–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -131,8 +131,10 @@ Decisiones de arquitectura:
 
 - `BackendScreen.documentId` enlaza cada pantalla administrativa con un `Document` normal; no se crea otro canvas ni otro árbol de nodos.
 - `Menu` / `MenuItem` siguen siendo la fuente canónica de navegación administrativa.
-- Header/sidebar/dashboard se modelarán con documentos/componentes existentes y referencias del CMS; no se crea un segundo motor visual.
-- Toda mutación persistente seguirá usando `ProjectStructureCommand` + `ProjectCommandBus`.
+- Header/sidebar/dashboard se modelan con documentos/componentes existentes y referencias del CMS; no se crea un segundo motor visual.
+- `backend-shell-engine.ts` mantiene creación/edición/eliminación de la pantalla y su navegación como una sola mutación validada.
+- `BrowserEditorProjectSession` expone esas mutaciones exclusivamente mediante `ProjectStructureCommand` + `ProjectCommandBus`.
+- `BackendScreen.kind` admite `custom` además de las vistas administrativas estructuradas para representar shells y dashboards libres sin crear otro schema.
 - M12.1 no adelanta CRUD adaptable de M12.2 ni RBAC/contexto/auditoría de M12.3–M12.5.
 - UI de backend debe ser responsive, High Density + Minimal Clean, con controles ElectroCMS y targets táctiles >=44 px.
 
@@ -143,6 +145,11 @@ Criterio de salida de M12.1:
 - Un BackendScreen puede abrir su mismo `Document` en el editor visual.
 - Navegación administrativa editable sin IDs técnicos en flujo principal.
 - Gate completo: lint + typecheck + suite + build + Chromium.
+
+### Validación M12.1
+
+- Los errores iniciales de integración (schema `custom`, sesión administrativa y tipado de menús) fueron corregidos antes del gate final.
+- El gate final se ejecuta sobre una rama limpia sin workflows/scripts temporales de parcheo.
 
 ## Bloqueos
 
