@@ -200,7 +200,7 @@ export function deleteAdminShell(
   if (!cms.backendScreens[screenId]) return failure([diagnostic('screen-not-found', 'La pantalla administrativa ya no existe.', ['cms', 'backendScreens', screenId])])
 
   for (const menu of Object.values(cms.menus)) {
-    const removedIds = (Object.values(menu.items) as MenuItem[])
+    const removedIds = Object.values(menu.items)
       .filter((item) => item.kind === 'screen' && item.screenId === screenId)
       .map((item) => item.id)
     if (removedIds.length === 0) continue
