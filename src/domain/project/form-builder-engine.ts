@@ -32,9 +32,11 @@ export interface FormBuilderDiagnostic {
   readonly path: readonly (string | number)[]
 }
 
-export type FormEditablePatch = Partial<Pick<Form, 'name' | 'contentTypeId'>>
+export type FormEditablePatch = Partial<Pick<Form,
+  'name' | 'contentTypeId' | 'successMessage' | 'errorMessage'
+>>
 export type FormControlEditablePatch = Partial<Pick<FormControl,
-  'name' | 'label' | 'type' | 'mappedFieldId' | 'required'
+  'name' | 'label' | 'type' | 'mappedFieldId' | 'required' | 'conditions'
 >>
 
 function diagnostic(
