@@ -107,7 +107,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         >
           <Icon name={entry.node.locked ? 'lock' : 'move'} size={13} />
         </button>
-        <button className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => onSelect(entry.node.id)} type="button">
+        <button className="flex min-h-11 min-w-11 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(entry.node.id)} type="button">
           <Icon className="shrink-0" name={nodeIcon(entry)} size={14} />
           <span className="truncate">{entry.node.name}</span>
           {entry.node.hidden ? <><Icon name="eye" size={12} /><span className="sr-only">Oculta</span></> : null}
