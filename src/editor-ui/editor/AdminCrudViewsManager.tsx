@@ -335,14 +335,17 @@ export function AdminCrudViewsManager({ screenId }: { readonly screenId: Backend
 
   const queries = useMemo(() => contentTypeId ? Object.values(cms.queries).filter((query) => query.contentTypeId === contentTypeId).sort((a, b) => a.name.localeCompare(b.name, 'es')) : [], [cms.queries, contentTypeId])
   const forms = useMemo(() => contentTypeId ? Object.values(cms.forms).filter((form) => form.contentTypeId === null || form.contentTypeId === contentTypeId).sort((a, b) => a.name.localeCompare(b.name, 'es')) : [], [cms.forms, contentTypeId])
-  const persistedContentType = screen?.contentTypeId ? cms.contentTypes[screen.contentTypeId] : undefined
-  const fields = persistedContentType ? contentTypeFields(cms, persistedContentType.id) : []
-  const configuredForm = screen?.formId ? cms.forms[screen.formId] ?? null : null
-  const queried = useMemo(() => screen?.queryId ? executeSavedCmsQuery(cms, screen.queryId) : null, [cms, screen?.queryId])
+  const persistedContentTypeId = screen?.contentTypeId ?? null
+  const persistedContentType = persistedContentTypeId ? cms.contentTypes[persistedContentTypeId] : undefined
+  const fields = useMemo(() => persistedContentTypeId ? contentTypeFields(cms, persistedContentTypeId) : [], [cms, persistedContentTypeId])
+  const configuredFormId = screen?.formId ?? null
+  const configuredForm = configuredFormId ? cms.forms[configuredFormId] ?? null : null
+  const persistedQueryId = screen?.queryId ?? null
+  const queried = useMemo(() => persistedQueryId ? executeSavedCmsQuery(cms, persistedQueryId) : null, [cms, persistedQueryId])
   const sourceRecords = useMemo(() => {
     if (queried?.ok) return queried.value.records
-    return persistedContentType ? listContentRecords(structure, persistedContentType.id) : []
-  }, [persistedContentType, queried, structure])
+    return persistedContentTypeId ? listContentRecords(structure, persistedContentTypeId) : []
+  }, [persistedContentTypeId, queried, structure])
   const visibleRecords = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase('es')
     return sourceRecords.filter((record) => (statusFilter === 'all' || record.status === statusFilter) && (!needle || recordSearchText(record, fields).includes(needle)))
