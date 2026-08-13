@@ -7,12 +7,10 @@ Actualizado: 2026-08-12.
 ## Estado global
 
 - Fase actual: `F11 — Formularios y acciones`.
-- Microfase actual: `M11.1 — Builder y campos`.
+- Microfase actual: `M11.2 — Validación y lógica condicional`.
 - Estado: `EN_CURSO`.
-- Reauditoría UX/UI solicitada: `COMPLETADA` dentro de M11.1. Widgets abre a 360 px, migra solo el antiguo default de 216 px, muestra dos columnas desde 300 px útiles y conserva una columna al estrecharse. Favoritos usa estrella con explicación; el ID técnico deja de competir con nombre/categoría. Validación: lint, typecheck, build, 14 pruebas focalizadas y auditoría Chromium de producción (20 estados, 0 overflow, 0 targets touch <44 px, 0 excepciones/consola).
-- Auditoría UX/UI M11.1: simplificación incremental aplicada a lienzo, Capas, Widgets, Formularios y ayudas contextuales, sin adelantar M11.2–M11.5. El builder ya permite marcar campos obligatorios y reordenarlos por drag accesible o botones, siempre mediante sesión/Command Bus. El diálogo responsive se porta a `document.body` para no quedar deformado por transformaciones del lienzo. Verificación: typecheck, lint, build y 23 pruebas focalizadas verdes; suite global 370/373 antes de corregir tres expectativas/timeouts heredados, luego verdes de forma aislada (la repetición completa serial superó 6 min sin reportar fallos). Auditoría Chromium de producción: 20 estados, 0 overflow horizontal, 0 targets touch <44×44, 0 errores de arquitectura, excepciones o consola.
 - F00–F10: `COMPLETADA`.
-- F11: M11.1 activa; M11.2–M11.5 `NO_INICIADA`.
+- F11: M11.1 `COMPLETADA`; M11.2 activa; M11.3–M11.5 `NO_INICIADA`.
 - F12–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 
@@ -23,7 +21,7 @@ Actualizado: 2026-08-12.
 | F00–F08 | COMPLETADA | Base, plataforma, editor, widgets, inspector y temas |
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
-| F11 | EN_CURSO | M11.1 Builder y campos |
+| F11 | EN_CURSO | M11.1 completada; M11.2 Validación y lógica condicional activa |
 | F12–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -119,39 +117,67 @@ GitHub Actions run `31608617420` sobre `02c99a54d6536535159a3fcbc857c9e131fb3904
 - producción: `SKIPPED` por PR draft.
 - Documento consolidado: `F10_QUERY_LISTING_FILTER_SYSTEM.md`.
 
-## M11.1 — alcance activo
+## M11.1 completada — Builder y campos
 
-Objetivo exacto: implementar el builder de formularios y todos sus campos/layout/mapeo con edición por teclado, puntero y touch.
+Objetivo cumplido: builder de formularios con todos los tipos de campo previstos por el catálogo, layout canónico basado en el orden de `FormStep.controlIds`, mapeo visual compatible a Custom Fields y edición por teclado, puntero y touch.
+
+### Implementación consolidada
+
+- `form-builder-engine.ts` mantiene CRUD, orden y mapping canónico de controles sobre `ProjectStructure.cms.forms`; no existe store/schema paralelo.
+- Persistencia y undo/redo continúan por `ProjectStructureCommand` + `ProjectCommandBus` + IndexedDB.
+- `FormManager` vive en `Contenido → Formularios`, nunca dentro de `Capas`.
+- 27 tipos de campo disponibles desde el builder.
+- El mapping solo ofrece Custom Fields compatibles con el tipo del control y protege cambios de CPT que invalidarían referencias.
+- Orden canónico de controles persistido en `FormStep.controlIds`; drag pointer/touch/teclado conserva alternativa accesible mediante botones subir/bajar.
+- Selección, alta, edición, orden y eliminación mantienen targets >=44×44 en touch y densidad compacta en escritorio.
+- `ChoiceField` es el selector ElectroCMS compartido: portal a `document.body`, límites de viewport, cierre exterior/Escape, ArrowUp/ArrowDown/Home/End, Tab y retorno de foco.
+- `HelpTip` y divulgación progresiva mantienen lenguaje de usuario y referencias funcionales JetFormBuilder/Elementor Forms.
+- Capas funciona como árbol ARIA expandible/contraíble y los controles principales de la UX tocada dejaron de depender de selects nativos del sistema.
+
+### Puerta final M11.1
+
+GitHub Actions run `31659028320` sobre `00c222e45dca83f18e717b9a08f8b5e016476d96`:
+
+- lint: `VERDE`.
+- typecheck: `VERDE`.
+- suite completa: `92 archivos / 380 pruebas VERDES`.
+- build Vite: `VERDE`.
+- Chromium browser audit: `VERDE`.
+- 20 estados visuales auditados.
+- horizontal overflow: `0`.
+- targets táctiles <44×44: `0`.
+- architecture errors: `0`.
+- runtime exceptions: `0`.
+- console warnings/errors de la app: `0`.
+- Cloudflare PR preview: `VERDE`.
+- producción: `SKIPPED` por PR draft.
+
+## M11.2 — alcance activo
+
+Objetivo: validación de formularios y lógica condicional reutilizando los contratos canónicos existentes, con mensajes comprensibles, equivalencia cliente/destino y foco accesible en el primer error.
 
 Reglas de implementación:
 
-- Reutilizar `CmsBackend.forms`, `FormSchema` y `FormControlSchema`; no crear otro modelo/store de formularios.
-- Persistencia por `ProjectStructureCommand` + `ProjectCommandBus` + IndexedDB + undo/redo.
-- Reutilizar el catálogo de widgets de formulario existente; los contratos anticipados no cuentan como M11.1 hasta tener builder funcional.
-- El gestor global del formulario debe vivir en la arquitectura de módulos globales, no dentro de `Capas`.
-- Los controles insertables siguen disponibles en `Widgets` y editables desde Inspector.
-- Builder accesible: añadir/reordenar/eliminar/seleccionar controles por clic, teclado y touch; drag debe tener alternativa equivalente.
-- Mapeo visual de controles a campos personalizados compatibles.
-- Layout y orden deben ser canónicos y exportables; no guardar geometría efímera de UI en el proyecto.
-- Mantener High Density + Minimal Clean: ~36 px escritorio y >=44 px en superficies táctiles.
-- Aplicar `UX_SIMPLICITY_SYSTEM.md`: flujo común primero, opciones avanzadas colapsadas, referencias funcionales conocidas y ningún término interno obligatorio para completar tareas normales.
-- No iniciar M11.2 (validación/condiciones) antes del gate completo de M11.1.
+- Reutilizar `FormSchema`, `FormControlSchema`, `FieldValidationSchema` y `FieldConditionGroupSchema`; no crear un motor paralelo desconectado del CMS.
+- Las condiciones persistidas en `FormControl.conditions` deben evaluarse de forma determinista sobre los valores del mismo formulario.
+- La validación de controles mapeados debe respetar las reglas del Custom Field destino para que cliente y persistencia compartan semántica.
+- Los controles no mapeados deben mantener al menos validación coherente con tipo y `required`; cualquier ampliación del schema debe ser compatible con proyectos existentes y pasar migración/validación canónica.
+- Mensajes de error junto al campo, resumen/estado accesible cuando corresponda y foco programático en el primer control inválido.
+- `successMessage` y `errorMessage` siguen siendo propiedades canónicas del formulario; no duplicarlas en estado persistente de UI.
+- La configuración común permanece visible; condiciones y restricciones poco frecuentes usan divulgación progresiva.
+- No implementar todavía multipaso/borradores (M11.3), acciones post-submit (M11.4) ni seguridad/spam (M11.5).
+- No iniciar M11.3 antes de gate completo de M11.2.
 
-### Implementación en curso
+### Auditoría inicial M11.2
 
-- `form-builder-engine.ts`: CRUD, orden y mapping canónico de controles sobre `ProjectStructure.cms.forms`.
-- Pruebas dedicadas del motor; corregido fixture para usar `routePath` canónico.
-- Primitive `HelpTip` con icono `info`, teclado/puntero/touch y referencia funcional.
-- Catálogo `feature-help.ts` para Editor, Páginas, Contenido, Diseño, tipos, clasificaciones, campos, entradas/relaciones, consultas e Inspector.
-- Navegación reescrita por intención: `Crear | Administrar | Apariencia`.
-- `ProjectDataPanel` usa nombres orientados a resultados y ayuda contextual.
-- Inspector elimina `field.key`, `Binding`, `Nodo/Predeterminado` como vocabulario principal y usa `Dato dinámico`, `Personalizado/Global`, `Guardar/Restablecer`.
-- `ContentTypeManager` aplica divulgación progresiva: configuración esencial visible y permisos/soportes/visibilidad/plantillas dentro de `Opciones avanzadas`, sin pérdida funcional.
-- `UX_SIMPLICITY_SYSTEM.md` y `AGENTS.md` hacen esta dirección obligatoria para las fases siguientes.
+- `FormControlSchema` ya contiene `conditions` y `required`.
+- `FieldDefinitionSchema` ya contiene `validation` (`minLength`, `maxLength`, `min`, `max`, `pattern`) y `conditions`.
+- `custom-field-engine.ts` valida integridad/referencias, pero no evalúa condiciones en runtime.
+- Los adapters React actuales de widgets de formulario representan controles HTML y previenen el submit; todavía no consumen `CmsBackend.forms`, por lo que M11.2 debe crear un runtime de dominio reutilizable sin fingir backend de envío.
 
 ## Bloqueos
 
-- Ninguno técnico conocido para M11.1.
+- Ninguno técnico conocido para M11.2.
 - El warning de bundle >500 kB quedó resuelto durante M10.5.
 
 ## Regla de avance
