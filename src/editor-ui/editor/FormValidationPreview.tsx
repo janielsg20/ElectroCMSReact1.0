@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CmsBackend, Form, JsonValue } from '../../domain'
+import { formActionDefinition } from '../../domain/project/form-action-catalog'
+import { executeFormActionPipeline, type FormActionPipelineResult } from '../../domain/project/form-action-engine'
 import { clearFormDraft, readFormDraft, writeFormDraft } from '../../domain/project/form-draft-storage'
 import { isFormControlVisible, validateFormSubmission } from '../../domain/project/form-runtime'
 import { Button, ChoiceField, Icon, TextField } from '../primitives'
+import { createFormActionPreviewHandlers } from './form-action-preview-handlers'
 
 type FormControl = Form['controls'][string]
 type MutableValues = Record<string, JsonValue | undefined>
@@ -28,6 +31,14 @@ function valueText(value: JsonValue | undefined): string {
 
 function errorText(errors: readonly { readonly message: string }[] | undefined): string | undefined {
   return errors?.length ? errors.map((item) => item.message).join(' ') : undefined
+}
+
+function actionOutput(kind: Form['actions'][number]['kind'], output: JsonValue | undefined): string | null {
+  if (typeof output !== 'string' || !output) return null
+  if (kind === 'redirect') return `Destino preparado: ${output}. La vista previa no navega fuera del editor.`
+  if (kind === 'save-local') return `Guardado local verificado: ${output}.`
+  if (kind === 'show-message') return output
+  return null
 }
 
 interface PreviewControlProps {
@@ -178,6 +189,8 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
   const [currentStepId, setCurrentStepId] = useState(() => recoveredDraft?.stepId ?? form.steps[0]?.id ?? '')
   const [attempted, setAttempted] = useState(false)
   const [discardArmed, setDiscardArmed] = useState(false)
+  const [pipelinePending, setPipelinePending] = useState(false)
+  const [pipelineResult, setPipelineResult] = useState<FormActionPipelineResult | null>(null)
   const controlContainers = useRef<Record<string, HTMLDivElement | null>>({})
   const controls = useMemo(() => orderedControls(form), [form])
   const currentStepIndex = Math.max(0, form.steps.findIndex((step) => step.id === currentStepId))
@@ -200,6 +213,7 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
   function changeValue(controlId: string, value: JsonValue | undefined): void {
     setValues((current) => ({ ...current, [controlId]: value }))
     setDiscardArmed(false)
+    setPipelineResult(null)
   }
 
   function focusControl(controlId: string | null): void {
@@ -210,11 +224,12 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
     })
   }
 
-  function advance(): void {
-    if (!currentStep) return
+  async function advance(): Promise<void> {
+    if (!currentStep || pipelinePending) return
     const result = validateFormSubmission(form, cms, values)
     const stepErrors = result.errors.filter((item) => currentControlIds.has(item.controlId))
     setAttempted(true)
+    setPipelineResult(null)
     if (stepErrors.length > 0) {
       focusControl(stepErrors[0]?.controlId ?? null)
       return
@@ -235,7 +250,20 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
       focusControl(first)
       return
     }
-    if (typeof window !== 'undefined') clearFormDraft(window.localStorage, form.id)
+    if (typeof window === 'undefined') return
+
+    setPipelinePending(true)
+    const actionResult = await executeFormActionPipeline(
+      form,
+      cms,
+      values,
+      createFormActionPreviewHandlers(window.localStorage),
+    )
+    setPipelinePending(false)
+    setPipelineResult(actionResult)
+    if (!actionResult.completed) return
+
+    clearFormDraft(window.localStorage, form.id)
     setRecoveredDraft(null)
   }
 
@@ -245,6 +273,7 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
     setCurrentStepId(previous.id)
     setAttempted(false)
     setDiscardArmed(false)
+    setPipelineResult(null)
   }
 
   function discard(): void {
@@ -257,6 +286,7 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
     setAttempted(false)
     setRecoveredDraft(null)
     setDiscardArmed(false)
+    setPipelineResult(null)
     setCurrentStepId(form.steps[0]?.id ?? '')
   }
 
@@ -265,9 +295,9 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-xs font-bold text-foreground" id="form-validation-preview-heading">Probar formulario</h3>
-          <p className="text-[0.625rem] leading-4 text-muted-foreground">Comprueba pasos, validación, visibilidad y recuperación sin enviar ni guardar respuestas en el CMS.</p>
+          <p className="text-[0.625rem] leading-4 text-muted-foreground">Comprueba pasos, validación, visibilidad, borradores y acciones sin enviar datos a servicios externos.</p>
         </div>
-        <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">Vista previa</span>
+        <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">Vista previa segura</span>
       </div>
 
       {form.steps.length > 1 ? (
@@ -285,10 +315,30 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
       {recoveredDraft ? <p className="rounded-md border border-primary/20 bg-primary-soft px-2 py-1.5 text-xs text-primary-strong" role="status">Borrador recuperado de este dispositivo. Puedes continuar donde lo dejaste.</p> : null}
       {form.draftSaving ? <p className="text-[0.625rem] text-muted-foreground">Borrador automático activo · se conserva localmente mientras escribes.</p> : null}
 
-      {attempted && validation && (currentErrors.length > 0 || (isLastStep && validation.valid)) ? (
-        <div aria-live="polite" className={`rounded-md border px-2 py-2 text-xs ${validation.valid ? 'border-primary/25 bg-primary-soft text-primary-strong' : 'border-destructive/30 bg-destructive/10 text-destructive'}`} role="status">
-          {validation.valid ? form.successMessage : form.errorMessage}
-          {currentErrors.length > 0 ? <span className="ml-1">({currentErrors.length} {currentErrors.length === 1 ? 'campo por revisar' : 'campos por revisar'} en este paso)</span> : null}
+      {currentErrors.length > 0 ? (
+        <div aria-live="polite" className="rounded-md border border-destructive/30 bg-destructive/10 px-2 py-2 text-xs text-destructive" role="status">
+          {form.errorMessage}<span className="ml-1">({currentErrors.length} {currentErrors.length === 1 ? 'campo por revisar' : 'campos por revisar'} en este paso)</span>
+        </div>
+      ) : null}
+
+      {pipelineResult ? (
+        <div className={`grid gap-1.5 rounded-md border px-2 py-2 text-xs ${pipelineResult.completed ? 'border-primary/25 bg-primary-soft text-primary-strong' : 'border-destructive/30 bg-destructive/10 text-destructive'}`} role={pipelineResult.completed ? 'status' : 'alert'}>
+          <strong>{pipelineResult.completed ? form.successMessage : pipelineResult.error?.message ?? form.errorMessage}</strong>
+          {!pipelineResult.completed && pipelineResult.error?.code === 'adapter-missing' ? <span>La vista previa no simula integraciones que necesitan un adapter real del destino.</span> : null}
+          {pipelineResult.records.length > 0 ? (
+            <ol className="grid gap-1" aria-label="Resultado de las acciones">
+              {pipelineResult.records.map((record) => {
+                const output = actionOutput(record.kind, record.output)
+                return (
+                  <li className="rounded-md border border-current/15 bg-surface/60 px-2 py-1" key={record.actionId}>
+                    <span className="font-semibold">{formActionDefinition(record.kind).label}: {record.status === 'success' ? 'completada' : 'falló'}.</span>
+                    {record.message ? <span className="ml-1">{record.message}</span> : null}
+                    {output ? <span className="ml-1">{output}</span> : null}
+                  </li>
+                )
+              })}
+            </ol>
+          ) : null}
         </div>
       ) : null}
 
@@ -312,10 +362,10 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-1.5 border-t border-border pt-2">
-        <Button onClick={discard} size="small" variant={discardArmed ? 'destructive' : 'ghost'}>{discardArmed ? 'Confirmar descarte' : 'Descartar respuestas'}</Button>
+        <Button disabled={pipelinePending} onClick={discard} size="small" variant={discardArmed ? 'destructive' : 'ghost'}>{discardArmed ? 'Confirmar descarte' : 'Descartar respuestas'}</Button>
         <div className="flex flex-wrap justify-end gap-1.5">
-          <Button disabled={currentStepIndex === 0} onClick={back} size="small" variant="secondary"><Icon name="chevron-down" size={12} /><span className="sr-only">Ir </span>Atrás</Button>
-          <Button onClick={advance} size="small"><Icon name="check" size={12} />{isLastStep ? 'Comprobar formulario' : 'Siguiente'}</Button>
+          <Button disabled={pipelinePending || currentStepIndex === 0} onClick={back} size="small" variant="secondary"><Icon name="chevron-down" size={12} /><span className="sr-only">Ir </span>Atrás</Button>
+          <Button isLoading={pipelinePending} loadingLabel="Procesando" onClick={() => { void advance() }} size="small"><Icon name="check" size={12} />{isLastStep ? 'Comprobar y ejecutar' : 'Siguiente'}</Button>
         </div>
       </div>
     </section>
