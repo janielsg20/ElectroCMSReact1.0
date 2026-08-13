@@ -7,13 +7,13 @@ Actualizado: 2026-08-13.
 ## Estado global
 
 - Fase actual: `F12 — Backend visual, usuarios y permisos`.
-- Microfase actual: `M12.1 — Shell administrativo editable`.
-- Estado: `EN_CURSO — gate final en validación`.
+- Microfase actual: `M12.2 — CRUD y vistas administrativas`.
+- Estado: `EN_VALIDACION — implementación terminada; gate final sobre diff consolidado`.
 - F00–F11: `COMPLETADA`.
-- F12: M12.1 activa; M12.2–M12.5 `NO_INICIADA`.
+- F12: M12.1 `COMPLETADA`; M12.2 `EN_VALIDACION`; M12.3–M12.5 `NO_INICIADA`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
-- Producción no se despliega desde el PR draft #23.
+- Producción permanece omitida desde el PR draft #24; solo se permite preview hasta gate final y revisión.
 
 ## Roadmap
 
@@ -23,7 +23,7 @@ Actualizado: 2026-08-13.
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
 | F11 | COMPLETADA | Formularios, validación, multipaso, acciones y seguridad portable |
-| F12 | EN_CURSO | M12.1 Shell administrativo editable en gate final |
+| F12 | EN_CURSO | M12.1 completada; M12.2 CRUD/vistas en gate final |
 | F13–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -123,9 +123,9 @@ GitHub Actions run `31666856391` (run #608) sobre el head validado de M11.5:
 
 ## F12 — Backend visual, usuarios y permisos
 
-### M12.1 activa — Shell administrativo editable
+### M12.1 completada — Shell administrativo editable
 
-Objetivo: crear un shell administrativo visual y persistente con header, sidebar, navegación y dashboard, usando el mismo motor de documentos/nodos/plantillas del frontend.
+Objetivo cumplido: shell administrativo visual y persistente con navegación y dashboard sobre el mismo motor de documentos/nodos/plantillas del frontend.
 
 Decisiones de arquitectura:
 
@@ -135,25 +135,49 @@ Decisiones de arquitectura:
 - `backend-shell-engine.ts` mantiene creación/edición/eliminación de la pantalla y su navegación como una sola mutación validada.
 - `BrowserEditorProjectSession` expone esas mutaciones exclusivamente mediante `ProjectStructureCommand` + `ProjectCommandBus`.
 - `BackendScreen.kind` admite `custom` además de las vistas administrativas estructuradas para representar shells y dashboards libres sin crear otro schema.
-- M12.1 no adelanta CRUD adaptable de M12.2 ni RBAC/contexto/auditoría de M12.3–M12.5.
-- UI de backend debe ser responsive, High Density + Minimal Clean, con controles ElectroCMS y targets táctiles >=44 px.
+- UI de backend conserva responsive, High Density + Minimal Clean, controles ElectroCMS y targets táctiles >=44 px.
 
-Criterio de salida de M12.1:
+### M12.2 implementada — CRUD y vistas administrativas
 
-- Shell administrativo editable y persistente.
-- Header, sidebar/navegación y dashboard representados por contratos canónicos existentes.
-- Un BackendScreen puede abrir su mismo `Document` en el editor visual.
-- Navegación administrativa editable sin IDs técnicos en flujo principal.
-- Gate completo: lint + typecheck + suite + build + Chromium.
+Objetivo: convertir las pantallas del shell en superficies administrativas operativas sin crear otro backend ni otro store.
 
-### Validación M12.1
+Implementación:
 
-- Los errores iniciales de integración (schema `custom`, sesión administrativa y tipado de menús) fueron corregidos antes del gate final.
-- El gate final se ejecuta sobre una rama limpia sin workflows/scripts temporales de parcheo.
+- `BackendScreen` persiste el enlace a `contentTypeId`, `queryId` y `formId` mediante `updateAdminShell` y el Command Bus existente.
+- Se validan existencia y compatibilidad entre CPT, consulta y formulario antes de guardar la configuración.
+- Vistas disponibles: tabla, formulario, detalle, calendario, kanban, métricas, gráfico y listado.
+- CRUD reutiliza `ContentRecord` + Record/Relation Engine; creación, edición y eliminación conservan validaciones, revisiones, undo/redo e integridad referencial existentes.
+- Las consultas de M10 funcionan como saved views; no se crea AST ni motor de filtros paralelo.
+- Búsqueda rápida y filtro por estado refinan el conjunto operativo de la vista actual.
+- El Form enlazado aporta orden/mapping de campos; sin Form se derivan controles desde el CPT.
+- Bulk status/delete usa preflight sobre una copia canónica antes de escrituras persistentes; eliminar exige confirmación.
+- Guardar después nombre/menú del shell no convierte accidentalmente una vista `table`, `kanban`, etc. de vuelta a `dashboard`/`custom`.
+- `ProjectDataPanel` carga un workspace Admin unificado: conserva M12.1 y añade M12.2 sin duplicar el editor.
+- Flujo principal evita IDs técnicos y usa primitives ElectroCMS para selección, inputs y acciones.
+
+Validación previa a consolidación:
+
+GitHub Actions run `31709289971` (run #646):
+
+- lint: `VERDE`.
+- typecheck: `VERDE`.
+- suite completa: `VERDE`.
+- build Vite: `VERDE`.
+- Chromium browser audit: `VERDE`.
+- browser audit artifact: `VERDE`.
+- PR preview build artifact: `VERDE`.
+- Cloudflare PR preview: `VERDE`.
+- producción: `SKIPPED` por PR draft #24.
+
+El diff fue consolidado después de este gate para retirar scaffolding e indirecciones; el último commit debe repetir la puerta completa antes de declarar M12.2 cerrada.
+
+### Siguiente — M12.3 RBAC y contexto de usuario
+
+No iniciar M12.3 hasta que el último head de M12.2 mantenga verde el gate completo. M12.3 debe aplicar autorización real en los casos de uso; ocultar controles no se considera seguridad.
 
 ## Bloqueos
 
-- Ninguno técnico conocido para M12.1.
+- Ninguno técnico conocido para M12.2; solo resta revalidación final del diff consolidado.
 
 ## Regla de avance
 
