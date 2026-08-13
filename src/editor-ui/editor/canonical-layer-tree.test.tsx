@@ -84,6 +84,7 @@ describe('M05.3 CanonicalLayerTree', () => {
     const { session } = createSession()
     render(<EditorProjectProvider session={session}><CanonicalLayerTree /></EditorProjectProvider>)
 
+    expect(screen.getByRole('button', { name: 'Header' })).toHaveClass('min-w-11')
     expect(screen.getByText('Marca')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Contraer Header' }))
     expect(screen.queryByText('Marca')).not.toBeInTheDocument()
