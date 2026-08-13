@@ -82,12 +82,13 @@ async function renderForms() {
 }
 
 describe('M11.1 FormManager', () => {
-  it('expone los 27 tipos mediante un menú ElectroCMS y solo mapea campos compatibles', async () => {
+  it('expone los 27 tipos mediante ChoiceField portado y solo mapea campos compatibles', async () => {
     const { formsTab } = await renderForms()
     expect(formsTab).toHaveClass('min-h-11', 'shrink-0')
 
     fireEvent.click(screen.getByRole('button', { name: 'Tipo del primer campo' }))
     const typeList = screen.getByRole('listbox', { name: 'Tipo del primer campo' })
+    expect(typeList.parentElement).toBe(document.body)
     expect(within(typeList).getAllByRole('option')).toHaveLength(27)
     expect(within(typeList).getByRole('option', { name: 'Lista repetible' })).toBeInTheDocument()
     fireEvent.click(within(typeList).getByRole('option', { name: 'Texto corto' }))
@@ -117,6 +118,7 @@ describe('M11.1 FormManager', () => {
     expect(firstControlId ? form?.controls[firstControlId]?.required : null).toBe(true)
 
     expect(await screen.findByRole('heading', { name: 'Campos y orden' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /1\. Nombre/ })).toHaveClass('min-w-11')
     const addHeading = screen.getByRole('heading', { name: 'Añadir campo' })
     const addSection = addHeading.closest('section')
     expect(addSection).not.toBeNull()
