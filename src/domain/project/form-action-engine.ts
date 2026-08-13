@@ -1,6 +1,12 @@
 import type { CmsBackend, Form } from './cms-schema'
 import type { JsonValue } from './project-envelope'
 import { validateFormSubmission, type FormRuntimeValues, type FormValidationResult } from './form-runtime'
+import {
+  DEFAULT_FORM_PAYLOAD_POLICY,
+  prepareSecureFormPayload,
+  type FormPayloadPolicy,
+  type FormSecurityDiagnostic,
+} from './form-security-contract'
 
 type FormAction = Form['actions'][number]
 export type FormActionKind = FormAction['kind']
@@ -36,6 +42,7 @@ export interface FormActionExecutionRecord {
 
 export type FormActionPipelineErrorCode =
   | 'validation-failed'
+  | 'security-failed'
   | 'duplicate-field-mapping'
   | 'adapter-missing'
   | 'action-failed'
@@ -52,6 +59,7 @@ export interface FormActionPipelineResult {
   readonly error: FormActionPipelineError | null
   readonly mappedValues: FormMappedValues
   readonly records: readonly FormActionExecutionRecord[]
+  readonly securityDiagnostics: readonly FormSecurityDiagnostic[]
   readonly validation: FormValidationResult
 }
 
@@ -88,6 +96,7 @@ export async function executeFormActionPipeline(
   cms: CmsBackend,
   values: FormRuntimeValues,
   handlers: FormActionHandlers,
+  payloadPolicy: FormPayloadPolicy = DEFAULT_FORM_PAYLOAD_POLICY,
 ): Promise<FormActionPipelineResult> {
   const validation = validateFormSubmission(form, cms, values)
   if (!validation.valid) {
@@ -96,17 +105,37 @@ export async function executeFormActionPipeline(
       error: { actionId: null, actionIndex: null, code: 'validation-failed', message: form.errorMessage },
       mappedValues: {},
       records: [],
+      securityDiagnostics: [],
       validation,
     }
   }
 
-  const mapping = mapFormValuesToFields(form, values)
+  const securePayload = prepareSecureFormPayload(form, values, payloadPolicy)
+  if (!securePayload.ok) {
+    return {
+      completed: false,
+      error: {
+        actionId: null,
+        actionIndex: null,
+        code: 'security-failed',
+        message: securePayload.diagnostics[0]?.message ?? 'El payload no cumple la política de seguridad portable.',
+      },
+      mappedValues: {},
+      records: [],
+      securityDiagnostics: securePayload.diagnostics,
+      validation,
+    }
+  }
+
+  const secureValues: FormRuntimeValues = securePayload.values
+  const mapping = mapFormValuesToFields(form, secureValues)
   if (!mapping.ok) {
     return {
       completed: false,
       error: { actionId: null, actionIndex: null, code: 'duplicate-field-mapping', message: mapping.message },
       mappedValues: {},
       records: [],
+      securityDiagnostics: [],
       validation,
     }
   }
@@ -125,11 +154,12 @@ export async function executeFormActionPipeline(
         },
         mappedValues: mapping.values,
         records,
+        securityDiagnostics: [],
         validation,
       }
     }
 
-    const result = await handler(action, { actionIndex, cms, form, mappedValues: mapping.values, values })
+    const result = await handler(action, { actionIndex, cms, form, mappedValues: mapping.values, values: secureValues })
     if (!result.ok) {
       const record: FormActionExecutionRecord = { actionId: action.id, kind: action.kind, message: result.message, status: 'failed' }
       records.push(record)
@@ -138,6 +168,7 @@ export async function executeFormActionPipeline(
         error: { actionId: action.id, actionIndex, code: 'action-failed', message: result.message },
         mappedValues: mapping.values,
         records,
+        securityDiagnostics: [],
         validation,
       }
     }
@@ -151,6 +182,7 @@ export async function executeFormActionPipeline(
     error: null,
     mappedValues: mapping.values,
     records,
+    securityDiagnostics: [],
     validation,
   }
 }
