@@ -25,6 +25,7 @@ import { Button, ChoiceField, HelpTip, Icon, TextField } from '../primitives'
 import { useEditorProjectStructure } from './editor-project-context'
 import { FORM_HELP, type FeatureHelp } from './feature-help'
 import { useFormSession } from './form-session-context'
+import { FormValidationSettings } from './FormValidationSettings'
 
 type FieldType = FieldDefinition['type']
 
@@ -638,10 +639,26 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
         <div className="flex justify-end"><Button disabled={pending || !firstStep} onClick={() => { void addControl() }} size="small"><Icon name="plus" size={12} /> Añadir al formulario</Button></div>
       </section>
 
-      {selectedControl ? <ControlEditor cms={cms} control={selectedControl} form={form} key={selectedControl.id} onDeleted={() => {
-        const remaining = orderedControlIds.filter((id) => id !== selectedControl.id)
-        setSelectedControlId(remaining[0] ?? '')
-      }} /> : null}
+      {selectedControl ? (
+        <>
+          <ControlEditor
+            cms={cms}
+            control={selectedControl}
+            form={form}
+            key={`editor:${selectedControl.id}`}
+            onDeleted={() => {
+              const remaining = orderedControlIds.filter((id) => id !== selectedControl.id)
+              setSelectedControlId(remaining[0] ?? '')
+            }}
+          />
+          <FormValidationSettings
+            cms={cms}
+            control={selectedControl}
+            form={form}
+            key={`validation:${form.id}:${selectedControl.id}:${form.successMessage}:${form.errorMessage}:${JSON.stringify(selectedControl.conditions)}`}
+          />
+        </>
+      ) : null}
     </div>
   )
 }
