@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { CmsBackend, FieldDefinition, Form } from '../../domain'
 import { Button, Icon, TextField } from '../primitives'
 import { FieldConditionEditor } from './FieldConditionEditor'
+import { FormStepSettings } from './FormStepSettings'
 import { FormValidationPreview } from './FormValidationPreview'
 import { useFormSession } from './form-session-context'
 
@@ -99,6 +100,7 @@ export function FormValidationSettings({ cms, control, form }: { readonly cms: C
         </div>
       </details>
 
+      <FormStepSettings form={form} />
       <FormValidationPreview cms={cms} form={form} />
     </section>
   )
