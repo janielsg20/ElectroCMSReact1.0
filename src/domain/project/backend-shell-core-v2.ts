@@ -52,7 +52,8 @@ export function listBackendScreens(structure: ProjectStructure): readonly Backen
 
 export function adminShellForDocument(structure: ProjectStructure, documentId: DocumentId): AdminShellRecord | null {
   const cms = projectCmsBackend(structure.cms)
-  const screen = Object.values(cms.backendScreens).find((candidate) => candidate.documentId === documentId)
+  const candidates = Object.values(cms.backendScreens).filter((candidate) => candidate.documentId === documentId)
+  const screen = candidates.find((candidate) => isShellKind(candidate.kind)) ?? candidates[0]
   if (!screen) return null
   const link = menuContainingScreen(structure, screen.id)
   return link ? { menu: link.menu, menuItem: link.item, screen } : null
