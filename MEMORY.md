@@ -11,7 +11,7 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - Alcance: `PROMPT_MAESTRO_ELECTROCMS.md` y `FLUTTERFLOW_PARITY_ADDENDUM.md`.
 - Estado: `TRACKING.md`; plan: `PHASES.md` y `DETAILED_EXECUTION_PHASES.md`.
 - Reglas: `RULES.md`; arquitectura: `ARCHITECTURE.md`.
-- UX para usuario final: `UX_SIMPLICITY_SYSTEM.md` junto a `UI_UX_LAYOUT_SYSTEM.md` y `design-system/electrocms/MASTER.md`.
+- UX: `UX_SIMPLICITY_SYSTEM.md`, `UI_UX_LAYOUT_SYSTEM.md` y `design-system/electrocms/MASTER.md`.
 - FlutterFlow es referencia de capacidades, no fuente de código, branding ni activos.
 
 ## Estado real
@@ -19,39 +19,75 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F10 completadas.
 - Fase activa: `F11 — Formularios y acciones`.
-- M11.1 `COMPLETADA`.
-- Microfase activa: `M11.2 — Validación y lógica condicional`.
-- M11.3–M11.5 y F12–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
-- Producción no se despliega desde este PR draft.
+- M11.1 `COMPLETADA` — Builder y campos.
+- M11.2 `COMPLETADA` — Validación y lógica condicional.
+- M11.3 `COMPLETADA` — Multipaso y borradores.
+- Microfase activa: `M11.4 — Pipeline de acciones`.
+- M11.5 y F12–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- Producción no se despliega desde el PR draft #23.
 
 ## Última puerta verde
 
-M11.1 cerró con GitHub Actions run `31659028320` sobre `00c222e45dca83f18e717b9a08f8b5e016476d96`:
+M11.3 cerró con GitHub Actions run `31664445460` sobre `3c0510fcea5a72d75a88d175ac830a8b1996ba75`:
 
 - lint: verde.
 - typecheck: verde.
-- suite completa: 92 archivos / 380 pruebas verdes.
+- suite completa: 98 archivos / 400 pruebas verdes.
 - build: verde.
-- auditoría Chromium: 20 estados, 0 overflow, 0 targets touch <44×44, 0 errores de arquitectura, 0 excepciones y 0 warnings/errors de consola.
-- Cloudflare PR preview: verde.
+- auditoría Chromium: 20 estados, 0 overflow, 0 targets touch <44×44 —incluido `forms-mobile`—, 0 errores de arquitectura, 0 excepciones y 0 warnings/errors de consola.
+- preview artifact: verde y Cloudflare preview lanzado desde build validado.
 - producción: skipped por PR draft.
 
-## M11.1 consolidada — Builder y campos
+## Formularios consolidados hasta M11.3
+
+### Builder
 
 - `FormManager` vive en `Contenido → Formularios` y usa `CmsBackend.forms`; no existe store/schema paralelo.
 - 27 tipos de campo disponibles.
-- Layout canónico actual = orden de controles en `FormStep.controlIds`; el schema no define filas/columnas. No inventar geometría persistente antes de que el contrato lo requiera.
+- Layout canónico = orden de controles en `FormStep.controlIds`.
 - Mapeo visual solo hacia Custom Fields compatibles.
-- Añadir, seleccionar, editar, reordenar y eliminar funciona con puntero, touch y teclado; DnD conserva alternativa por botones.
-- `ChoiceField` es el selector ElectroCMS compartido: portal al body, límites del viewport, click exterior, Escape, ArrowUp/ArrowDown, Home/End, Tab y retorno de foco.
-- `CanonicalLayerTree` y las filas del builder protegen targets >=44 px en touch y regresan a densidad compacta en escritorio.
-- `HelpTip` usa portal, colisión/viewport y lenguaje orientado a tareas con referencias conocidas.
+- Añadir, seleccionar, editar, reordenar y eliminar funciona con puntero, touch y teclado; DnD conserva botones alternativos.
+- `ChoiceField` es el selector ElectroCMS compartido: portal al body, límites del viewport, click exterior, Escape, flechas, Home/End, Tab y retorno de foco.
+
+### Validación y condiciones
+
+- `form-runtime.ts` valida `required`, tipo, formato y restricciones heredadas del Custom Field destino.
+- `FormControl.conditions` usa grupos `all/any`; múltiples grupos funcionan como alternativas.
+- Controles ocultos no generan errores.
+- Errores junto al campo y foco al primer inválido.
+- `successMessage`/`errorMessage` son la única fuente persistida de mensajes.
+- `FieldConditionEditor` reemplazó el JSON técnico y se reutiliza en Formularios y Campos personalizados.
+- El builder impide condiciones autorreferenciales o sin control origen mapeado.
+
+### Multipaso y borradores
+
+- `Form.steps` es la única definición persistente de progreso.
+- `form-step-runtime.ts` renombra, divide, mueve y fusiona pasos preservando invariantes.
+- `FormStepSettings` permite configurar pasos y `draftSaving` visualmente.
+- `FormValidationPreview` muestra progreso, Paso N/M, Atrás/Siguiente y valida el paso actual antes de avanzar.
+- `form-draft-storage.ts` guarda borradores de respuestas versionados `v1` en localStorage solo cuando `draftSaving=true`.
+- Recuperación restaura valores y último paso; descarte exige confirmación y limpia el borrador.
+- Los borradores de respuestas son estado transitorio local y no duplican `ProjectStructure`.
+
+## M11.4 activa — Pipeline de acciones
+
+Objetivo exacto: ejecutar `Form.actions` secuencialmente usando el contrato existente y adapters explícitos para capacidades externas.
+
+Reglas:
+
+- `FormActionSchema` sigue siendo la única taxonomía canónica.
+- Ejecutar acciones en orden y detener/diagnosticar fallos determinísticamente.
+- Mapear controles a Custom Fields una sola vez por submit.
+- Acciones externas sin adapter real deben fallar con diagnóstico; nunca fingir éxito.
+- Cubrir los kinds existentes: `save-record`, `create-content`, `update-content`, `register-user`, `sign-in`, `send-email`, `save-local`, `redirect`, `show-message`, `webhook`, `update-relation`, `upload-file`.
+- UI de acciones dentro de Formularios con orden, configuración comprensible, controles ElectroCMS y divulgación progresiva.
+- M11.5 queda fuera hasta que M11.4 tenga gate completo.
 
 ## Regla de calidad
 
 - Cada microfase pasa lint + typecheck + suite completa + build antes de avanzar.
-- Al cerrar microfases de UI/runtime, ejecutar también auditoría Chromium real sobre producción compilada.
-- La auditoría cubre desktop/tablet/móvil, overflow, jerarquía, densidad, foco/teclado, accesibilidad, consola y funciones visibles no implementadas.
+- Al cerrar microfases de UI/runtime, ejecutar además auditoría Chromium sobre producción compilada.
+- Browser audit cubre desktop/tablet/móvil, overflow, targets touch, arquitectura, excepciones y consola.
 - `assert-browser-audit.mjs` bloquea CI si cualquier estado touch auditado contiene un target <44×44 CSS px.
 - No cerrar una fase solo porque compile.
 
@@ -62,65 +98,29 @@ M11.1 cerró con GitHub Actions run `31659028320` sobre `00c222e45dca83f18e717b9
 - Toda mutación persistente usa `ProjectStructureCommand` + `ProjectCommandBus`; no crear otro history global.
 - Undo/redo persiste en IndexedDB.
 - No duplicar Selection, State, Action Flow, DataProvider, Auth, Components, History, Query, Forms ni Export.
-- Estado local de UI/preferencias no duplica proyecto.
+- Estado local de UI/preferencias o borradores de respuestas no duplica el proyecto.
 - Funciones futuras no se muestran como activas.
-- Simplificar la UX nunca crea un store/modelo alternativo ni elimina funcionalidad; flujo básico y avanzado editan el mismo estado canónico.
+- Simplificar UX nunca crea un store/modelo alternativo ni elimina funcionalidad.
 
 ## UI/UX vigente
 
-- High Density + Minimal Clean, orientado a tareas de CMS visual en vez de exponer un IDE al usuario final.
+- High Density + Minimal Clean, orientado a tareas de CMS visual en vez de exponer un IDE.
 - Targets: ~44 px touch / ~36 px escritorio denso.
 - Navegación principal: `Crear | Administrar | Apariencia`; destinos `Editor | Páginas | Contenido | Diseño`.
 - `Capas`: exclusivamente árbol/estructura del documento actual.
 - `Widgets`: exclusivamente biblioteca insertable.
-- `Inspector`: propiedades del elemento seleccionado con vocabulario común, ayudas contextuales y referencias funcionales conocidas.
+- `Inspector`: propiedades del elemento seleccionado con vocabulario común y ayudas contextuales.
 - `Contenido`: tipos, clasificaciones, campos, entradas/relaciones, consultas y formularios.
-- `Diseño`: apariencia global, temas y paquetes. `Páginas`: páginas/plantillas del proyecto.
 - Móvil conserva `Widgets | Capas | Canvas | Props | Más`; `Más` contiene módulos globales.
-- Tablet retira paneles contextuales al entrar a un módulo global.
-- Divulgación progresiva obligatoria: opciones esenciales primero; parámetros técnicos o poco frecuentes dentro de `Opciones avanzadas`.
+- Divulgación progresiva obligatoria; parámetros técnicos poco frecuentes van a avanzado.
 - No usar nombres de schemas, AST, stores, IDs internos, fases o microfases como lenguaje principal del producto.
 
-## F09 completada
+## F09/F10 consolidadas
 
-- CPT, taxonomías, 27 tipos de campo, registros/revisiones/relaciones y binding CMS completos.
-- Sesiones específicas reutilizan Command Bus + IndexedDB + undo/redo.
-- Documentos: `CONTENT_TYPE_SYSTEM.md`, `TAXONOMY_SYSTEM.md`, `CUSTOM_FIELD_SYSTEM.md`, `RECORD_RELATION_SYSTEM.md`, `DYNAMIC_BINDING_SYSTEM.md`.
-
-## F10 completada — Query / Listing / Filters
-
-- `QuerySchema` sigue siendo la única definición canónica de consultas.
-- `query-engine.ts`: validación semántica, ejecución determinista, métricas e índice opcional seguro.
-- `QueryManager`: CRUD/preview accesible bajo Contenido, persistido por Command Bus.
-- Listings repiten plantilla por registro, paginan la ventana canónica y ejecutan Query Engine una sola vez por página.
-- Smart Filters: 11 tipos, realtime/apply, URL/localStorage, contador, pagination/load-more/reset y composición sin mutar query guardada.
-- Runtime store con debounce/cancelación; caché LRU con invalidación por identidad CMS.
-- Gestores CMS pesados usan lazy loading; bundle principal sin warning >500 kB.
-
-## M11.2 activa — Validación y lógica condicional
-
-Objetivo exacto: implementar validación de formularios y condiciones reutilizando el estado canónico, con mensajes comprensibles y foco accesible en el primer error.
-
-Contratos ya existentes:
-
-- `FormControlSchema`: `conditions`, `required`, tipo, mapping y metadatos del control.
-- `FieldValidationSchema`: `minLength`, `maxLength`, `min`, `max`, `pattern`.
-- `FieldConditionGroupSchema`: grupos `all/any` con condiciones por `fieldId`, operador y valor.
-- `FormSchema`: `successMessage` y `errorMessage` ya son canónicos.
-- `custom-field-engine.ts` valida integridad y referencias, pero no evalúa condiciones en runtime.
-- Los React adapters de widgets de formulario solo representan controles y previenen submit; todavía no ejecutan `CmsBackend.forms`.
-
-Reglas M11.2:
-
-- Crear un runtime de dominio reutilizable para validación/condiciones; no incrustar reglas de negocio en `FormManager`.
-- Los controles mapeados deben heredar/respetar la validación del Custom Field destino para mantener paridad cliente/destino.
-- Los controles no mapeados deben validar tipo y `required`; ampliar schema solo si es necesario y compatible con proyectos existentes.
-- Evaluar `FormControl.conditions` determinísticamente usando valores del mismo formulario.
-- Mostrar errores junto al campo y mover foco al primer error en la experiencia de prueba/ejecución.
-- Mantener `successMessage`/`errorMessage` como única fuente persistida de mensajes.
-- No adelantar multipaso/borradores (M11.3), acciones post-submit (M11.4) ni seguridad/spam (M11.5).
-- No iniciar M11.3 antes del gate completo de M11.2.
+- F09: CPT, taxonomías, 27 tipos de campo, registros/revisiones/relaciones y binding CMS completos.
+- F10: Query Engine, QueryManager, listings, 11 Smart Filters, debounce/cancelación, caché LRU, índice seguro y lazy loading completados.
+- Bundle principal sin warning >500 kB antes de iniciar F11.
 
 ## Próximo paso exacto
 
-Implementar primero el runtime puro de M11.2 con pruebas de tipo, required, reglas del Custom Field y condiciones; después conectarlo al builder mediante una experiencia de configuración/preview accesible y finalmente pasar lint + typecheck + suite completa + build + auditoría Chromium.
+Implementar primero un ejecutor puro de acciones para M11.4 con resultado por acción, mapping único de valores y adapters explícitos; probar orden, corte en fallo y ausencia de adapters. Después conectar constructor/orden de acciones al `FormManager`, pasar gate completo y saltar a M11.5 sin preguntar.
