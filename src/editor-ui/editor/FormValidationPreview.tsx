@@ -1,10 +1,10 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CmsBackend, Form, JsonValue } from '../../domain'
+import { clearFormDraft, readFormDraft, writeFormDraft } from '../../domain/project/form-draft-storage'
 import { isFormControlVisible, validateFormSubmission } from '../../domain/project/form-runtime'
 import { Button, ChoiceField, Icon, TextField } from '../primitives'
 
 type FormControl = Form['controls'][string]
-
 type MutableValues = Record<string, JsonValue | undefined>
 
 function sameJson(left: JsonValue | undefined, right: JsonValue): boolean {
@@ -173,25 +173,91 @@ function PreviewControl({ cms, control, error, onChange, value }: PreviewControl
 }
 
 export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend; readonly form: Form }) {
-  const [values, setValues] = useState<MutableValues>({})
+  const [recoveredDraft, setRecoveredDraft] = useState(() => form.draftSaving && typeof window !== 'undefined' ? readFormDraft(window.localStorage, form) : null)
+  const [values, setValues] = useState<MutableValues>(() => recoveredDraft?.values ?? {})
+  const [currentStepId, setCurrentStepId] = useState(() => recoveredDraft?.stepId ?? form.steps[0]?.id ?? '')
   const [attempted, setAttempted] = useState(false)
+  const [discardArmed, setDiscardArmed] = useState(false)
   const controlContainers = useRef<Record<string, HTMLDivElement | null>>({})
   const controls = useMemo(() => orderedControls(form), [form])
-  const visibleControls = controls.filter((control) => isFormControlVisible(form, control, values))
+  const currentStepIndex = Math.max(0, form.steps.findIndex((step) => step.id === currentStepId))
+  const currentStep = form.steps[currentStepIndex] ?? form.steps[0]
+  const currentControlIds = new Set(currentStep?.controlIds ?? [])
+  const visibleControls = controls.filter((control) => currentControlIds.has(control.id) && isFormControlVisible(form, control, values))
   const validation = attempted ? validateFormSubmission(form, cms, values) : null
+  const currentErrors = validation?.errors.filter((item) => currentControlIds.has(item.controlId)) ?? []
+  const isLastStep = currentStepIndex >= form.steps.length - 1
+  const progress = form.steps.length ? Math.round(((currentStepIndex + 1) / form.steps.length) * 100) : 100
+
+  useEffect(() => {
+    if (!form.draftSaving || !currentStep || typeof window === 'undefined') return
+    const timer = window.setTimeout(() => {
+      writeFormDraft(window.localStorage, form, currentStep.id, values)
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [currentStep, form, values])
 
   function changeValue(controlId: string, value: JsonValue | undefined): void {
     setValues((current) => ({ ...current, [controlId]: value }))
+    setDiscardArmed(false)
   }
 
-  function check(): void {
-    const result = validateFormSubmission(form, cms, values)
-    setAttempted(true)
-    if (!result.firstInvalidControlId) return
+  function focusControl(controlId: string | null): void {
+    if (!controlId) return
     requestAnimationFrame(() => {
-      const container = controlContainers.current[result.firstInvalidControlId ?? '']
+      const container = controlContainers.current[controlId]
       container?.querySelector<HTMLElement>('input, textarea, button, [tabindex]')?.focus()
     })
+  }
+
+  function advance(): void {
+    if (!currentStep) return
+    const result = validateFormSubmission(form, cms, values)
+    const stepErrors = result.errors.filter((item) => currentControlIds.has(item.controlId))
+    setAttempted(true)
+    if (stepErrors.length > 0) {
+      focusControl(stepErrors[0]?.controlId ?? null)
+      return
+    }
+    if (!isLastStep) {
+      const next = form.steps[currentStepIndex + 1]
+      if (next) {
+        setCurrentStepId(next.id)
+        setAttempted(false)
+        setDiscardArmed(false)
+      }
+      return
+    }
+    if (!result.valid) {
+      const first = result.firstInvalidControlId
+      const ownerIndex = form.steps.findIndex((step) => step.controlIds.includes(first ?? ''))
+      if (ownerIndex >= 0 && ownerIndex !== currentStepIndex) setCurrentStepId(form.steps[ownerIndex]?.id ?? currentStep.id)
+      focusControl(first)
+      return
+    }
+    if (typeof window !== 'undefined') clearFormDraft(window.localStorage, form.id)
+    setRecoveredDraft(null)
+  }
+
+  function back(): void {
+    const previous = form.steps[currentStepIndex - 1]
+    if (!previous) return
+    setCurrentStepId(previous.id)
+    setAttempted(false)
+    setDiscardArmed(false)
+  }
+
+  function discard(): void {
+    if (!discardArmed) {
+      setDiscardArmed(true)
+      return
+    }
+    if (typeof window !== 'undefined') clearFormDraft(window.localStorage, form.id)
+    setValues({})
+    setAttempted(false)
+    setRecoveredDraft(null)
+    setDiscardArmed(false)
+    setCurrentStepId(form.steps[0]?.id ?? '')
   }
 
   return (
@@ -199,15 +265,30 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-xs font-bold text-foreground" id="form-validation-preview-heading">Probar formulario</h3>
-          <p className="text-[0.625rem] leading-4 text-muted-foreground">Comprueba validación y visibilidad sin enviar ni guardar respuestas.</p>
+          <p className="text-[0.625rem] leading-4 text-muted-foreground">Comprueba pasos, validación, visibilidad y recuperación sin enviar ni guardar respuestas en el CMS.</p>
         </div>
         <span className="rounded-md border border-border bg-surface px-2 py-1 text-[0.625rem] font-semibold text-muted-foreground">Vista previa</span>
       </div>
 
-      {attempted && validation ? (
+      {form.steps.length > 1 ? (
+        <div className="grid gap-1" aria-label="Progreso del formulario">
+          <div className="flex items-center justify-between gap-2 text-[0.625rem] font-semibold text-muted-foreground">
+            <span>Paso {currentStepIndex + 1} de {form.steps.length} · {currentStep?.name}</span>
+            <span>{progress}%</span>
+          </div>
+          <div aria-valuemax={100} aria-valuemin={0} aria-valuenow={progress} className="h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar">
+            <span className="block h-full rounded-full bg-primary transition-[width]" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      ) : null}
+
+      {recoveredDraft ? <p className="rounded-md border border-primary/20 bg-primary-soft px-2 py-1.5 text-xs text-primary-strong" role="status">Borrador recuperado de este dispositivo. Puedes continuar donde lo dejaste.</p> : null}
+      {form.draftSaving ? <p className="text-[0.625rem] text-muted-foreground">Borrador automático activo · se conserva localmente mientras escribes.</p> : null}
+
+      {attempted && validation && (currentErrors.length > 0 || (isLastStep && validation.valid)) ? (
         <div aria-live="polite" className={`rounded-md border px-2 py-2 text-xs ${validation.valid ? 'border-primary/25 bg-primary-soft text-primary-strong' : 'border-destructive/30 bg-destructive/10 text-destructive'}`} role="status">
           {validation.valid ? form.successMessage : form.errorMessage}
-          {!validation.valid ? <span className="ml-1">({validation.errors.length} {validation.errors.length === 1 ? 'campo por revisar' : 'campos o reglas por revisar'})</span> : null}
+          {currentErrors.length > 0 ? <span className="ml-1">({currentErrors.length} {currentErrors.length === 1 ? 'campo por revisar' : 'campos por revisar'} en este paso)</span> : null}
         </div>
       ) : null}
 
@@ -230,9 +311,12 @@ export function FormValidationPreview({ cms, form }: { readonly cms: CmsBackend;
         ))}
       </div>
 
-      <div className="flex flex-wrap justify-end gap-1.5">
-        <Button onClick={() => { setValues({}); setAttempted(false) }} size="small" variant="ghost">Limpiar prueba</Button>
-        <Button onClick={check} size="small"><Icon name="check" size={12} />Comprobar formulario</Button>
+      <div className="flex flex-wrap items-center justify-between gap-1.5 border-t border-border pt-2">
+        <Button onClick={discard} size="small" variant={discardArmed ? 'destructive' : 'ghost'}>{discardArmed ? 'Confirmar descarte' : 'Descartar respuestas'}</Button>
+        <div className="flex flex-wrap justify-end gap-1.5">
+          <Button disabled={currentStepIndex === 0} onClick={back} size="small" variant="secondary"><Icon name="chevron-down" size={12} /><span className="sr-only">Ir </span>Atrás</Button>
+          <Button onClick={advance} size="small"><Icon name="check" size={12} />{isLastStep ? 'Comprobar formulario' : 'Siguiente'}</Button>
+        </div>
       </div>
     </section>
   )
