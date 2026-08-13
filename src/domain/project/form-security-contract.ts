@@ -85,10 +85,14 @@ function diagnostic(
 }
 
 function normalizedString(value: string): string {
-  return value
-    .replace(/\r\n?/g, '\n')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
-    .normalize('NFC')
+  const normalizedLines = value.replace(/\r\n?/g, '\n')
+  let safe = ''
+  for (const character of normalizedLines) {
+    const code = character.charCodeAt(0)
+    const unsafeControl = code <= 8 || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127
+    if (!unsafeControl) safe += character
+  }
+  return safe.normalize('NFC')
 }
 
 function sanitizeValue(
