@@ -36,7 +36,7 @@ export function FormStepSettings({ form }: { readonly form: Form }) {
 
   async function persist(patch: ProgressionPatch, successText: string): Promise<boolean> {
     setPending(true)
-    const result = await forms.updateForm(form.id, { name: form.name, ...patch } as ProgressionPatch)
+    const result = await forms.updateForm(form.id, { name: form.name, ...patch })
     setPending(false)
     setNotice(result.ok ? { kind: 'success', text: successText } : { kind: 'error', text: result.error })
     return result.ok
