@@ -37,7 +37,7 @@ export const FORM_ACTION_DEFINITIONS: Readonly<Record<FormActionKind, FormAction
   },
   'register-user': {
     capability: 'identity', kind: 'register-user', label: 'Registrar usuario',
-    description: 'Crea una cuenta usando los controles del formulario.',
+    description: 'Crea una cuenta usando los controles del formulario cuando el destino ofrece gestión de usuarios.',
     fields: [
       { key: 'emailControl', label: 'Campo de correo', required: true, type: 'control' },
       { key: 'nameControl', label: 'Campo de nombre', required: false, type: 'control' },
@@ -46,7 +46,7 @@ export const FORM_ACTION_DEFINITIONS: Readonly<Record<FormActionKind, FormAction
   },
   'sign-in': {
     capability: 'identity', kind: 'sign-in', label: 'Iniciar sesión',
-    description: 'Autentica a una persona usando los controles elegidos.',
+    description: 'Autentica a una persona usando los controles elegidos cuando el destino ofrece autenticación.',
     fields: [
       { key: 'emailControl', label: 'Campo de correo', required: true, type: 'control' },
       { key: 'passwordControl', label: 'Campo de contraseña', required: true, type: 'control' },
@@ -55,7 +55,7 @@ export const FORM_ACTION_DEFINITIONS: Readonly<Record<FormActionKind, FormAction
   },
   'send-email': {
     capability: 'messaging', kind: 'send-email', label: 'Enviar correo',
-    description: 'Envía una notificación mediante el servicio de correo del destino.',
+    description: 'Envía una notificación cuando el destino dispone de un servicio de correo configurado.',
     fields: [
       { key: 'to', label: 'Enviar a', required: true, type: 'email' },
       { key: 'subject', label: 'Asunto', required: true, type: 'text' },
@@ -90,7 +90,10 @@ export const FORM_ACTION_DEFINITIONS: Readonly<Record<FormActionKind, FormAction
   'update-relation': {
     capability: 'relations', kind: 'update-relation', label: 'Actualizar relación',
     description: 'Conecta el registro procesado con otra entidad usando una relación existente.',
-    fields: [{ key: 'relationId', label: 'Relación', required: true, type: 'relation' }],
+    fields: [
+      { key: 'relationId', label: 'Relación', required: true, type: 'relation' },
+      { key: 'relatedRecordControl', label: 'Campo con el contenido relacionado', required: true, type: 'control' },
+    ],
     reference: 'JetEngine — Relations',
   },
   'upload-file': {
