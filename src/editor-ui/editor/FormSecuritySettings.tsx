@@ -8,7 +8,7 @@ import {
   DEFAULT_FORM_FILE_POLICY,
   formSecurityRequirements,
 } from '../../domain/project/form-security-contract'
-import { Button, HelpTip, Icon } from '../primitives'
+import { HelpTip, Icon } from '../primitives'
 import { useFormSession } from './form-session-context'
 
 const statusLabels: Readonly<Record<FormCompatibilityStatus, string>> = {
@@ -20,7 +20,7 @@ const statusLabels: Readonly<Record<FormCompatibilityStatus, string>> = {
 
 const statusClasses: Readonly<Record<FormCompatibilityStatus, string>> = {
   'contract-ready': 'border-primary/25 bg-primary-soft text-primary-strong',
-  'adapter-required': 'border-warning/30 bg-warning/10 text-foreground',
+  'adapter-required': 'border-border bg-muted/30 text-foreground',
   'exporter-pending': 'border-border bg-muted/40 text-muted-foreground',
   'not-applicable': 'border-border bg-surface text-muted-foreground',
 }
@@ -139,10 +139,6 @@ export function FormSecuritySettings({ form }: { readonly form: Form }) {
             </details>
           ))}
         </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button disabled variant="ghost" size="small">Seguridad del destino se valida al exportar</Button>
       </div>
     </section>
   )
