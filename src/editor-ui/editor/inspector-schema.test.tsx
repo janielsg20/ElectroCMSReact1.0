@@ -77,7 +77,7 @@ describe('M07.1 inspector declarativo', () => {
     fireEvent.change(input, { target: { value: '960' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     await waitFor(() => expect(updateWidgetProperty).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, 'maxWidth', 960))
-    fireEvent.click(screen.getByRole('button', { name: 'Restablecer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer Ancho máximo' }))
     await waitFor(() => expect(resetWidgetProperty).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, 'maxWidth'))
   })
 
