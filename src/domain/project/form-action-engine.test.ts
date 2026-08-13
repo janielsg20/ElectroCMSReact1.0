@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { parseContentTypeId, parseFieldDefinitionId, parseFormId } from './identity'
 import type { CmsBackend, FieldDefinition, Form } from './cms-schema'
-import { executeFormActionPipeline, mapFormValuesToFields } from './form-action-engine'
+import {
+  executeFormActionPipeline,
+  mapFormValuesToFields,
+  type FormActionExecutionContext,
+} from './form-action-engine'
 
 const contentTypeId = parseContentTypeId('81000000-0000-4000-8000-000000000001')
 const fieldId = parseFieldDefinitionId('82000000-0000-4000-8000-000000000001')
@@ -77,7 +81,7 @@ describe('M11.4/M11.5 form action pipeline', () => {
   })
 
   it('normaliza el payload y rechaza controles inyectados antes de adapters', async () => {
-    const handler = vi.fn((_action, context) => {
+    const handler = vi.fn((_action: Form['actions'][number], context: FormActionExecutionContext) => {
       expect(context.values[firstControlId]).toBe('<b>Ada</b>\nLovelace')
       return { ok: true as const }
     })
