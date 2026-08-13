@@ -34,7 +34,14 @@ export interface FormBuilderDiagnostic {
 }
 
 export type FormEditablePatch = Partial<Pick<Form,
-  'name' | 'contentTypeId' | 'successMessage' | 'errorMessage'
+  'name'
+  | 'contentTypeId'
+  | 'successMessage'
+  | 'errorMessage'
+  | 'steps'
+  | 'draftSaving'
+  | 'actions'
+  | 'csrfProtection'
 >>
 export type FormControlEditablePatch = Partial<Pick<FormControl,
   'name' | 'label' | 'type' | 'mappedFieldId' | 'required' | 'conditions'
@@ -94,45 +101,59 @@ function formDependencies(structure: ProjectStructure, formId: FormId): string[]
 
 function mappingDiagnostics(cms: CmsBackend, form: Form): FormBuilderDiagnostic[] {
   const diagnostics: FormBuilderDiagnostic[] = []
-  const mappedFieldIds = new Set(Object.values(form.controls).flatMap((control) => control.mappedFieldId ? [control.mappedFieldId] : []))
   for (const control of Object.values(form.controls)) {
-    if (control.mappedFieldId) {
-      if (!form.contentTypeId) {
-        diagnostics.push(diagnostic(
-          'invalid-field-mapping',
-          'Selecciona un tipo de contenido antes de mapear controles a campos.',
-          ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
-        ))
-      } else {
-        const field = cms.fields[control.mappedFieldId]
-        if (!field || field.owner.kind !== 'content-type' || field.owner.contentTypeId !== form.contentTypeId) {
-          diagnostics.push(diagnostic(
-            'invalid-field-mapping',
-            'El campo mapeado debe pertenecer al tipo de contenido del formulario.',
-            ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
-          ))
-        } else if (field.type !== control.type) {
-          diagnostics.push(diagnostic(
-            'invalid-field-mapping',
-            `El control ${control.label} (${control.type}) solo puede mapearse a un campo compatible del mismo tipo.`,
-            ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
-          ))
-        }
-      }
+    if (!control.mappedFieldId) continue
+    if (!form.contentTypeId) {
+      diagnostics.push(diagnostic(
+        'invalid-field-mapping',
+        'Selecciona un tipo de contenido antes de mapear controles a campos.',
+        ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
+      ))
+      continue
     }
+    const field = cms.fields[control.mappedFieldId]
+    if (!field || field.owner.kind !== 'content-type' || field.owner.contentTypeId !== form.contentTypeId) {
+      diagnostics.push(diagnostic(
+        'invalid-field-mapping',
+        'El campo mapeado debe pertenecer al tipo de contenido del formulario.',
+        ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
+      ))
+      continue
+    }
+    if (field.type !== control.type) {
+      diagnostics.push(diagnostic(
+        'invalid-field-mapping',
+        `El control ${control.label} (${control.type}) solo puede mapearse a un campo compatible del mismo tipo.`,
+        ['cms', 'forms', form.id, 'controls', control.id, 'mappedFieldId'],
+      ))
+    }
+  }
+  return diagnostics
+}
 
+function conditionSourceDiagnostics(cms: CmsBackend, form: Form): FormBuilderDiagnostic[] {
+  const diagnostics: FormBuilderDiagnostic[] = []
+  const mappedSources = new Map<string, string[]>()
+  for (const control of Object.values(form.controls)) {
+    if (!control.mappedFieldId) continue
+    const owners = mappedSources.get(control.mappedFieldId) ?? []
+    owners.push(control.id)
+    mappedSources.set(control.mappedFieldId, owners)
+  }
+  for (const control of Object.values(form.controls)) {
     for (const group of control.conditions) {
       for (const condition of group.conditions) {
-        if (!mappedFieldIds.has(condition.fieldId)) {
+        const sourceControls = mappedSources.get(condition.fieldId) ?? []
+        if (sourceControls.length === 0) {
           diagnostics.push(diagnostic(
             'invalid-condition-source',
-            'Cada condición debe usar un campo que esté conectado a otro control del formulario.',
+            'Cada condición del formulario debe depender de otro campo que también esté presente y conectado.',
             ['cms', 'forms', form.id, 'controls', control.id, 'conditions'],
           ))
-        } else if (control.mappedFieldId === condition.fieldId) {
+        } else if (control.mappedFieldId === condition.fieldId && sourceControls.every((sourceId) => sourceId === control.id)) {
           diagnostics.push(diagnostic(
             'invalid-condition-source',
-            'Un campo no puede decidir su propia visibilidad.',
+            'Un campo no puede usar su propio valor como única condición de visibilidad.',
             ['cms', 'forms', form.id, 'controls', control.id, 'conditions'],
           ))
         }
@@ -149,6 +170,8 @@ function validateCandidate(
 ): Result<ProjectStructure, readonly FormBuilderDiagnostic[]> {
   const mappings = mappingDiagnostics(cms, form)
   if (mappings.length > 0) return failure(mappings)
+  const conditionSources = conditionSourceDiagnostics(cms, form)
+  if (conditionSources.length > 0) return failure(conditionSources)
 
   const cmsValidation = validateCmsBackend(cms)
   if (!cmsValidation.ok) {
