@@ -29,7 +29,8 @@ describe('arquitectura de navegación CMS/builder', () => {
     const library = screen.getByRole('complementary', { name: /biblioteca y capas/i })
     expect(within(library).queryByRole('tab', { name: /datos|contenido/i })).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
+    const navigation = screen.getByRole('navigation', { name: /navegación principal/i })
+    fireEvent.click(within(navigation).getByRole('button', { name: 'Contenido' }))
     const cms = screen.getByRole('region', { name: /contenido dinámico · módulo principal/i })
     expect(cms).toBeInTheDocument()
     expect(within(cms).getByRole('tablist', { name: /herramientas de contenido/i })).toBeInTheDocument()
