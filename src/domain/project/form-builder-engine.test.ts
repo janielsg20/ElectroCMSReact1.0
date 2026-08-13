@@ -168,8 +168,7 @@ describe('M11.1/M11.2 form builder engine', () => {
     expect(updated.value.cms?.forms[formId]?.controls[secondControlId]?.conditions).toEqual(conditions)
 
     const removed = removeFormControl(updated.value, formId, firstControlId)
-    expect(removed.ok).toBe(false)
-    expect(removed).toMatchObject({ ok: false, error: [{ code: 'invalid-cms' }] })
+    expect(removed).toMatchObject({ ok: false, error: [{ code: 'invalid-condition-source' }] })
 
     const conditionsCleared = updateFormControl(updated.value, formId, secondControlId, { conditions: [] })
     expect(conditionsCleared.ok).toBe(true)
@@ -181,6 +180,22 @@ describe('M11.1/M11.2 form builder engine', () => {
     expect(removedAfterClear.value.cms?.forms[formId]?.controls[firstControlId]).toBeUndefined()
 
     expect(removeFormControl(removedAfterClear.value, formId, secondControlId)).toMatchObject({ ok: false, error: [{ code: 'last-control-in-step' }] })
+  })
+
+  it('rechaza condiciones sin origen evaluable y autorreferencias', () => {
+    const created = createForm(structure(), form())
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+
+    const selfCondition = updateFormControl(created.value, formId, firstControlId, {
+      conditions: [{ conditions: [{ fieldId: textFieldId, operator: 'exists', value: null }], operator: 'all' }],
+    })
+    expect(selfCondition).toMatchObject({ ok: false, error: [{ code: 'invalid-condition-source' }] })
+
+    const orphan = updateFormControl(created.value, formId, firstControlId, {
+      conditions: [{ conditions: [{ fieldId: numberFieldId, operator: 'exists', value: null }], operator: 'all' }],
+    })
+    expect(orphan).toMatchObject({ ok: false, error: [{ code: 'invalid-condition-source' }] })
   })
 
   it('rechaza mapeos incompatibles y protege cambios de CPT que invalidarían campos', () => {
