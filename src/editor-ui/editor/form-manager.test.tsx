@@ -81,7 +81,7 @@ async function renderForms() {
   return { formsTab, session }
 }
 
-describe('M11.1 FormManager', () => {
+describe('M11 FormManager', () => {
   it('expone los 27 tipos mediante ChoiceField portado y solo mapea campos compatibles', async () => {
     const { formsTab } = await renderForms()
     expect(formsTab).toHaveClass('min-h-11', 'shrink-0')
@@ -156,6 +156,52 @@ describe('M11.1 FormManager', () => {
       const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
       const message = Object.values(current?.controls ?? {}).find((control) => control.label === 'Mensaje')
       expect(message?.required).toBe(false)
+    })
+  })
+
+  it('configura y reordena el pipeline de 12 acciones mediante la UI', async () => {
+    const { session } = await renderForms()
+    fireEvent.click(screen.getByRole('button', { name: 'Crear formulario' }))
+    const heading = await screen.findByRole('heading', { name: 'Qué ocurre al completar' })
+    const section = heading.closest('section')
+    expect(section).not.toBeNull()
+    if (!section) return
+    const actions = within(section)
+
+    fireEvent.click(actions.getByRole('button', { name: 'Añadir acción' }))
+    const choices = screen.getByRole('listbox', { name: 'Añadir acción' })
+    expect(within(choices).getAllByRole('option')).toHaveLength(12)
+    fireEvent.click(within(choices).getByRole('option', { name: /Mostrar mensaje/ }))
+    fireEvent.click(actions.getByRole('button', { name: 'Añadir' }))
+
+    await waitFor(() => {
+      const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
+      expect(current?.actions).toHaveLength(1)
+      expect(current?.actions[0]?.kind).toBe('show-message')
+    })
+
+    const messageInput = actions.getByRole('textbox', { name: /^Mensaje/ })
+    fireEvent.change(messageInput, { target: { value: 'Gracias por enviar.' } })
+    fireEvent.click(actions.getByRole('button', { name: 'Guardar acción' }))
+    await waitFor(() => {
+      const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
+      expect(current?.actions[0]?.config.message).toBe('Gracias por enviar.')
+    })
+
+    fireEvent.click(actions.getByRole('button', { name: 'Añadir acción' }))
+    const nextChoices = screen.getByRole('listbox', { name: 'Añadir acción' })
+    fireEvent.click(within(nextChoices).getByRole('option', { name: /Redirigir/ }))
+    fireEvent.click(actions.getByRole('button', { name: 'Añadir' }))
+    await waitFor(() => {
+      const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
+      expect(current?.actions.map((action) => action.kind)).toEqual(['show-message', 'redirect'])
+    })
+
+    const moveRedirectUp = actions.getByRole('button', { name: 'Mover arriba Redirigir' })
+    fireEvent.click(moveRedirectUp)
+    await waitFor(() => {
+      const current = Object.values(session.store.structure.cms?.forms ?? {})[0]
+      expect(current?.actions.map((action) => action.kind)).toEqual(['redirect', 'show-message'])
     })
   })
 })
