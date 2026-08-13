@@ -1,1 +1,1 @@
-export * from './ProjectDataPanelCore'
+export { ProjectDataPanel } from './ProjectDataPanelCore'
