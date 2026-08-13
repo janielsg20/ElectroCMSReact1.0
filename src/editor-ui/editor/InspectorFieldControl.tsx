@@ -234,7 +234,7 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="mt-1.5 flex gap-1">
         <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={disabled} type="submit">{pending ? 'Guardando…' : 'Guardar'}</button>
-        <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Restablecer</button>
+        <button aria-label={`Restablecer ${field.label}`} className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Restablecer</button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
       <span className="sr-only">Opciones de {definition.label}</span>
