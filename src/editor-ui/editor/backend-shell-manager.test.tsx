@@ -15,7 +15,7 @@ describe('M12.1 BackendShellManager', () => {
     )
 
     expect(screen.queryByText(/ID interno/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/mismo lienzo/i)).toBeInTheDocument()
+    expect(screen.getByText(/No hay un editor separado: este mismo lienzo/i)).toBeInTheDocument()
     fireEvent.change(screen.getByRole('textbox', { name: 'Nombre del panel' }), { target: { value: 'Operaciones' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Nombre en el menú' }), { target: { value: 'Resumen' } })
     fireEvent.click(screen.getByRole('button', { name: 'Usar este lienzo como dashboard' }))
