@@ -12,6 +12,10 @@ const capabilityLabels = {
   content: 'Contenido', identity: 'Usuarios', messaging: 'Mensajería', 'local-storage': 'Local', navigation: 'Navegación', network: 'Externo', relations: 'Relaciones', files: 'Archivos',
 } as const
 
+function isFormActionKind(value: string): value is FormAction['kind'] {
+  return (FORM_ACTION_KINDS as readonly string[]).includes(value)
+}
+
 function configText(config: FormAction['config'], key: string): string {
   const value = config[key]
   return typeof value === 'string' ? value : value === undefined || value === null ? '' : JSON.stringify(value)
@@ -188,7 +192,7 @@ export function FormActionSettings({ cms, form }: { readonly cms: CmsBackend; re
       <div className="grid gap-2 rounded-md border border-border bg-muted/10 p-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <ChoiceField
           label="Añadir acción"
-          onChange={(value) => setNewKind(FORM_ACTION_KINDS.includes(value as FormAction['kind']) ? value as FormAction['kind'] : 'save-record')}
+          onChange={(value) => setNewKind(isFormActionKind(value) ? value : 'save-record')}
           options={FORM_ACTION_KINDS.map((kind) => {
             const definition = formActionDefinition(kind)
             return { description: definition.description, label: definition.label, value: kind }
