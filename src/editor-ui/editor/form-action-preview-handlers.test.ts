@@ -17,25 +17,40 @@ const context = {
 
 describe('M11.4 preview action handlers', () => {
   it('muestra mensajes y prepara redirects sin navegar', async () => {
-    const storage = { setItem: () => undefined }
-    const handlers = createFormActionPreviewHandlers(storage)
+    const handlers = createFormActionPreviewHandlers({ setItem: () => undefined })
+    const showMessage = handlers['show-message']
+    const redirect = handlers.redirect
+    expect(showMessage).toBeDefined()
+    expect(redirect).toBeDefined()
+    if (!showMessage || !redirect) return
 
-    await expect(handlers['show-message']?.(action('show-message', { message: 'Listo' }), context)).resolves.toEqual({ ok: true, output: 'Listo' })
-    await expect(handlers.redirect?.(action('redirect', { url: '/gracias' }), context)).resolves.toEqual({ ok: true, output: '/gracias' })
+    expect(await showMessage(action('show-message', { message: 'Listo' }), context)).toEqual({ ok: true, output: 'Listo' })
+    expect(await redirect(action('redirect', { url: '/gracias' }), context)).toEqual({ ok: true, output: '/gracias' })
   })
 
   it('guarda una copia local de los valores mapeados', async () => {
     const entries = new Map<string, string>()
     const handlers = createFormActionPreviewHandlers({ setItem: (key, value) => entries.set(key, value) })
+    const saveLocal = handlers['save-local']
+    expect(saveLocal).toBeDefined()
+    if (!saveLocal) return
 
-    await expect(handlers['save-local']?.(action('save-local', { key: 'contacto' }), context)).resolves.toEqual({ ok: true, output: 'contacto' })
+    expect(await saveLocal(action('save-local', { key: 'contacto' }), context)).toEqual({ ok: true, output: 'contacto' })
     expect(JSON.parse(entries.get('electrocms:form-action:contacto') ?? '{}')).toEqual({ field: 'Ada' })
   })
 
   it('rechaza configuración incompleta o almacenamiento fallido', async () => {
     const broken = createFormActionPreviewHandlers({ setItem: () => { throw new Error('quota') } })
-    await expect(broken['show-message']?.(action('show-message', {}), context)).resolves.toMatchObject({ ok: false })
-    await expect(broken.redirect?.(action('redirect', {}), context)).resolves.toMatchObject({ ok: false })
-    await expect(broken['save-local']?.(action('save-local', { key: 'x' }), context)).resolves.toMatchObject({ ok: false })
+    const showMessage = broken['show-message']
+    const redirect = broken.redirect
+    const saveLocal = broken['save-local']
+    expect(showMessage).toBeDefined()
+    expect(redirect).toBeDefined()
+    expect(saveLocal).toBeDefined()
+    if (!showMessage || !redirect || !saveLocal) return
+
+    expect(await showMessage(action('show-message', {}), context)).toMatchObject({ ok: false })
+    expect(await redirect(action('redirect', {}), context)).toMatchObject({ ok: false })
+    expect(await saveLocal(action('save-local', { key: 'x' }), context)).toMatchObject({ ok: false })
   })
 })
