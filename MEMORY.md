@@ -22,23 +22,25 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 - M11.1 `COMPLETADA` — Builder y campos.
 - M11.2 `COMPLETADA` — Validación y lógica condicional.
 - M11.3 `COMPLETADA` — Multipaso y borradores.
-- Microfase activa: `M11.4 — Pipeline de acciones`.
-- M11.5 y F12–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- M11.4 `COMPLETADA` — Pipeline de acciones.
+- Microfase activa: `M11.5 — Seguridad y compatibilidad de exportación`.
+- F12–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
 - Producción no se despliega desde el PR draft #23.
 
 ## Última puerta verde
 
-M11.3 cerró con GitHub Actions run `31664445460` sobre `3c0510fcea5a72d75a88d175ac830a8b1996ba75`:
+M11.4 cerró con GitHub Actions run `31665873773` (run #591) sobre `94f550b3a4cbf40f3ff9479c3a5d2736825bbf8a`:
 
 - lint: verde.
 - typecheck: verde.
-- suite completa: 98 archivos / 400 pruebas verdes.
+- suite completa: verde.
 - build: verde.
-- auditoría Chromium: 20 estados, 0 overflow, 0 targets touch <44×44 —incluido `forms-mobile`—, 0 errores de arquitectura, 0 excepciones y 0 warnings/errors de consola.
-- preview artifact: verde y Cloudflare preview lanzado desde build validado.
+- auditoría Chromium: verde.
+- browser audit artifact y PR preview artifact: verdes.
+- Cloudflare preview usa el build validado.
 - producción: skipped por PR draft.
 
-## Formularios consolidados hasta M11.3
+## Formularios consolidados hasta M11.4
 
 ### Builder
 
@@ -69,19 +71,31 @@ M11.3 cerró con GitHub Actions run `31664445460` sobre `3c0510fcea5a72d75a88d17
 - Recuperación restaura valores y último paso; descarte exige confirmación y limpia el borrador.
 - Los borradores de respuestas son estado transitorio local y no duplican `ProjectStructure`.
 
-## M11.4 activa — Pipeline de acciones
+### Pipeline de acciones
 
-Objetivo exacto: ejecutar `Form.actions` secuencialmente usando el contrato existente y adapters explícitos para capacidades externas.
+- `FormActionSchema` conserva 12 kinds canónicos; no existe taxonomía paralela.
+- `form-action-engine.ts`: valida una vez, mapea valores una vez, ejecuta secuencialmente y corta en el primer fallo.
+- `form-action-catalog.ts`: nombres de usuario, configuración y referencias funcionales de las 12 acciones.
+- `FormActionSettings`: añadir/configurar/reordenar/eliminar mediante controles ElectroCMS.
+- Preview seguro ejecuta `show-message`, `save-local` y `redirect`; redirect no navega fuera del editor.
+- Email/webhook/auth/upload u otra integración sin adapter real retorna `adapter-missing`; nunca simula éxito.
+- `form-project-action-adapter.ts` implementa localmente `save-record`, `create-content`, `update-content` y `update-relation` reutilizando `record-relation-engine`.
+- Acciones reales de contenido crean/actualizan registros y relaciones en una copia del `ProjectStructure`; los adapters de producción posteriores decidirán persistencia/transportes según destino.
+
+## M11.5 activa — Seguridad y compatibilidad
+
+Objetivo exacto: cerrar F11 con contratos portables de seguridad y una matriz honesta de compatibilidad por destino.
 
 Reglas:
 
-- `FormActionSchema` sigue siendo la única taxonomía canónica.
-- Ejecutar acciones en orden y detener/diagnosticar fallos determinísticamente.
-- Mapear controles a Custom Fields una sola vez por submit.
-- Acciones externas sin adapter real deben fallar con diagnóstico; nunca fingir éxito.
-- Cubrir los kinds existentes: `save-record`, `create-content`, `update-content`, `register-user`, `sign-in`, `send-email`, `save-local`, `redirect`, `show-message`, `webhook`, `update-relation`, `upload-file`.
-- UI de acciones dentro de Formularios con orden, configuración comprensible, controles ElectroCMS y divulgación progresiva.
-- M11.5 queda fuera hasta que M11.4 tenga gate completo.
+- Normalizar/validar payloads antes de adapters: controles conocidos, límites de tamaño y estructuras portables.
+- Política de archivos: MIME, extensión y tamaño; la verificación final pertenece al destino/servidor.
+- `csrfProtection` expresa exigencia portable para destinos con servidor; no generar tokens falsos en el editor local.
+- Rate limiting, honeypot y CAPTCHA se modelan como requisitos/capacidades del destino; no fingir middleware inexistente.
+- Escapar salida en renderer/exportador, no aplicar HTML escaping irreversible a valores almacenados.
+- Matriz de compatibilidad Local/React/LAMP/WordPress debe reflejar el estado real y distinguir nativo, requiere adapter y todavía no implementado.
+- UI en Formularios con lenguaje de usuario, divulgación progresiva y sin jerga de schemas/IDs.
+- F11 no se marca completa hasta gate total de M11.5.
 
 ## Regla de calidad
 
@@ -123,4 +137,4 @@ Reglas:
 
 ## Próximo paso exacto
 
-Implementar primero un ejecutor puro de acciones para M11.4 con resultado por acción, mapping único de valores y adapters explícitos; probar orden, corte en fallo y ausencia de adapters. Después conectar constructor/orden de acciones al `FormManager`, pasar gate completo y saltar a M11.5 sin preguntar.
+Implementar `form-security-contract.ts` y `form-export-compatibility.ts` con pruebas; conectar `FormSecuritySettings` al builder, pasar gate completo de M11.5, cerrar F11 y saltar directamente a F12 sin preguntar.
