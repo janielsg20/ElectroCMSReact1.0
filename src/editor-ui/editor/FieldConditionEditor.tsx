@@ -53,7 +53,7 @@ function conditionWithField(condition: Condition, field: FieldDefinition): Condi
 
 export function FieldConditionEditor({ fields, label = 'Cuándo mostrarlo', onChange, value }: FieldConditionEditorProps) {
   const sortedFields = [...fields].sort((left, right) => left.order - right.order || left.label.localeCompare(right.label, 'es'))
-  const fieldOptions = sortedFields.map((field) => ({ description: field.key, label: field.label, value: field.id }))
+  const fieldOptions = sortedFields.map((field) => ({ label: field.label, value: field.id }))
 
   function updateGroup(groupIndex: number, group: ConditionGroup): void {
     onChange(value.map((current, index) => index === groupIndex ? group : current))
