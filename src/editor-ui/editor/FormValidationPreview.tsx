@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import type { CmsBackend, Form, JsonValue } from '../../domain'
-import { isFormControlVisible, validateFormSubmission, type FormRuntimeValues } from '../../domain/project/form-runtime'
+import { isFormControlVisible, validateFormSubmission } from '../../domain/project/form-runtime'
 import { Button, ChoiceField, Icon, TextField } from '../primitives'
 
 type FormControl = Form['controls'][string]
