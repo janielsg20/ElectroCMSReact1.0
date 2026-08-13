@@ -1,11 +1,12 @@
 import { lazy, Suspense, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { HelpTip, Icon } from '../primitives'
-import { DATA_HELP, type DataHelpId } from './feature-help'
+import { DATA_HELP, type DataHelpId, type FeatureHelp } from './feature-help'
 
-type DataTab = DataHelpId
+type DataTab = DataHelpId | 'backend'
 
 interface DataTabDefinition {
   readonly compact: string
+  readonly help?: FeatureHelp
   readonly id: DataTab
   readonly label: string
   readonly overflow: 'auto' | 'hidden'
@@ -19,6 +20,14 @@ const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((modul
 const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
 const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
 const FormManager = lazy(() => import('./FormManager').then((module) => ({ default: module.FormManager })))
+const BackendShellManager = lazy(() => import('./BackendShellManager').then((module) => ({ default: module.BackendShellManager })))
+
+const backendHelp: FeatureHelp = {
+  label: 'Administración visual',
+  description: 'Convierte el lienzo actual en una pantalla del backend y controla cómo aparece en la navegación administrativa sin crear otro editor.',
+  reference: 'WordPress Admin · Elementor-style visual editing',
+  example: 'Convierte un lienzo en Dashboard y sigue diseñándolo con Widgets, Capas e Inspector.',
+}
 
 const tabs: readonly DataTabDefinition[] = [
   { id: 'content-types', label: 'Tipos de contenido', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
@@ -27,6 +36,7 @@ const tabs: readonly DataTabDefinition[] = [
   { id: 'records', label: 'Entradas y relaciones', compact: 'Entradas', title: 'Entradas y relaciones', overflow: 'auto', panel: RecordRelationManager },
   { id: 'queries', label: 'Qué contenido mostrar', compact: 'Consultas', title: 'Consultas de contenido', overflow: 'hidden', panel: QueryManager },
   { id: 'forms', label: 'Formularios', compact: 'Formularios', title: 'Formularios', overflow: 'auto', panel: FormManager },
+  { id: 'backend', label: 'Administración', compact: 'Admin', title: 'Administración visual', overflow: 'auto', panel: BackendShellManager, help: backendHelp },
 ]
 
 function DataPanelFallback({ label }: { readonly label: string }) {
@@ -45,13 +55,13 @@ export function ProjectDataPanel() {
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
   if (!active) throw new Error('El módulo de contenido requiere al menos una pestaña.')
   const ActivePanel = active.panel
-  const help = DATA_HELP[active.id]
+  const help = active.help ?? DATA_HELP[active.id as DataHelpId]
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
       <div className="shrink-0 border-b border-border bg-surface">
         <div className="flex items-center gap-2 px-2 py-1.5 lg:px-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={active.id === 'forms' ? 'form' : 'database'} size={14} /></span>
+          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary-soft text-primary"><Icon name={active.id === 'forms' ? 'form' : active.id === 'backend' ? 'content' : 'database'} size={14} /></span>
           <div className="min-w-0 flex-1">
             <strong className="block truncate text-xs text-foreground">{help.label}</strong>
             <span className="block truncate text-[0.625rem] text-muted-foreground">{help.description}</span>
