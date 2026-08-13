@@ -7,10 +7,10 @@ Actualizado: 2026-08-12.
 ## Estado global
 
 - Fase actual: `F11 — Formularios y acciones`.
-- Microfase actual: `M11.4 — Pipeline de acciones`.
+- Microfase actual: `M11.5 — Seguridad y compatibilidad de exportación`.
 - Estado: `EN_CURSO`.
 - F00–F10: `COMPLETADA`.
-- F11: M11.1 `COMPLETADA`; M11.2 `COMPLETADA`; M11.3 `COMPLETADA`; M11.4 activa; M11.5 `NO_INICIADA`.
+- F11: M11.1 `COMPLETADA`; M11.2 `COMPLETADA`; M11.3 `COMPLETADA`; M11.4 `COMPLETADA`; M11.5 activa.
 - F12–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 - Producción no se despliega desde el PR draft #23.
@@ -22,7 +22,7 @@ Actualizado: 2026-08-12.
 | F00–F08 | COMPLETADA | Base, plataforma, editor, widgets, inspector y temas |
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
-| F11 | EN_CURSO | M11.1–M11.3 completadas; M11.4 Pipeline de acciones activa |
+| F11 | EN_CURSO | M11.1–M11.4 completadas; M11.5 Seguridad/compatibilidad activa |
 | F12–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
@@ -107,26 +107,53 @@ GitHub Actions run `31664445460` sobre `3c0510fcea5a72d75a88d175ac830a8b1996ba75
 - preview artifact: `VERDE`; Cloudflare PR preview iniciado desde build validado.
 - producción: `SKIPPED` por PR draft.
 
-## M11.4 — alcance activo
+## M11.4 completada — Pipeline de acciones
 
-Objetivo: ejecutar `Form.actions` en orden mediante un pipeline canónico y observable, sin simular integraciones externas inexistentes.
+- `FormActionSchema` sigue siendo la única taxonomía persistente; se conservan sus 12 kinds existentes.
+- `form-action-engine.ts` valida una vez, mapea controles a Custom Fields una vez y ejecuta acciones secuencialmente.
+- El pipeline corta de forma determinista ante validación fallida, mapping ambiguo, adapter ausente o fallo de acción.
+- `form-action-catalog.ts` centraliza nombres de usuario, capacidades, campos de configuración y referencias funcionales de las 12 acciones.
+- `FormActionSettings` permite añadir, configurar, ordenar y eliminar acciones con controles ElectroCMS; no expone IDs como flujo principal.
+- `FormValidationPreview` ejecuta de forma segura `show-message`, `save-local` y `redirect`; redirect no navega fuera del editor.
+- Integraciones externas sin adapter real —correo, webhook, autenticación, upload y similares— devuelven `adapter-missing` y conservan el borrador; nunca se simula éxito.
+- `form-project-action-adapter.ts` implementa acciones locales reales `save-record`, `create-content`, `update-content` y `update-relation` reutilizando `record-relation-engine`.
+- El adapter local crea/actualiza registros, conserva valores no mapeados, encadena relaciones y falla explícitamente si falta contexto.
+- Pruebas cubren orden/corte del pipeline, adapter ausente, ejecución segura de preview, persistencia/reordenamiento UI y mutaciones reales de contenido/relaciones.
+
+### Puerta final M11.4
+
+GitHub Actions run `31665873773` (run #591) sobre `94f550b3a4cbf40f3ff9479c3a5d2736825bbf8a`:
+
+- lint: `VERDE`.
+- typecheck: `VERDE`.
+- suite completa: `VERDE`.
+- build Vite: `VERDE`.
+- Chromium browser audit: `VERDE`.
+- browser audit artifact: `VERDE`.
+- PR preview build artifact: `VERDE`.
+- Cloudflare PR preview desplegándose desde el build validado.
+- producción: `SKIPPED` por PR draft.
+
+## M11.5 — alcance activo
+
+Objetivo: cerrar la fase de formularios con contratos de seguridad portables y una matriz honesta de compatibilidad por destino, sin fingir capacidades de exportación todavía no implementadas.
 
 Reglas de implementación:
 
-- Reutilizar `FormActionSchema`; no crear una segunda taxonomía de acciones.
-- Pipeline secuencial y determinista; cada acción produce resultado/diagnóstico antes de continuar.
-- Separar acciones resolubles localmente de capacidades que requieren adapter externo.
-- Si falta un adapter real para email, webhook, autenticación, subida u otra integración, devolver diagnóstico explícito; nunca reportar éxito falso.
-- Mapear valores de controles a Custom Fields una sola vez y conservar el resultado para acciones de contenido.
-- Preparar acciones de guardar/crear/actualizar contenido, usuario/login, local, redirect, mensaje, relaciones, archivos y webhook según el contrato existente.
-- UI del pipeline en Formularios con `ChoiceField`, orden explícito, configuración comprensible y divulgación progresiva.
-- No implementar todavía seguridad/CSRF/sanitización/compatibilidad de exportadores propia de M11.5.
-- No iniciar M11.5 antes de gate completo de M11.4.
+- Validar y normalizar payloads del formulario antes de entregarlos a cualquier adapter.
+- Rechazar controles desconocidos, payloads excesivos y estructuras no portables.
+- Modelar política de archivos: MIME, extensión y tamaño; no confiar en metadatos del navegador como única garantía del destino.
+- `csrfProtection` debe representar una exigencia portable para exportaciones/destinos con servidor; no generar un token falso en el editor local.
+- Declarar requisitos de rate limit, honeypot y CAPTCHA como capacidades del destino/exportador cuando corresponda.
+- Escapado de salida pertenece al renderer/exportador del destino; no corromper valores almacenados aplicando HTML escaping irreversible en el dominio.
+- Crear matriz de compatibilidad para Local/React/LAMP/WordPress con estados explícitos (`nativo`, `requiere-adapter`, `no-disponible/aún-no-implementado`) según el estado real del proyecto.
+- La UI debe explicar seguridad y compatibilidad en lenguaje de usuario, con divulgación progresiva y sin exponer schemas internos.
+- No marcar F11 completa hasta gate completo de M11.5.
 
 ## Bloqueos
 
-- Ninguno técnico conocido para M11.4.
-- Integraciones externas no conectadas deben representarse como capacidades no disponibles, no como bloqueos ocultos ni éxito simulado.
+- Ninguno técnico conocido para M11.5.
+- Los exportadores de fases posteriores no deben presentarse como implementados; M11.5 define contratos/matriz que ellos deberán cumplir.
 
 ## Regla de avance
 
