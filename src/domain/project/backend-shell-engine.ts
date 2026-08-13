@@ -58,7 +58,7 @@ function normalize(value: string): string {
 function menuContainingScreen(structure: ProjectStructure, screenId: BackendScreenId): { readonly menu: Menu; readonly item: MenuItem } | null {
   const cms = projectCmsBackend(structure.cms)
   for (const menu of Object.values(cms.menus)) {
-    const item = (Object.values(menu.items) as MenuItem[]).find((candidate) => candidate.kind === 'screen' && candidate.screenId === screenId)
+    const item = Object.values(menu.items).find((candidate) => candidate.kind === 'screen' && candidate.screenId === screenId)
     if (item) return { item, menu }
   }
   return null
@@ -206,7 +206,7 @@ export function deleteAdminShell(
     if (removedIds.length === 0) continue
     const removed = new Set(removedIds)
     menu.rootItemIds = menu.rootItemIds.filter((id) => !removed.has(id))
-    for (const item of Object.values(menu.items) as MenuItem[]) {
+    for (const item of Object.values(menu.items)) {
       item.childIds = item.childIds.filter((id) => !removed.has(id))
     }
     for (const itemId of removedIds) delete menu.items[itemId]

@@ -16,7 +16,6 @@ import {
 } from './workspace-preferences'
 import { Button, Icon } from '../primitives'
 import { getEditorThemePreset } from '../theme/editor-presets'
-import { BackendShellManager } from './BackendShellManager'
 
 type PointerInteraction =
   | { readonly kind: 'nav-resize'; readonly startX: number; readonly startWidth: number }
