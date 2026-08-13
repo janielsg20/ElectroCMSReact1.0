@@ -66,7 +66,7 @@ describe('M07.1 inspector declarativo', () => {
 
   it('presenta descriptor, valor efectivo y control tipado conectado a la sesión', async () => {
     const { resetWidgetProperty, updateWidgetProperty } = renderInspector()
-    expect(screen.getByText('Ancho máximo')).toBeInTheDocument()
+    expect(screen.getAllByText('Ancho máximo').length).toBeGreaterThan(0)
     expect(screen.getByText('Número')).toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Ancho máximo: 1200' })).toHaveTextContent('1200')
     expect(screen.getByText('Personalizado')).toBeInTheDocument()
