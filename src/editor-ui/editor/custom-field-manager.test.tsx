@@ -41,7 +41,7 @@ async function renderFields() {
   return session
 }
 
-describe('M09.3 gestor de campos personalizados', () => {
+describe('M09.3/M11.2 gestor de campos personalizados', () => {
   it('crea, edita y elimina un campo real sin exigir claves internas en el flujo normal', async () => {
     const session = await renderFields()
 
@@ -70,7 +70,7 @@ describe('M09.3 gestor de campos personalizados', () => {
     expect(session.store.structure.cms?.contentTypes[contentTypeId]?.fieldIds).toHaveLength(0)
   })
 
-  it('expone los 27 tipos con nombres de usuario y reserva la configuración técnica para avanzado', async () => {
+  it('expone los 27 tipos y reemplaza las condiciones JSON por el editor visual compartido', async () => {
     await renderFields()
 
     const typeButton = screen.getByRole('button', { name: 'Tipo de información' })
@@ -88,7 +88,33 @@ describe('M09.3 gestor de campos personalizados', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Opciones avanzadas/i }))
     expect(screen.getByRole('textbox', { name: 'Clave interna' })).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Condiciones técnicas' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /Condiciones técnicas/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /Cuándo mostrar este campo/i })).toBeInTheDocument()
+    expect(screen.getByText(/No hay otros campos disponibles/i)).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Entradas y relaciones' })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('persiste una condición visual contra otro campo del mismo contenido', async () => {
+    const session = await renderFields()
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre visible' }), { target: { value: 'Tipo de cliente' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear campo' }))
+    await screen.findByText(/Tipo de cliente creado/i)
+    const source = Object.values(session.store.structure.cms?.fields ?? {}).find((field) => field.label === 'Tipo de cliente')
+    expect(source).toBeDefined()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nuevo' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre visible' }), { target: { value: 'Empresa' } })
+    fireEvent.click(screen.getByRole('button', { name: /Opciones avanzadas/i }))
+
+    const conditions = screen.getByRole('region', { name: /Cuándo mostrar este campo/i })
+    fireEvent.click(within(conditions).getByRole('button', { name: 'Grupo' }))
+    expect(within(conditions).getByRole('button', { name: 'Campo' })).toHaveTextContent('Tipo de cliente')
+    fireEvent.click(screen.getByRole('button', { name: 'Crear campo' }))
+
+    await screen.findByText(/Empresa creado/i)
+    const target = Object.values(session.store.structure.cms?.fields ?? {}).find((field) => field.label === 'Empresa')
+    expect(target?.conditions).toHaveLength(1)
+    expect(target?.conditions[0]?.conditions[0]).toMatchObject({ fieldId: source?.id, operator: 'equals', value: '' })
   })
 })

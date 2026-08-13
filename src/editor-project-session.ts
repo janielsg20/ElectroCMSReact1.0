@@ -99,6 +99,14 @@ import {
   type FormEditablePatch,
 } from './domain/project/form-builder-engine'
 import {
+  createAdminShell as createAdminShellStructure,
+  deleteAdminShell as deleteAdminShellStructure,
+  updateAdminShell as updateAdminShellStructure,
+  type AdminShellInput,
+  type AdminShellUpdate,
+} from './domain/project/backend-shell-engine'
+import type { BackendScreenId } from './domain/project/identity'
+import {
   createContentRecord as createContentRecordInStructure,
   createRelation as createRelationInStructure,
   createRelationEntry as createRelationEntryInStructure,
@@ -274,6 +282,27 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return this.#execute(new ProjectStructureCommand('template.create-document', `Crear ${document.kind}: ${document.name}`, (structure) => {
       const created = addDocument(structure, document)
       return created.ok ? created : failure({ code: 'invalid-tree' as const, message: created.error.message })
+    }))
+  }
+
+  async createAdminShell(input: AdminShellInput): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.create-admin-shell', `Crear shell administrativo ${input.screenName}`, (structure) => {
+      const created = createAdminShellStructure(structure, input)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El shell administrativo no es válido.' })
+    }))
+  }
+
+  async updateAdminShell(screenId: BackendScreenId, patch: AdminShellUpdate): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.update-admin-shell', 'Actualizar shell administrativo', (structure) => {
+      const updated = updateAdminShellStructure(structure, screenId, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error[0]?.message ?? 'El shell administrativo no es válido.' })
+    }))
+  }
+
+  async deleteAdminShell(screenId: BackendScreenId): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('cms.delete-admin-shell', 'Eliminar shell administrativo', (structure) => {
+      const deleted = deleteAdminShellStructure(structure, screenId)
+      return deleted.ok ? success(deleted.value) : failure({ code: 'invalid-tree' as const, message: deleted.error[0]?.message ?? 'El shell administrativo no se puede retirar.' })
     }))
   }
 

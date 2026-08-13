@@ -5,7 +5,6 @@ import { ProjectStructureRenderStore } from '../../renderers'
 import { EditorProjectProvider } from './EditorProjectProvider'
 import { InspectorPanel } from './InspectorPanel'
 import { STARTER_DOCUMENT_ID, STARTER_PROJECT_STRUCTURE, STARTER_SELECTED_NODE_ID } from './starter-project-structure'
-import { INSPECTOR_SECTION_LABELS, INSPECTOR_SECTION_ORDER } from './inspector-schema-model'
 
 function renderInspector() {
   const store = new ProjectStructureRenderStore(STARTER_PROJECT_STRUCTURE)
@@ -46,29 +45,39 @@ function renderInspector() {
   return { resetNodeDataSettings, resetNodeVisualStyles, resetWidgetProperty, updateNodeDataSettings, updateNodeVisualStyles, updateWidgetProperty }
 }
 
+function openAdvancedDataControls(): void {
+  fireEvent.click(screen.getByText('Datos dinámicos y opciones avanzadas'))
+  fireEvent.click(screen.getByText('Opciones avanzadas (JSON)'))
+}
+
 describe('M07.1 inspector declarativo', () => {
-  it('muestra las nueve secciones y abre la primera que tiene campos', () => {
+  it('muestra solo secciones útiles y abre la primera disponible', () => {
     renderInspector()
     const generated = screen.getByTestId('generated-inspector-sections')
-    for (const section of INSPECTOR_SECTION_ORDER) expect(within(generated).getByText(INSPECTOR_SECTION_LABELS[section])).toBeInTheDocument()
+    expect(within(generated).getByText('Diseño')).toBeInTheDocument()
+    expect(within(generated).getByText('Estilo')).toBeInTheDocument()
+    expect(within(generated).queryByText('Contenido')).not.toBeInTheDocument()
+    expect(within(generated).queryByText('Avanzado')).not.toBeInTheDocument()
     const details = document.querySelectorAll('[data-testid="generated-inspector-sections"] details')
-    expect(details).toHaveLength(9)
-    expect(details[2]).toHaveAttribute('open')
+    expect(details).toHaveLength(2)
+    expect(details[0]).toHaveAttribute('open')
+    expect(screen.getByText('Datos dinámicos y opciones avanzadas').closest('details')).not.toHaveAttribute('open')
   })
 
   it('presenta descriptor, valor efectivo y control tipado conectado a la sesión', async () => {
     const { resetWidgetProperty, updateWidgetProperty } = renderInspector()
-    expect(screen.getByText('Ancho máximo')).toBeInTheDocument()
+    expect(screen.getAllByText('Ancho máximo').length).toBeGreaterThan(0)
     expect(screen.getByText('Número')).toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Ancho máximo: 1200' })).toHaveTextContent('1200')
     expect(screen.getByText('Personalizado')).toBeInTheDocument()
+    expect(screen.queryByText(/Schema:/)).not.toBeInTheDocument()
     const input = screen.getByRole('textbox', { name: 'Ancho máximo Número' })
     expect(input).toHaveAttribute('inputmode', 'decimal')
     expect(input).toHaveValue('1200')
     fireEvent.change(input, { target: { value: '960' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     await waitFor(() => expect(updateWidgetProperty).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, 'maxWidth', 960))
-    fireEvent.click(screen.getByRole('button', { name: 'Restablecer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer Ancho máximo' }))
     await waitFor(() => expect(resetWidgetProperty).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, 'maxWidth'))
   })
 
@@ -98,12 +107,13 @@ describe('M07.1 inspector declarativo', () => {
     }))
   })
 
-  it('valida y aplica bindings, condiciones y atributos ARIA en una sola mutación', async () => {
+  it('valida y aplica conexiones, condiciones y atributos ARIA en una sola mutación', async () => {
     const { updateNodeDataSettings } = renderInspector()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bindings' }), { target: { value: '{"maxWidth":{"kind":"literal","value":960}}' } })
+    openAdvancedDataControls()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Conexiones' }), { target: { value: '{"maxWidth":{"kind":"literal","value":960}}' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Condiciones de visibilidad' }), { target: { value: '[{"operator":"all","negate":false,"predicates":[{"source":{"kind":"literal","value":true},"operator":"equals","value":true}]}]' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Accesibilidad ARIA' }), { target: { value: '{"label":"Contenido principal","role":"region","tabIndex":0}' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
     await waitFor(() => expect(updateNodeDataSettings).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, {
       accessibility: { label: 'Contenido principal', role: 'region', tabIndex: 0 },
       bindings: { maxWidth: { kind: 'literal', value: 960 } },
@@ -113,9 +123,10 @@ describe('M07.1 inspector declarativo', () => {
 
   it('rechaza JSON inválido junto al control sin llamar a la sesión', async () => {
     const { updateNodeDataSettings } = renderInspector()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bindings' }), { target: { value: '{' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Bindings debe contener JSON válido')
+    openAdvancedDataControls()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Conexiones' }), { target: { value: '{' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Conexiones debe contener JSON válido')
     expect(updateNodeDataSettings).not.toHaveBeenCalled()
   })
 })

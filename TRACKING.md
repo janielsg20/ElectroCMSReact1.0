@@ -1,20 +1,19 @@
 # TRACKING — ElectroCMS
 
-Actualizado: 2026-08-12.
+Actualizado: 2026-08-13.
 
 > Estado operativo actual. El historial detallado permanece en `CHANGELOG.md` y en los documentos de sistema de cada fase.
 
 ## Estado global
 
-- Fase actual: `F11 — Formularios y acciones`.
-- Microfase actual: `M11.1 — Builder y campos`.
-- Estado: `EN_CURSO`.
-- Reauditoría UX/UI solicitada: `COMPLETADA` dentro de M11.1. Widgets abre a 360 px, migra solo el antiguo default de 216 px, muestra dos columnas desde 300 px útiles y conserva una columna al estrecharse. Favoritos usa estrella con explicación; el ID técnico deja de competir con nombre/categoría. Validación: lint, typecheck, build, 14 pruebas focalizadas y auditoría Chromium de producción (20 estados, 0 overflow, 0 targets touch <44 px, 0 excepciones/consola).
-- Auditoría UX/UI M11.1: simplificación incremental aplicada a lienzo, Capas, Widgets, Formularios y ayudas contextuales, sin adelantar M11.2–M11.5. El builder ya permite marcar campos obligatorios y reordenarlos por drag accesible o botones, siempre mediante sesión/Command Bus. El diálogo responsive se porta a `document.body` para no quedar deformado por transformaciones del lienzo. Verificación: typecheck, lint, build y 23 pruebas focalizadas verdes; suite global 370/373 antes de corregir tres expectativas/timeouts heredados, luego verdes de forma aislada (la repetición completa serial superó 6 min sin reportar fallos). Auditoría Chromium de producción: 20 estados, 0 overflow horizontal, 0 targets touch <44×44, 0 errores de arquitectura, excepciones o consola.
-- F00–F10: `COMPLETADA`.
-- F11: M11.1 activa; M11.2–M11.5 `NO_INICIADA`.
-- F12–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
+- Fase actual: `F12 — Backend visual, usuarios y permisos`.
+- Microfase actual: `M12.1 — Shell administrativo editable`.
+- Estado: `EN_CURSO — gate final en validación`.
+- F00–F11: `COMPLETADA`.
+- F12: M12.1 activa; M12.2–M12.5 `NO_INICIADA`.
+- F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
+- Producción no se despliega desde el PR draft #23.
 
 ## Roadmap
 
@@ -23,8 +22,9 @@ Actualizado: 2026-08-12.
 | F00–F08 | COMPLETADA | Base, plataforma, editor, widgets, inspector y temas |
 | F09 | COMPLETADA | CPT, taxonomías, campos, registros/relaciones y binding CMS |
 | F10 | COMPLETADA | Consultas, constructor visual, listings, filtros y rendimiento |
-| F11 | EN_CURSO | M11.1 Builder y campos |
-| F12–F18 | NO_INICIADA | Roadmap base restante |
+| F11 | COMPLETADA | Formularios, validación, multipaso, acciones y seguridad portable |
+| F12 | EN_CURSO | M12.1 Shell administrativo editable en gate final |
+| F13–F18 | NO_INICIADA | Roadmap base restante |
 | F19–F31 | NO_INICIADA | Paridad funcional ampliada |
 
 ## Arquitectura de navegación CMS/builder vigente
@@ -33,130 +33,131 @@ Actualizado: 2026-08-12.
 - `Capas` contiene exclusivamente el árbol/estructura del documento actual.
 - `Widgets` contiene exclusivamente la biblioteca insertable.
 - `Inspector` contiene propiedades del elemento seleccionado, incluidos datos dinámicos, con ayuda contextual y sin exponer claves internas como lenguaje principal.
-- `Contenido` es el workspace global para tipos de contenido, clasificaciones, campos, entradas/relaciones, consultas y gestores globales de fases posteriores.
+- `Contenido` es el workspace global para tipos, clasificaciones, campos, entradas/relaciones, consultas y formularios.
 - `Diseño` contiene apariencia global, temas y paquetes exportables.
-- `Páginas` contiene páginas y plantillas del proyecto.
 - Móvil: `Widgets | Capas | Canvas | Props | Más`; `Más` abre módulos globales.
-- Tablet: los paneles contextuales de Capas/Inspector se retiran al abrir un módulo global.
-- Nunca insertar gestores globales de proyecto dentro de Capas o Widgets.
-- Regla transversal: `UX_SIMPLICITY_SYSTEM.md` exige divulgación progresiva, vocabulario de usuario y ayuda `ⓘ` con referencia funcional WordPress/Elementor/ACF/JetEngine cuando corresponda.
+- Tablet: los paneles contextuales se retiran al abrir un módulo global.
+- Regla transversal: `UX_SIMPLICITY_SYSTEM.md` exige divulgación progresiva, vocabulario de usuario y ayuda `ⓘ` con referencias funcionales conocidas cuando aporten aprendizaje.
 
 ## F09 completada
 
 - M09.1 CPT: CRUD canónico, soportes/capacidades/visibilidad y plantillas Single/Archive.
-- M09.2 Taxonomías: CRUD, términos, jerarquía, asociaciones bidireccionales y Archive.
-- M09.3 Campos personalizados: 27 tipos, propietarios, defaults, opciones, condiciones, relaciones, roles y campos compuestos.
+- M09.2 Taxonomías: CRUD, términos, jerarquía y asociaciones bidireccionales.
+- M09.3 Campos personalizados: 27 tipos, defaults, opciones, condiciones, relaciones, roles y campos compuestos.
 - M09.4 Registros/relaciones: CRUD, revisiones portables, cardinalidad e integridad referencial.
 - M09.5 Binding dinámico: `cms-record-field` / `cms-record-property`, preview ready/loading/empty/error e integridad.
 - Puerta final F09: run `31560809320` verde.
 
 ## F10 completada — Consultas, listings y filtros
 
-### M10.1 — AST y Query Engine
+- `QuerySchema` sigue siendo el contrato canónico; Query Engine determinista con grupos, operadores, sort, offset/limit, métricas e índice seguro.
+- `QueryManager` ofrece CRUD/preview persistido por Command Bus.
+- Listings repiten plantillas por registro, paginan la ventana canónica y ejecutan la query una sola vez por página.
+- Smart Filters: 11 tipos, realtime/apply, URL/localStorage, contador, pagination/load-more/reset.
+- Debounce/cancelación, caché LRU e invalidación por identidad CMS.
+- Gestores CMS pesados usan lazy loading; bundle principal sin warning >500 kB.
+- Puerta final F10: run `31608617420`, 88 archivos / 364 pruebas, build/Chromium/preview verdes.
 
-- `QuerySchema` continúa siendo el único contrato canónico.
-- Grupos AND/OR, status, field, taxonomy, author, date, relation y repeater.
-- Operadores completos del schema y orden determinista.
-- `validateQueryDefinition`, `executeCmsQuery` y `executeSavedCmsQuery`.
-- `offset/limit` posteriores a filtrado/orden y `totalMatched` preservado.
-- Gate: run `31561625115`.
+## F11 completada — Formularios y acciones
 
-### M10.2 — Constructor visual y preview
+### M11.1 — Builder y campos
 
-- `QueryManager` vive en `Contenido → Consultas`.
-- CRUD de queries guardadas por Command Bus + IndexedDB + undo/redo.
-- Edición accesible de CPT, grupos, predicados, sort, limit, offset y pageSize.
-- Diagnóstico inline y preview real por `executeCmsQuery`.
-- Resultados grandes virtualizados; no existen datos simulados como sustituto del motor.
+- `FormManager` usa `ProjectStructure.cms.forms`; no existe store/schema paralelo.
+- 27 tipos de campo, mapping visual solo a Custom Fields compatibles y orden canónico en `FormStep.controlIds`.
+- DnD + botones alternativos con teclado/puntero/touch.
+- `ChoiceField` compartido con portal y navegación completa por teclado.
+- Puerta: run `31659028320`, 92 archivos / 380 pruebas, build/Chromium verdes.
 
-### M10.3 — Listings y grids
+### M11.2 — Validación y lógica condicional
 
-- `executeCmsListing`/`executeCmsListingQuery` consumen el Query Engine canónico.
-- Plantilla repetible por registro mediante contexto transitorio del renderer.
-- Paginación accesible, estados empty/error y bindings por registro.
-- Una página de listing ejecuta el Query Engine una sola vez y pagina en memoria la ventana canónica `offset/limit`.
+- `form-runtime.ts` valida `required`, tipos, formatos y restricciones heredadas.
+- Condiciones `all/any`; campos ocultos no generan errores.
+- Errores inline + foco al primer inválido.
+- `FieldConditionEditor` visual compartido por Formularios y Campos personalizados.
+- Puerta: run `31660891827` / #559 verde.
 
-### M10.4 — Filtros inteligentes
+### M11.3 — Multipaso y borradores
 
-- 11 tipos funcionales: búsqueda, selector, rango, checkboxes, radio, fecha, taxonomía, ordenamiento, paginación, carga progresiva y reset.
-- Modos tiempo real y botón aplicar.
-- Estado compartido con listings/queries sin mutar la query persistida.
-- URL + localStorage, contador de resultados, reset y paginación.
-- Controles visuales ElectroCMS para filtros; no se depende de la apariencia nativa del sistema para la experiencia principal.
-- Gate M10.4: run `31602249619`, lint/typecheck/tests/build/Chromium/Cloudflare preview verdes.
+- `Form.steps` permanece como única definición persistente de progresión.
+- `form-step-runtime.ts` renombra, divide, mueve y fusiona pasos preservando invariantes.
+- `FormStepSettings` + preview Paso N/M, Atrás/Siguiente y validación por paso.
+- Borradores `v1` en localStorage solo cuando `draftSaving=true`, recuperación y descarte confirmado.
+- Puerta: run `31664445460`, 98 archivos / 400 pruebas, build/Chromium verdes; 20 estados, 0 overflow, 0 touch targets <44×44, 0 excepciones/consola.
 
-### M10.5 — Composición y rendimiento
+### M11.4 — Pipeline de acciones
 
-- Filtros combinados continúan componiéndose sobre la query canónica transitoria.
-- Debounce y cancelación de entradas pendientes cubiertos con fake timers.
-- Caché LRU de listings con invalidación al cambiar la identidad del CMS.
-- `query-index.ts` reduce candidatos de forma segura para content type/status/igualdad escalar; nunca usa shortcuts semánticamente inseguros.
-- Métricas del Query Engine informan candidatos/evaluados/uso de índice.
-- Eliminada la doble ejecución de la query por página de listing.
-- Gestores CMS pesados usan `React.lazy`/`Suspense` y se cargan bajo demanda.
-- Vite separa runtime React, Zod, DnD, almacenamiento y catálogo de widgets.
-- Chunk principal reducido de ~639.70 kB a `372.23 kB`; desapareció el warning >500 kB.
-- Gestores CMS lazy quedan aproximadamente entre 12–25 kB cada uno.
+- 12 `FormAction` canónicas; catálogo único con configuración y referencias funcionales.
+- Pipeline secuencial: valida/mapea una vez y corta ante fallo o adapter ausente.
+- Editor visual para añadir/configurar/reordenar/eliminar acciones.
+- Preview seguro: mensaje, local y redirect sin navegación real.
+- Adapter local real para guardar/crear/actualizar contenido y actualizar relaciones reutilizando motores M09.
+- Integraciones externas sin adapter nunca simulan éxito.
+- Puerta: run `31665873773` / #591 verde.
 
-### Puerta final F10
+### M11.5 — Seguridad y compatibilidad de exportación
 
-GitHub Actions run `31608617420` sobre `02c99a54d6536535159a3fcbc857c9e131fb3904`:
+- `form-security-contract.ts`: normalización portable, controles conocidos, límites de bytes/strings/colecciones/profundidad y política de archivos por tamaño/MIME/extensión.
+- No se aplica HTML escaping irreversible al valor almacenado; el escape de salida pertenece al renderer/exportador.
+- El pipeline ejecuta `prepareSecureFormPayload` antes del mapping y antes de cualquier adapter; payload inseguro produce `security-failed`.
+- `csrfProtection` es requisito portable para destinos con servidor; el editor no fabrica tokens.
+- Requisitos declarados: revalidación del servidor, rate limit, honeypot, escape de salida, revalidación de archivos y CAPTCHA opcional.
+- `form-export-compatibility.ts` mantiene matriz honesta Local/React/LAMP/WordPress: vista previa/contrato, adapter requerido o exportador pendiente; no declara exportadores futuros como terminados.
+- `FormSecuritySettings` permite editar CSRF y explica seguridad/destinos con lenguaje de usuario; no expone fases internas.
+- Contratos de seguridad/compatibilidad exportados por la API pública.
+
+### Puerta final M11.5 / F11
+
+GitHub Actions run `31666856391` (run #608) sobre el head validado de M11.5:
 
 - lint: `VERDE`.
 - typecheck: `VERDE`.
-- suite completa: `88 archivos / 364 pruebas VERDES`.
+- suite completa: `VERDE`.
 - build Vite: `VERDE`.
 - Chromium browser audit: `VERDE`.
-- 14 estados visuales auditados.
-- horizontal overflow: `0`.
-- targets táctiles <44×44: `0` en `mobile-375`, `mobile-landscape`, `mobile-more` y `cms-mobile`.
-- architecture errors: `0`.
-- Runtime exceptions: `0`.
-- console warnings/errors de la app capturados: `0`.
-- `assert-browser-audit.mjs` convierte los targets táctiles <44×44 en fallo real de CI.
-- build principal: `372.23 kB` (`98.82 kB gzip`).
+- browser audit artifact: `VERDE`.
+- PR preview build artifact: `VERDE`.
 - Cloudflare PR preview: `VERDE`.
 - producción: `SKIPPED` por PR draft.
-- Documento consolidado: `F10_QUERY_LISTING_FILTER_SYSTEM.md`.
 
-## M11.1 — alcance activo
+**F11: COMPLETADA.**
 
-Objetivo exacto: implementar el builder de formularios y todos sus campos/layout/mapeo con edición por teclado, puntero y touch.
+## F12 — Backend visual, usuarios y permisos
 
-Reglas de implementación:
+### M12.1 activa — Shell administrativo editable
 
-- Reutilizar `CmsBackend.forms`, `FormSchema` y `FormControlSchema`; no crear otro modelo/store de formularios.
-- Persistencia por `ProjectStructureCommand` + `ProjectCommandBus` + IndexedDB + undo/redo.
-- Reutilizar el catálogo de widgets de formulario existente; los contratos anticipados no cuentan como M11.1 hasta tener builder funcional.
-- El gestor global del formulario debe vivir en la arquitectura de módulos globales, no dentro de `Capas`.
-- Los controles insertables siguen disponibles en `Widgets` y editables desde Inspector.
-- Builder accesible: añadir/reordenar/eliminar/seleccionar controles por clic, teclado y touch; drag debe tener alternativa equivalente.
-- Mapeo visual de controles a campos personalizados compatibles.
-- Layout y orden deben ser canónicos y exportables; no guardar geometría efímera de UI en el proyecto.
-- Mantener High Density + Minimal Clean: ~36 px escritorio y >=44 px en superficies táctiles.
-- Aplicar `UX_SIMPLICITY_SYSTEM.md`: flujo común primero, opciones avanzadas colapsadas, referencias funcionales conocidas y ningún término interno obligatorio para completar tareas normales.
-- No iniciar M11.2 (validación/condiciones) antes del gate completo de M11.1.
+Objetivo: crear un shell administrativo visual y persistente con header, sidebar, navegación y dashboard, usando el mismo motor de documentos/nodos/plantillas del frontend.
 
-### Implementación en curso
+Decisiones de arquitectura:
 
-- `form-builder-engine.ts`: CRUD, orden y mapping canónico de controles sobre `ProjectStructure.cms.forms`.
-- Pruebas dedicadas del motor; corregido fixture para usar `routePath` canónico.
-- Primitive `HelpTip` con icono `info`, teclado/puntero/touch y referencia funcional.
-- Catálogo `feature-help.ts` para Editor, Páginas, Contenido, Diseño, tipos, clasificaciones, campos, entradas/relaciones, consultas e Inspector.
-- Navegación reescrita por intención: `Crear | Administrar | Apariencia`.
-- `ProjectDataPanel` usa nombres orientados a resultados y ayuda contextual.
-- Inspector elimina `field.key`, `Binding`, `Nodo/Predeterminado` como vocabulario principal y usa `Dato dinámico`, `Personalizado/Global`, `Guardar/Restablecer`.
-- `ContentTypeManager` aplica divulgación progresiva: configuración esencial visible y permisos/soportes/visibilidad/plantillas dentro de `Opciones avanzadas`, sin pérdida funcional.
-- `UX_SIMPLICITY_SYSTEM.md` y `AGENTS.md` hacen esta dirección obligatoria para las fases siguientes.
+- `BackendScreen.documentId` enlaza cada pantalla administrativa con un `Document` normal; no se crea otro canvas ni otro árbol de nodos.
+- `Menu` / `MenuItem` siguen siendo la fuente canónica de navegación administrativa.
+- Header/sidebar/dashboard se modelan con documentos/componentes existentes y referencias del CMS; no se crea un segundo motor visual.
+- `backend-shell-engine.ts` mantiene creación/edición/eliminación de la pantalla y su navegación como una sola mutación validada.
+- `BrowserEditorProjectSession` expone esas mutaciones exclusivamente mediante `ProjectStructureCommand` + `ProjectCommandBus`.
+- `BackendScreen.kind` admite `custom` además de las vistas administrativas estructuradas para representar shells y dashboards libres sin crear otro schema.
+- M12.1 no adelanta CRUD adaptable de M12.2 ni RBAC/contexto/auditoría de M12.3–M12.5.
+- UI de backend debe ser responsive, High Density + Minimal Clean, con controles ElectroCMS y targets táctiles >=44 px.
+
+Criterio de salida de M12.1:
+
+- Shell administrativo editable y persistente.
+- Header, sidebar/navegación y dashboard representados por contratos canónicos existentes.
+- Un BackendScreen puede abrir su mismo `Document` en el editor visual.
+- Navegación administrativa editable sin IDs técnicos en flujo principal.
+- Gate completo: lint + typecheck + suite + build + Chromium.
+
+### Validación M12.1
+
+- Los errores iniciales de integración (schema `custom`, sesión administrativa y tipado de menús) fueron corregidos antes del gate final.
+- El gate final se ejecuta sobre una rama limpia sin workflows/scripts temporales de parcheo.
 
 ## Bloqueos
 
-- Ninguno técnico conocido para M11.1.
-- El warning de bundle >500 kB quedó resuelto durante M10.5.
+- Ninguno técnico conocido para M12.1.
 
 ## Regla de avance
 
-No cambiar de microfase sin evidencia reproducible verde. Desde F09, una fase tampoco se cierra sin auditoría visual real en navegador de la aplicación compilada y corrección de inconsistencias UI/UX/layout detectadas. La auditoría debe comprobar además que los flujos comunes no requieren comprender nombres técnicos internos.
+No cambiar de microfase sin evidencia reproducible verde: lint + typecheck + suite completa + build + auditoría Chromium. Desde F09, la fase tampoco se cierra sin auditoría visual real y corrección de inconsistencias UI/UX/layout detectadas.
 
 ## Documentos de control
 
@@ -164,8 +165,5 @@ No cambiar de microfase sin evidencia reproducible verde. Desde F09, una fase ta
 - Reglas: `RULES.md` y `UX_SIMPLICITY_SYSTEM.md`.
 - Plan: `PHASES.md` y `DETAILED_EXECUTION_PHASES.md`.
 - Memoria corta: `MEMORY.md`.
-- Temas: `THEME_SYSTEM.md`; paquetes: `THEME_PACKAGE_SYSTEM.md`.
-- CPT: `CONTENT_TYPE_SYSTEM.md`; taxonomías: `TAXONOMY_SYSTEM.md`; campos: `CUSTOM_FIELD_SYSTEM.md`.
-- Registros/relaciones: `RECORD_RELATION_SYSTEM.md`; binding dinámico: `DYNAMIC_BINDING_SYSTEM.md`.
-- Consultas: `QUERY_SYSTEM.md`; F10 consolidada: `F10_QUERY_LISTING_FILTER_SYSTEM.md`.
+- Backend: `BACKEND_BUILDER.md`.
 - Historial: `CHANGELOG.md`.

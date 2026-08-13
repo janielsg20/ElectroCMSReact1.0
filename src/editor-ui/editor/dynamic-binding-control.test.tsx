@@ -84,7 +84,7 @@ function record(): ContentRecord {
 }
 
 describe('M09.5 controles de binding dinámico', () => {
-  it('prepara y persiste un binding CMS estructurado y cambia preview sin persistirlo', async () => {
+  it('prepara y persiste una conexión CMS estructurada y cambia preview sin persistirlo', async () => {
     const session = createBrowserEditorProjectSession(`electrocms-bindings-ui-${crypto.randomUUID()}`)
     expect((await requireContentTypeSession(session).createContentType(contentType())).ok).toBe(true)
     expect((await requireCustomFieldSession(session).createCustomField(titleField())).ok).toBe(true)
@@ -95,6 +95,7 @@ describe('M09.5 controles de binding dinámico', () => {
     if (!node || node.kind !== 'widget') throw new Error('Falta paragraph del starter.')
     const definition = registry.get(node.widgetType)
     if (!definition) throw new Error('Falta definición del paragraph.')
+    const textLabel = definition.inspector.find((field) => field.key === 'text')?.label ?? 'Texto'
 
     render(
       <EditorProjectContext value={session}>
@@ -102,15 +103,23 @@ describe('M09.5 controles de binding dinámico', () => {
       </EditorProjectContext>,
     )
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Propiedad destino' }), { target: { value: 'text' } })
-    fireEvent.change(screen.getByRole('combobox', { name: 'Registro de contenido' }), { target: { value: recordId } })
-    fireEvent.change(screen.getByRole('combobox', { name: 'Campo del registro' }), { target: { value: fieldId } })
-    fireEvent.click(screen.getByRole('button', { name: 'Preparar binding CMS' }))
-    const configuredBindings = screen.getByLabelText('Bindings configurados')
-    expect(within(configuredBindings).getByText(/Registro .* Título CMS/i)).toBeInTheDocument()
-    expect(within(configuredBindings).getByRole('button', { name: 'Quitar binding text' })).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Datos dinámicos y opciones avanzadas'))
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aplicar datos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Qué quieres conectar' }))
+    fireEvent.click(screen.getByRole('option', { name: new RegExp(textLabel, 'i') }))
+    fireEvent.click(screen.getByRole('button', { name: 'Contenido' }))
+    fireEvent.click(screen.getByRole('option', { name: /Artículo/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Campo' }))
+    fireEvent.click(screen.getByRole('option', { name: /Título CMS/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Preparar conexión' }))
+
+    const configuredBindings = screen.getByLabelText('Conexiones configuradas')
+    expect(within(configuredBindings).getByText(textLabel)).toBeInTheDocument()
+    expect(within(configuredBindings).getByText(/Artículo · Título CMS/i)).toBeInTheDocument()
+    expect(within(configuredBindings).getByRole('button', { name: `Quitar conexión ${textLabel}` })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
     await waitFor(() => expect(session.store.structure.documents[session.documentId]?.nodes[node.id]?.bindings.text).toEqual({
       fieldId,
       kind: 'cms-record-field',
@@ -118,9 +127,10 @@ describe('M09.5 controles de binding dinámico', () => {
     }))
 
     const beforePreview = structuredClone(session.store.structure)
-    fireEvent.change(screen.getByRole('combobox', { name: 'Estado de preview' }), { target: { value: 'loading' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Estado de vista previa' }))
+    fireEvent.click(screen.getByRole('option', { name: /Cargando/i }))
     expect(session.store.getNodeDataPreviewMode(node.id)).toBe('loading')
     expect(session.store.structure).toEqual(beforePreview)
-    expect(screen.getByText(/nunca se guardan en ProjectStructure/i)).toBeInTheDocument()
+    expect(screen.getByText(/solo cambian el lienzo durante esta sesión/i)).toBeInTheDocument()
   })
 })

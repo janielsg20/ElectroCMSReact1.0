@@ -256,7 +256,7 @@ export const BackendScreenSchema = z.strictObject({
   id: BackendScreenIdSchema,
   name: LabelSchema,
   route: RouteSchema,
-  kind: z.enum(['dashboard', 'table', 'form', 'detail', 'calendar', 'kanban', 'chart', 'metrics', 'listing']),
+  kind: z.enum(['dashboard', 'table', 'form', 'detail', 'calendar', 'kanban', 'chart', 'metrics', 'listing', 'custom']),
   documentId: DocumentIdSchema,
   contentTypeId: ContentTypeIdSchema.nullable(),
   queryId: QueryIdSchema.nullable(),
@@ -294,6 +294,7 @@ export type Query = z.infer<typeof QuerySchema>
 export type Form = z.infer<typeof FormSchema>
 export type Role = z.infer<typeof RoleSchema>
 export type User = z.infer<typeof UserSchema>
+export type MenuItem = z.infer<typeof MenuItemSchema>
 export type Menu = z.infer<typeof MenuSchema>
 export type BackendScreen = z.infer<typeof BackendScreenSchema>
 export type CmsBackend = z.infer<typeof CmsBackendSchema>

@@ -40,6 +40,11 @@ function setup() {
   return { insertWidget }
 }
 
+function selectCategory(label: string): void {
+  fireEvent.click(screen.getByRole('button', { name: 'Filtrar por categoría' }))
+  fireEvent.click(screen.getByRole('option', { name: new RegExp(label, 'i') }))
+}
+
 describe('M06.5 UX de biblioteca', () => {
   it('configura DnD independiente para pointer y touch y conserva alternativa por clic', () => {
     setup()
@@ -51,18 +56,31 @@ describe('M06.5 UX de biblioteca', () => {
     expect(screen.getByRole('button', { name: 'Añadir Contenedor a favoritos' })).toHaveAttribute('aria-description', expect.stringContaining('vista Favoritos'))
   })
 
-  it('filtra por búsqueda, categoría y favoritos con miniaturas declarativas', () => {
+  it('filtra por búsqueda, categoría y favoritos con controles ElectroCMS', () => {
     setup()
+    expect(screen.queryByRole('combobox', { name: 'Filtrar por categoría' })).not.toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Miniatura de Contenedor' })).toBeInTheDocument()
-    fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar por categoría' }), { target: { value: 'forms' } })
+    selectCategory('Formularios')
     expect(screen.queryByText('Contenedor')).not.toBeInTheDocument()
     expect(screen.getAllByText(/Formulario/i).length).toBeGreaterThan(0)
-    fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar por categoría' }), { target: { value: 'all' } })
+    selectCategory('Todas las categorías')
 
     fireEvent.click(screen.getByRole('button', { name: 'Añadir Contenedor a favoritos' }))
     fireEvent.click(screen.getByRole('button', { name: 'Favoritos' }))
     expect(screen.getByText('Contenedor')).toBeInTheDocument()
     expect(screen.queryByText('Título H1–H6')).not.toBeInTheDocument()
+  })
+
+  it('encuentra widgets por referencias funcionales conocidas sin exponer IDs técnicos', async () => {
+    setup()
+    const search = screen.getByRole('searchbox', { name: 'Buscar widgets' })
+    expect(search).toHaveAttribute('placeholder', 'Buscar por nombre, función o referencia')
+    fireEvent.change(search, { target: { value: 'JetEngine' } })
+    await waitFor(() => {
+      const count = Number(screen.getByLabelText(/elementos visibles$/).textContent ?? '0')
+      expect(count).toBeGreaterThan(0)
+    })
+    expect(screen.queryByText('content.dynamic-field')).not.toBeInTheDocument()
   })
 
   it('inserta por clic, registra recientes y persiste preferencias fuera del documento', async () => {

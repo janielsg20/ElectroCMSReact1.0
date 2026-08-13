@@ -1,15 +1,15 @@
 import type { JsonValue, Node, WidgetDefinition, WidgetInspectorField, InspectorSection } from '../../domain'
 
-export const INSPECTOR_SECTION_ORDER = ['content', 'style', 'layout', 'responsive', 'data', 'conditions', 'animations', 'accessibility', 'advanced'] as const satisfies readonly InspectorSection[]
+export const INSPECTOR_SECTION_ORDER = ['content', 'layout', 'style', 'responsive', 'data', 'conditions', 'animations', 'accessibility', 'advanced'] as const satisfies readonly InspectorSection[]
 
 export const INSPECTOR_SECTION_LABELS: Record<InspectorSection, string> = {
   accessibility: 'Accesibilidad',
   advanced: 'Avanzado',
-  animations: 'Animaciones',
-  conditions: 'Condiciones',
+  animations: 'Animaciones e interacciones',
+  conditions: 'Visibilidad condicional',
   content: 'Contenido',
-  data: 'Datos',
-  layout: 'Layout',
+  data: 'Datos dinámicos',
+  layout: 'Diseño',
   responsive: 'Responsive',
   style: 'Estilo',
 }

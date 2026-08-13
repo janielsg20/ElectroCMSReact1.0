@@ -30,7 +30,6 @@ export {
   parseBreakpointId,
   parseContentRecordId,
   parseContentRecordRevisionId,
-  parseContentTypeId,
   parseDocumentId,
   parseFieldDefinitionId,
   parseFormId,
@@ -280,6 +279,17 @@ export {
   type TaxonomyTerm,
   type User,
 } from './cms-schema'
+export {
+  isFormControlVisible,
+  validateFormControl,
+  validateFormSubmission,
+  type FormControlRuntimeState,
+  type FormRuntimeValue,
+  type FormRuntimeValues,
+  type FormValidationError,
+  type FormValidationErrorCode,
+  type FormValidationResult,
+} from './form-runtime'
 export {
   createContentRecord,
   createRelation,

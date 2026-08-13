@@ -21,6 +21,7 @@ export type FormBuilderDiagnosticCode =
   | 'control-name-conflict'
   | 'invalid-control-position'
   | 'invalid-field-mapping'
+  | 'invalid-condition-source'
   | 'last-control-in-step'
   | 'invalid-form'
   | 'invalid-cms'
@@ -32,9 +33,18 @@ export interface FormBuilderDiagnostic {
   readonly path: readonly (string | number)[]
 }
 
-export type FormEditablePatch = Partial<Pick<Form, 'name' | 'contentTypeId'>>
+export type FormEditablePatch = Partial<Pick<Form,
+  'name'
+  | 'contentTypeId'
+  | 'successMessage'
+  | 'errorMessage'
+  | 'steps'
+  | 'draftSaving'
+  | 'actions'
+  | 'csrfProtection'
+>>
 export type FormControlEditablePatch = Partial<Pick<FormControl,
-  'name' | 'label' | 'type' | 'mappedFieldId' | 'required'
+  'name' | 'label' | 'type' | 'mappedFieldId' | 'required' | 'conditions'
 >>
 
 function diagnostic(
@@ -121,6 +131,38 @@ function mappingDiagnostics(cms: CmsBackend, form: Form): FormBuilderDiagnostic[
   return diagnostics
 }
 
+function conditionSourceDiagnostics(form: Form): FormBuilderDiagnostic[] {
+  const diagnostics: FormBuilderDiagnostic[] = []
+  const mappedSources = new Map<string, string[]>()
+  for (const control of Object.values(form.controls)) {
+    if (!control.mappedFieldId) continue
+    const owners = mappedSources.get(control.mappedFieldId) ?? []
+    owners.push(control.id)
+    mappedSources.set(control.mappedFieldId, owners)
+  }
+  for (const control of Object.values(form.controls)) {
+    for (const group of control.conditions) {
+      for (const condition of group.conditions) {
+        const sourceControls = mappedSources.get(condition.fieldId) ?? []
+        if (sourceControls.length === 0) {
+          diagnostics.push(diagnostic(
+            'invalid-condition-source',
+            'Cada condición del formulario debe depender de otro campo que también esté presente y conectado.',
+            ['cms', 'forms', form.id, 'controls', control.id, 'conditions'],
+          ))
+        } else if (control.mappedFieldId === condition.fieldId && sourceControls.every((sourceId) => sourceId === control.id)) {
+          diagnostics.push(diagnostic(
+            'invalid-condition-source',
+            'Un campo no puede usar su propio valor como única condición de visibilidad.',
+            ['cms', 'forms', form.id, 'controls', control.id, 'conditions'],
+          ))
+        }
+      }
+    }
+  }
+  return diagnostics
+}
+
 function validateCandidate(
   structure: ProjectStructure,
   cms: CmsBackend,
@@ -128,6 +170,8 @@ function validateCandidate(
 ): Result<ProjectStructure, readonly FormBuilderDiagnostic[]> {
   const mappings = mappingDiagnostics(cms, form)
   if (mappings.length > 0) return failure(mappings)
+  const conditionSources = conditionSourceDiagnostics(form)
+  if (conditionSources.length > 0) return failure(conditionSources)
 
   const cmsValidation = validateCmsBackend(cms)
   if (!cmsValidation.ok) {

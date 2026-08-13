@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import {
   parseFormId,
   type CmsBackend,
@@ -21,10 +21,11 @@ import {
 } from '../../domain'
 import { projectCmsBackend } from '../../domain/project/cms-defaults'
 import type { FormControl } from '../../domain/project/form-builder-engine'
-import { Button, HelpTip, Icon, TextField } from '../primitives'
+import { Button, ChoiceField, HelpTip, Icon, TextField } from '../primitives'
 import { useEditorProjectStructure } from './editor-project-context'
 import { FORM_HELP, type FeatureHelp } from './feature-help'
 import { useFormSession } from './form-session-context'
+import { FormValidationSettings } from './FormValidationSettings'
 
 type FieldType = FieldDefinition['type']
 
@@ -112,63 +113,16 @@ function ChoiceMenu({
   readonly placeholder?: string
   readonly value: string
 }) {
-  const [open, setOpen] = useState(false)
-  const selected = options.find((option) => option.value === value)
-
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      setOpen(false)
-    }
-    if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && !open) {
-      event.preventDefault()
-      setOpen(true)
-    }
-  }
-
   return (
-    <div className="relative grid min-w-0 gap-1">
-      <div className="flex min-h-8 items-center gap-1">
-        <span className="min-w-0 flex-1 truncate text-xs font-semibold leading-4 text-muted-foreground">{label}</span>
-        {help ? <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} /> : null}
-      </div>
-      <button
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-label={label}
-        className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 text-left text-sm text-foreground outline-none transition-colors hover:border-primary/35 hover:bg-muted/40 focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 lg:min-h-8 lg:px-2 lg:text-xs"
-        disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
-        onKeyDown={handleKeyDown}
-        type="button"
-      >
-        <span className="min-w-0 flex-1 truncate">{selected?.label ?? placeholder}</span>
-        <Icon className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} name="chevron-down" size={13} />
-      </button>
-      {open ? (
-        <div aria-label={label} className="absolute left-0 right-0 top-full z-40 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface p-1 shadow-xl" role="listbox">
-          {options.length > 0 ? options.map((option) => (
-            <button
-              aria-selected={option.value === value}
-              className={`flex min-h-11 w-full items-center gap-2 rounded-md px-2 text-left text-xs outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 ${option.value === value ? 'bg-primary-soft text-primary-strong' : 'text-foreground'}`}
-              key={option.value || '__empty'}
-              onClick={() => {
-                onChange(option.value)
-                setOpen(false)
-              }}
-              role="option"
-              type="button"
-            >
-              <span className="min-w-0 flex-1">
-                <strong className="block truncate font-semibold">{option.label}</strong>
-                {option.description ? <span className="block truncate text-[0.625rem] font-normal text-muted-foreground">{option.description}</span> : null}
-              </span>
-              {option.value === value ? <Icon name="check" size={13} /> : null}
-            </button>
-          )) : <p className="px-2 py-3 text-xs text-muted-foreground">No hay opciones compatibles.</p>}
-        </div>
-      ) : null}
-    </div>
+    <ChoiceField
+      disabled={disabled}
+      help={help ? <HelpTip description={help.description} example={help.example} label={help.label} reference={help.reference} /> : undefined}
+      label={label}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      value={value}
+    />
   )
 }
 
@@ -491,7 +445,7 @@ function SortableControlRow({ control, field, index, length, pending, selected, 
       >
         <Icon name="more" size={13} />
       </button>
-      <button aria-current={selected ? 'true' : undefined} className="min-h-11 min-w-0 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8" onClick={() => onSelect(control.id)} type="button">
+      <button aria-current={selected ? 'true' : undefined} className="min-h-11 min-w-11 rounded-md px-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(control.id)} type="button">
         <strong className="block truncate text-xs text-foreground">{index + 1}. {control.label}</strong>
         <span className="block truncate text-[0.625rem] text-muted-foreground">{typeLabel(control.type)} · {field ? `Guarda en ${field.label}` : 'No conectado a contenido'}</span>
       </button>
@@ -685,10 +639,26 @@ function FormWorkspace({ cms, form, onDeleted }: { readonly cms: CmsBackend; rea
         <div className="flex justify-end"><Button disabled={pending || !firstStep} onClick={() => { void addControl() }} size="small"><Icon name="plus" size={12} /> Añadir al formulario</Button></div>
       </section>
 
-      {selectedControl ? <ControlEditor cms={cms} control={selectedControl} form={form} key={selectedControl.id} onDeleted={() => {
-        const remaining = orderedControlIds.filter((id) => id !== selectedControl.id)
-        setSelectedControlId(remaining[0] ?? '')
-      }} /> : null}
+      {selectedControl ? (
+        <>
+          <ControlEditor
+            cms={cms}
+            control={selectedControl}
+            form={form}
+            key={`editor:${selectedControl.id}`}
+            onDeleted={() => {
+              const remaining = orderedControlIds.filter((id) => id !== selectedControl.id)
+              setSelectedControlId(remaining[0] ?? '')
+            }}
+          />
+          <FormValidationSettings
+            cms={cms}
+            control={selectedControl}
+            form={form}
+            key={`validation:${form.id}:${selectedControl.id}:${form.successMessage}:${form.errorMessage}:${JSON.stringify(selectedControl.conditions)}`}
+          />
+        </>
+      ) : null}
     </div>
   )
 }

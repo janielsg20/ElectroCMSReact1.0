@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { createCompleteWidgetRegistry, type WidgetCategory, type WidgetDefinition } from '../../domain'
-import { HelpTip, Icon } from '../primitives'
+import { ChoiceField, HelpTip, Icon } from '../primitives'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
 import { useEditorProject, useEditorProjectStructure, useEditorSelectedNodeId } from './editor-project-context'
 import { WidgetLibraryCard } from './WidgetLibraryCard'
@@ -38,11 +38,26 @@ const categoryLabels: Record<WidgetCategory, string> = {
   filters: 'Filtros',
 }
 
+const categoryOptions = [
+  { label: 'Todas las categorías', value: 'all', description: 'Muestra toda la biblioteca.' },
+  ...Object.entries(categoryLabels).map(([value, label]) => ({ label, value, description: `Widgets de ${label.toLocaleLowerCase('es')}.` })),
+]
+
 const scopeLabels: Record<LibraryScope, string> = {
   all: 'Todos',
   favorites: 'Favoritos',
   recent: 'Recientes',
   saved: 'Guardados',
+}
+
+const categorySearchTerms: Record<WidgetCategory, string> = {
+  structure: 'layout container contenedor section sección grid rejilla stack pila spacer espaciador divider divisor elementor flexbox',
+  basic: 'heading título text texto image imagen button botón icon icono video elementor básicos',
+  content: 'wordpress posts post entrada título contenido featured image imagen destacada author autor terms términos comments comentarios cms',
+  dynamic: 'jetengine dynamic field campo dinámico dynamic image imagen dinámica listing listado repeater repetidor custom fields campos personalizados acf cms query',
+  commerce: 'woocommerce ecommerce tienda producto carrito precio comercio',
+  forms: 'jetformbuilder elementor forms formulario input campo textarea checkbox radio select enviar submit',
+  filters: 'jetsmartfilters filtro filtros búsqueda search taxonomía taxonomy rango ordenar paginación',
 }
 
 function definitionItem(definition: WidgetDefinition): LibraryItem {
@@ -59,7 +74,7 @@ function savedItem(preset: SavedWidgetPreset): LibraryItem | null {
   const definition = definitionById.get(preset.widgetType)
   return definition ? {
     definition,
-    description: `Preset local de ${definition.label}. Conserva contenido, estilos y overrides responsive.`,
+    description: `Preset local de ${definition.label}. Conserva contenido, estilos y ajustes responsive.`,
     key: preset.id,
     label: preset.label,
     preset,
@@ -128,7 +143,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
     return items.filter((item) => {
       if (category !== 'all' && item.definition.category !== category) return false
       if (!normalizedQuery) return true
-      const haystack = `${item.label} ${item.description} ${item.definition.id} ${categoryLabels[item.definition.category]}`.toLocaleLowerCase('es')
+      const haystack = `${item.label} ${item.description} ${item.definition.id} ${categoryLabels[item.definition.category]} ${categorySearchTerms[item.definition.category]}`.toLocaleLowerCase('es')
       return haystack.includes(normalizedQuery)
     })
   }, [category, deferredQuery, library.preferences.favoriteWidgetIds, library.preferences.recentWidgetIds, library.preferences.savedWidgets, scope])
@@ -152,7 +167,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
           <section aria-labelledby="layers-title" className="p-1.5 lg:p-1">
             <div className="flex min-h-9 items-center gap-1 px-1">
               <h2 className="flex items-center gap-1 text-xs font-bold text-primary" id="layers-title"><Icon name="layers" size={13} />Estructura de la página</h2>
-              <HelpTip description="Muestra los contenedores y widgets en el mismo orden en que se crean en la página. Selecciona una fila para editarla; usa el control de puntos para moverla sin arrastrar." example="Un título dentro de una sección aparece sangrado bajo esa sección." label="Estructura de la página" reference="Elementor — Navigator" />
+              <HelpTip description="Muestra contenedores y widgets según su jerarquía real. Selecciona una fila para editarla, usa el control de cuatro direcciones para arrastrarla o el menú para moverla sin arrastrar." example="Un título dentro de una sección aparece sangrado bajo esa sección." label="Estructura de la página" reference="Elementor — Navigator" />
             </div>
             <CanonicalLayerTree />
           </section>
@@ -168,21 +183,18 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
           </div>
 
           <label className="block">
-            <span className="sr-only">Buscar widgets registrados</span>
-            <input aria-label="Buscar widgets registrados" className="min-h-11 w-full rounded-md border border-border bg-surface px-3 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, categoría o ID" type="search" value={query} />
+            <span className="sr-only">Buscar widgets</span>
+            <input aria-label="Buscar widgets" className="min-h-11 w-full rounded-md border border-border bg-surface px-3 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, función o referencia" type="search" value={query} />
           </label>
 
           <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-1">
-            <select aria-label="Filtrar por categoría" className="min-h-9 min-w-0 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-focus" onChange={(event) => setCategory(event.target.value as WidgetCategory | 'all')} value={category}>
-              <option value="all">Todas las categorías</option>
-              {Object.entries(categoryLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-            </select>
-            <output aria-label={`${visibleItems.length} elementos visibles`} className="grid min-h-9 min-w-9 place-items-center rounded-md border border-border bg-muted px-1 text-[0.625rem] font-bold text-muted-foreground">{visibleItems.length}</output>
+            <ChoiceField compact label="Filtrar por categoría" labelHidden onChange={(value) => setCategory(value as WidgetCategory | 'all')} options={categoryOptions} value={category} />
+            <output aria-label={`${visibleItems.length} elementos visibles`} className="grid min-h-11 min-w-11 place-items-center rounded-md border border-border bg-muted px-1 text-[0.625rem] font-bold text-muted-foreground lg:min-h-8 lg:min-w-9">{visibleItems.length}</output>
           </div>
 
           <div aria-label="Filtros de biblioteca" className="mt-1.5 grid grid-cols-4 gap-0.5" role="group">
             {(Object.keys(scopeLabels) as LibraryScope[]).map((id) => (
-              <button aria-pressed={scope === id} className={`min-h-9 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold focus-visible:ring-2 focus-visible:ring-focus ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>
+              <button aria-pressed={scope === id} className={`min-h-11 cursor-pointer truncate rounded px-1 text-[0.625rem] font-bold focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${scope === id ? 'bg-primary text-on-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} key={id} onClick={() => setScope(id)} type="button">{scopeLabels[id]}</button>
             ))}
           </div>
 
@@ -208,7 +220,7 @@ export function LibraryPanel({ activeTab, onTabChange, className = '' }: Library
             <div className="mt-2 grid place-items-center rounded-md border border-dashed border-border px-2 py-5 text-center">
               <Icon className="text-muted-foreground" name="search" size={18} />
               <p className="mt-2 text-xs font-semibold text-foreground">Sin elementos en este filtro</p>
-              <button className="mt-2 min-h-9 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong hover:bg-primary-soft" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
+              <button className="mt-2 min-h-11 cursor-pointer rounded-md border border-border bg-surface px-2 text-xs font-semibold text-primary-strong hover:bg-primary-soft lg:min-h-9" onClick={() => { setQuery(''); setCategory('all'); setScope('all') }} type="button">Mostrar todos</button>
             </div>
           )}
         </div>

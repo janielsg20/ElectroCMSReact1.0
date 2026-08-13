@@ -5,7 +5,13 @@ import { ProjectStructureRenderStore } from '../../renderers'
 import { CanonicalLayerTree } from './CanonicalLayerTree'
 import { TEST_DOCUMENT_ID, TEST_PROJECT_STRUCTURE, TEST_SELECTED_NODE_ID } from './test-project-structure'
 import { EditorProjectProvider } from './EditorProjectProvider'
-import { buildLayerTreeEntries, dragPlacement, LAYER_DRAG_POLICY, placementRelativeTo } from './layer-tree-model'
+import {
+  buildLayerTreeEntries,
+  dragPlacement,
+  LAYER_DRAG_POLICY,
+  placementRelativeTo,
+  visibleLayerTreeEntries,
+} from './layer-tree-model'
 
 function createSession() {
   const store = new ProjectStructureRenderStore(TEST_PROJECT_STRUCTURE)
@@ -64,20 +70,49 @@ describe('M05.3 CanonicalLayerTree', () => {
     expect(dragPlacement(first, second)).toEqual({ index: 2, parentId: null, slot: null })
   })
 
-  it('ofrece mover antes, después o dentro mediante controles accesibles', async () => {
+  it('oculta descendientes cuando un ancestro está contraído', () => {
+    const treeEntries = entries()
+    const header = treeEntries.find((entry) => entry.node.name === 'Header')
+    if (!header) throw new Error('Falta Header.')
+    const visible = visibleLayerTreeEntries(treeEntries, new Set([header.node.id]))
+    expect(visible.some((entry) => entry.node.name === 'Header')).toBe(true)
+    expect(visible.some((entry) => entry.node.name === 'Marca')).toBe(false)
+    expect(visible.some((entry) => entry.node.name === 'Hero principal')).toBe(true)
+  })
+
+  it('expande y contrae visualmente ramas del árbol sin perder su jerarquía', () => {
+    const { session } = createSession()
+    render(<EditorProjectProvider session={session}><CanonicalLayerTree /></EditorProjectProvider>)
+
+    expect(screen.getByRole('button', { name: 'Header' })).toHaveClass('min-w-11')
+    expect(screen.getByText('Marca')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Contraer Header' }))
+    expect(screen.queryByText('Marca')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Expandir Header' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir Header' }))
+    expect(screen.getByText('Marca')).toBeInTheDocument()
+  })
+
+  it('ofrece mover antes, después o dentro mediante controles ElectroCMS accesibles', async () => {
     const { move, session } = createSession()
     render(<EditorProjectProvider session={session}><CanonicalLayerTree /></EditorProjectProvider>)
 
     fireEvent.click(screen.getByRole('button', { name: 'Mover Header mediante menú' }))
     expect(screen.getByRole('group', { name: 'Mover capa sin arrastrar' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Destino' }))
+    const heroOption = screen.getByRole('option', { name: /Hero principal/ })
+    fireEvent.click(heroOption)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Posición' }))
     expect(screen.getByRole('option', { name: 'Antes' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Después' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Dentro de' })).toBeInTheDocument()
-    const hero = entries().find((entry) => entry.node.name === 'Hero principal')
-    if (!hero) throw new Error('Falta Hero principal.')
-    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: hero.node.id } })
+    fireEvent.click(screen.getByRole('option', { name: 'Después' }))
     fireEvent.click(screen.getByRole('button', { name: /^Mover$/ }))
 
+    const hero = entries().find((entry) => entry.node.name === 'Hero principal')
+    if (!hero) throw new Error('Falta Hero principal.')
     await waitFor(() => expect(move).toHaveBeenCalledTimes(1))
     expect(move).toHaveBeenCalledWith(
       [entries()[0]?.node.id],
