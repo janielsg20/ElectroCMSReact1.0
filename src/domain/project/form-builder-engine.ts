@@ -131,7 +131,7 @@ function mappingDiagnostics(cms: CmsBackend, form: Form): FormBuilderDiagnostic[
   return diagnostics
 }
 
-function conditionSourceDiagnostics(cms: CmsBackend, form: Form): FormBuilderDiagnostic[] {
+function conditionSourceDiagnostics(form: Form): FormBuilderDiagnostic[] {
   const diagnostics: FormBuilderDiagnostic[] = []
   const mappedSources = new Map<string, string[]>()
   for (const control of Object.values(form.controls)) {
@@ -170,7 +170,7 @@ function validateCandidate(
 ): Result<ProjectStructure, readonly FormBuilderDiagnostic[]> {
   const mappings = mappingDiagnostics(cms, form)
   if (mappings.length > 0) return failure(mappings)
-  const conditionSources = conditionSourceDiagnostics(cms, form)
+  const conditionSources = conditionSourceDiagnostics(form)
   if (conditionSources.length > 0) return failure(conditionSources)
 
   const cmsValidation = validateCmsBackend(cms)
