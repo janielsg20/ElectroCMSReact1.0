@@ -107,19 +107,30 @@ function form(id = formId, name = 'Solicitud básica'): Form {
   }
 }
 
-describe('M11.1 form builder engine', () => {
-  it('crea y lista formularios canónicos sin un store paralelo', () => {
+describe('M11.1/M11.2 form builder engine', () => {
+  it('crea, lista y actualiza mensajes canónicos sin un store paralelo', () => {
     const created = createForm(structure(), form())
     expect(created.ok).toBe(true)
     if (!created.ok) return
     expect(listForms(created.value).map((item) => item.id)).toEqual([formId])
     expect(created.value.cms?.forms[formId]?.controls[firstControlId]?.mappedFieldId).toBe(textFieldId)
 
-    const duplicateName = createForm(created.value, form(secondFormId, ' solicitud BÁSICA '))
+    const messaged = updateForm(created.value, formId, {
+      errorMessage: 'Comprueba los datos marcados.',
+      successMessage: 'Solicitud preparada correctamente.',
+    })
+    expect(messaged.ok).toBe(true)
+    if (!messaged.ok) return
+    expect(messaged.value.cms?.forms[formId]).toMatchObject({
+      errorMessage: 'Comprueba los datos marcados.',
+      successMessage: 'Solicitud preparada correctamente.',
+    })
+
+    const duplicateName = createForm(messaged.value, form(secondFormId, ' solicitud BÁSICA '))
     expect(duplicateName).toMatchObject({ ok: false, error: [{ code: 'form-name-conflict' }] })
   })
 
-  it('añade, reordena, edita y elimina controles preservando el orden del paso', () => {
+  it('añade, reordena, edita condiciones y elimina controles preservando el orden del paso', () => {
     const created = createForm(structure(), form())
     expect(created.ok).toBe(true)
     if (!created.ok) return
@@ -141,18 +152,35 @@ describe('M11.1 form builder engine', () => {
     if (!reordered.ok) return
     expect(reordered.value.cms?.forms[formId]?.steps[0]?.controlIds).toEqual([secondControlId, firstControlId])
 
-    const updated = updateFormControl(reordered.value, formId, secondControlId, { label: 'Unidades', name: 'units', required: true })
+    const conditions: Form['controls'][string]['conditions'] = [{
+      conditions: [{ fieldId: textFieldId, operator: 'exists', value: null }],
+      operator: 'all',
+    }]
+    const updated = updateFormControl(reordered.value, formId, secondControlId, {
+      conditions,
+      label: 'Unidades',
+      name: 'units',
+      required: true,
+    })
     expect(updated.ok).toBe(true)
     if (!updated.ok) return
     expect(updated.value.cms?.forms[formId]?.controls[secondControlId]).toMatchObject({ label: 'Unidades', name: 'units', required: true })
+    expect(updated.value.cms?.forms[formId]?.controls[secondControlId]?.conditions).toEqual(conditions)
 
     const removed = removeFormControl(updated.value, formId, firstControlId)
-    expect(removed.ok).toBe(true)
-    if (!removed.ok) return
-    expect(removed.value.cms?.forms[formId]?.steps[0]?.controlIds).toEqual([secondControlId])
-    expect(removed.value.cms?.forms[formId]?.controls[firstControlId]).toBeUndefined()
+    expect(removed.ok).toBe(false)
+    expect(removed).toMatchObject({ ok: false, error: [{ code: 'invalid-cms' }] })
 
-    expect(removeFormControl(removed.value, formId, secondControlId)).toMatchObject({ ok: false, error: [{ code: 'last-control-in-step' }] })
+    const conditionsCleared = updateFormControl(updated.value, formId, secondControlId, { conditions: [] })
+    expect(conditionsCleared.ok).toBe(true)
+    if (!conditionsCleared.ok) return
+    const removedAfterClear = removeFormControl(conditionsCleared.value, formId, firstControlId)
+    expect(removedAfterClear.ok).toBe(true)
+    if (!removedAfterClear.ok) return
+    expect(removedAfterClear.value.cms?.forms[formId]?.steps[0]?.controlIds).toEqual([secondControlId])
+    expect(removedAfterClear.value.cms?.forms[formId]?.controls[firstControlId]).toBeUndefined()
+
+    expect(removeFormControl(removedAfterClear.value, formId, secondControlId)).toMatchObject({ ok: false, error: [{ code: 'last-control-in-step' }] })
   })
 
   it('rechaza mapeos incompatibles y protege cambios de CPT que invalidarían campos', () => {
