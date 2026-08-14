@@ -407,5 +407,15 @@ try {
   throw error
 } finally {
   chromeProcess.kill('SIGTERM')
-  rmSync(browserProfileDir, { force: true, recursive: true })
+  if (chromeProcess.exitCode === null) {
+    await Promise.race([
+      new Promise((resolveExit) => chromeProcess.once('exit', resolveExit)),
+      sleep(2_000),
+    ])
+  }
+  try {
+    rmSync(browserProfileDir, { force: true, maxRetries: 5, recursive: true, retryDelay: 200 })
+  } catch (error) {
+    console.warn(`No se pudo limpiar el perfil temporal de Chromium: ${error instanceof Error ? error.message : String(error)}`)
+  }
 }
