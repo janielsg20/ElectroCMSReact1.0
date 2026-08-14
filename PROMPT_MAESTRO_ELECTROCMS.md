@@ -1492,6 +1492,7 @@ Crea y mantén como mínimo:
 - `MEMORY.md`
 - `TRACKING.md`
 - `CHANGELOG.md`
+- `OPEN_SOURCE_INTEGRATION_STRATEGY.md`
 
 ---
 
@@ -1637,3 +1638,85 @@ Toda capacidad relevante de este alcance que todavía no exista se registra como
 Las fases propietarias de la ampliación son F19–F31 en `PHASES.md`; sus microfases M19.1–M31.8 viven en `DETAILED_EXECUTION_PHASES.md`. La única fase/microfase activa seguirá siendo la indicada en `TRACKING.md`.
 
 El criterio final ampliado exige que un usuario pueda crear visualmente proyecto, design system, páginas/rutas, widgets, componentes, estados, modelos/relaciones, queries, APIs, autenticación/RBAC, Action Flow, responsive, backend, tests/debug, extensiones de código opcionales, asistencia AI opcional, exportación y despliegue, manteniendo local-first, accesibilidad, seguridad, responsive, High Density y Minimal Clean.
+
+---
+
+# 35. Estrategia open source incremental — alcance normativo aditivo
+
+ElectroCMS debe reducir reinvención mediante el estudio y adopción controlada de patrones de proyectos open source maduros, **sin reemplazar motores ya completados ni introducir una segunda fuente de verdad**.
+
+El documento `OPEN_SOURCE_INTEGRATION_STRATEGY.md` forma parte integral de este Prompt Maestro y define la política completa de adopción.
+
+## 35.1 Referencias principales
+
+Las referencias iniciales son:
+
+- **Puck**: referencia React para component registry, configuración de campos, permissions, viewports, migraciones y composición del editor.
+- **GrapesJS**: referencia para Commands, Layers, Component Model, Storage/Project Data, plugins y operaciones maduras de builder.
+- **Webstudio**: referencia UX/arquitectónica para Canvas, Navigator, Style/Settings, CSS explícito, tokens, breakpoints y componentes reales.
+- **Vvveb CMS / VvvebJs**: referencia funcional para CMS integrado, ecommerce, custom fields/posts, roles, media, revisiones, administración, plugins/themes e import/export.
+- **Silex y builders portables equivalentes**: referencia para separación editor → modelo → salida portable, publicación y exportación.
+
+Estas referencias no cambian la identidad, arquitectura ni licencia de ElectroCMS por sí solas.
+
+## 35.2 Protección de fases completas
+
+Regla no negociable:
+
+- F00–F12 no se reabren para sustituir schemas, persistencia, Command Bus, canvas, layers, widgets, inspector, CMS, queries, filtros, forms, backend o RBAC por un framework externo.
+- F13 continúa desde la microfase activa indicada en `TRACKING.md`.
+- Una capacidad existente se audita y amplía; no se crea un motor paralelo.
+- Un formato externo se traduce al modelo canónico de ElectroCMS; el modelo canónico nunca queda subordinado a formatos de Puck, GrapesJS, Webstudio, Vvveb u otro builder.
+
+## 35.3 Categorías de adopción
+
+Toda propuesta externa debe clasificarse como una de:
+
+- `REFERENCE_ONLY`;
+- `PATTERN_ADOPTED`;
+- `OPTIONAL_ADAPTER`;
+- `DEPENDENCY_APPROVED`;
+- `REJECTED`.
+
+No se añade una dependencia porque sea popular o reduzca líneas de código. Debe resolver una necesidad de la fase propietaria sin duplicar responsabilidades.
+
+## 35.4 Gate obligatorio antes de una dependencia
+
+Antes de incorporar código o dependencia externa se exige:
+
+1. necesidad real no cubierta;
+2. fase propietaria activa;
+3. licencia y obligaciones documentadas;
+4. mantenimiento/actividad evaluados;
+5. bundle y rendimiento medidos;
+6. ausencia de segundo store/modelo persistente;
+7. Command Bus preservado para toda mutación relevante;
+8. persistencia exclusivamente mediante puertos existentes;
+9. adapter/registry propio cuando afecte contratos del núcleo;
+10. pruebas unitarias, integración y browser audit;
+11. estrategia de retirada documentada;
+12. exportadores independientes del runtime del editor.
+
+Si el gate falla, la propuesta permanece como referencia o se rechaza.
+
+## 35.5 Aplicación por roadmap
+
+- **F13**: referencias CMS/ecommerce/media ayudan a completar UX y criterios, sin introducir otro CMS.
+- **F14**: adoptar el patrón modelo canónico → renderer/generator y fixtures compartidos; React exportado no depende del runtime del editor.
+- **F15–F16**: Vvveb/WordPress sirven de referencia de instalación, CRUD, roles, media y extensibilidad; los exportadores siguen siendo propios.
+- **F17–F18**: añadir auditoría de dependencias, licencias y supply chain además de las puertas existentes.
+- **F19–F20**: Puck es referencia primaria React; GrapesJS referencia de operations/commands/layers; Webstudio referencia UX/CSS/components. Se amplía el motor ElectroCMS existente.
+- **F21–F25**: providers externos siempre opcionales y tipados.
+- **F26–F31**: media avanzada, custom code, testing, versioning, AI y deployment usan adapters y contratos existentes; AI solo emite comandos reversibles.
+
+## 35.6 Licencias y originalidad
+
+- Licencias permisivas como MIT/BSD/Apache pueden evaluarse para integración real con sus obligaciones correspondientes.
+- Código AGPL/GPL/copy-left se trata por defecto como `REFERENCE_ONLY` para el núcleo, salvo decisión jurídica/arquitectónica explícita y documentada.
+- No se copian branding, textos, assets, layouts propietarios ni identidad visual.
+
+El resultado esperado sigue siendo una plataforma original de ElectroCMS con el flujo:
+
+`UI ElectroCMS → Command Bus → modelo canónico → persistencia local → renderers/exporters`.
+
+La finalidad de las referencias open source es reducir riesgo y tiempo de investigación, no controlar el producto ni sustituir sus contratos.
