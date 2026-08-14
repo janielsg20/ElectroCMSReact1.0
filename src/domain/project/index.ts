@@ -1,4 +1,16 @@
 export {
+  AUDIT_LOG_SCHEMA_VERSION,
+  AuditActorSchema,
+  AuditChangeSchema,
+  AuditLogEntrySchema,
+  createAuditLogEntry,
+  describeAuditChanges,
+  exportAuditLog,
+  type AuditActor,
+  type AuditChange,
+  type AuditLogEntry,
+} from './audit-log'
+export {
   deserializeCanonical,
   serializeCanonical,
   type CanonicalJsonError,
@@ -6,6 +18,7 @@ export {
 } from './canonical-json'
 export {
   BreakpointIdSchema,
+  AuditLogEntryIdSchema,
   BackendScreenIdSchema,
   ContentRecordIdSchema,
   ContentRecordRevisionIdSchema,
@@ -27,6 +40,7 @@ export {
   ProjectJournalEntryIdSchema,
   ProjectSnapshotIdSchema,
   parseBackendScreenId,
+  parseAuditLogEntryId,
   parseBreakpointId,
   parseContentRecordId,
   parseContentRecordRevisionId,
@@ -51,6 +65,7 @@ export {
   ProjectIdSchema,
   TimestampSchema,
   type BreakpointId,
+  type AuditLogEntryId,
   type BackendScreenId,
   type ContentRecordId,
   type ContentRecordRevisionId,

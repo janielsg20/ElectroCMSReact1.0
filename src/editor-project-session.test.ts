@@ -1,10 +1,25 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { createBrowserEditorProjectSession } from './editor-project-session'
-import { DEFAULT_BREAKPOINTS, parseDocumentId, parseRoleId, type Document } from './domain'
+import { DEFAULT_BREAKPOINTS, parseDocumentId, parseRoleId, parseUserId, type Document } from './domain'
 import { STARTER_SELECTED_NODE_ID } from './editor-ui/editor/starter-project-structure'
 
 describe('M06.5 sesión canónica de inserción', () => {
+  it('registra actor, acción y rutas de cambio para exportar la auditoría', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-audit-test-${crypto.randomUUID()}`)
+    session.setAuditActor?.({ kind: 'person', label: 'Ana', userId: parseUserId('a4000000-0000-4000-8000-000000000001') })
+    expect((await session.updateWidgetProperty(STARTER_SELECTED_NODE_ID, 'maxWidth', 960)).ok).toBe(true)
+    const entries = await session.listAuditEntries?.()
+    expect(entries?.ok).toBe(true)
+    if (!entries?.ok) return
+    expect(entries.value[0]).toMatchObject({ action: 'execute', actor: { kind: 'person', label: 'Ana' }, commandIds: ['inspector.update-property'] })
+    expect(entries.value[0]?.changes.some((change) => change.path.includes('maxWidth'))).toBe(true)
+    const exported = await session.exportAuditEntries?.()
+    expect(exported?.ok).toBe(true)
+    if (!exported?.ok) return
+    expect(exported.value).toContain('electrocms.audit-log')
+  })
+
   it('persiste una plantilla y sus condiciones por el Command Bus', async () => {
     const session = createBrowserEditorProjectSession(`electrocms-template-engine-test-${crypto.randomUUID()}`)
     const document: Document = {

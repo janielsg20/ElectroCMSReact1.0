@@ -50,6 +50,7 @@ describe('límites de arquitectura', () => {
     const violations: string[] = []
 
     for (const [importer, source] of Object.entries(sourceModules)) {
+      if (importer.includes('.test.')) continue
       const importerLayer = layerOf(importer)
       if (!importerLayer) continue
 

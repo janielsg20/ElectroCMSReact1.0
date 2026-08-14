@@ -105,6 +105,8 @@ describe('M12.5 BackendAdminWorkspace permissions', () => {
     renderWorkspace(session)
     expect(screen.getAllByText('Pedidos').length).toBeGreaterThan(0)
     expect(screen.getByText(/modo de configuración/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Registro de actividad' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Exportar registro' })).toBeInTheDocument()
   })
 
   it('no expone contenido ni acciones CRUD a una persona sin permiso de lectura', async () => {
@@ -114,5 +116,7 @@ describe('M12.5 BackendAdminWorkspace permissions', () => {
     expect(await screen.findByText(/no tiene permiso para consultar este contenido/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Nuevo' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Ana').length).toBeGreaterThan(0)
+    expect(screen.getByText(/no tiene permiso para consultar el registro/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Exportar registro' })).not.toBeInTheDocument()
   })
 })

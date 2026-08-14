@@ -10,6 +10,8 @@ export const RBAC_CAPABILITIES = [
   'content.manage',
   'content.export',
   'dashboard.manage',
+  'audit.view',
+  'audit.export',
 ] as const
 
 export const DEFAULT_ROLE_TEMPLATES = [

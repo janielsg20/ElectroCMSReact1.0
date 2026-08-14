@@ -8,7 +8,7 @@ Actualizado: 2026-08-13.
 
 - Fase actual: `F12 — Backend visual, usuarios y permisos`.
 - Microfase actual: `M12.5 — Auditoría`.
-- Estado: `EN_CURSO — auditoría correctiva de código, navegación, paneles y opciones`.
+- Estado: `EN_REVISION — registro de auditoría implementado; pendiente puerta final y auditoría visual Chromium`.
 - F00–F11: `COMPLETADA`.
 - F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `EN_CURSO`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
@@ -19,7 +19,8 @@ Actualizado: 2026-08-13.
 
 - F12/M12.5: corregidos bloqueos de lint y compilación tras integrar la última versión: tipo público `UserStatus`, contexto activo seguro sin CMS inicial, separación del provider para Fast Refresh y renombrado de capas sin actualización de estado dentro de un efecto.
 - F12/M12.5: corregido un fallo de autorización en las vistas administrativas. El modo de configuración vuelve a listar los paneles sin una persona activa; al probar una persona, la vista deniega por defecto lectura, creación, edición, eliminación, acciones masivas y campos sin permiso explícito. También se añadió una salida clara del modo de comprobación de permisos.
-- Auditoría por lotes actual: 447 pruebas verdes de dominio, UI, renderers, sesiones, aplicación e infraestructura; ESLint, TypeScript y build Vite verdes. M12.5 sigue abierta hasta implementar su registro/exportación de auditoría.
+- F12/M12.5: implementado registro local de actividad vinculado al Command Bus. Captura ejecutar/deshacer/rehacer, actor y rutas modificadas sin exportar valores de campos; Administración permite consultar y exportar JSON con capacidades `audit.view` y `audit.export`.
+- Verificación de M12.5: TypeScript, ESLint, build Vite y suite completa verde (114 archivos / 455 pruebas). El verificador de arquitectura se corrigió para excluir tests/fixtures y evaluar únicamente módulos de producción. La microfase permanece en revisión hasta la auditoría Chromium.
 - F04/F05/F12: pruebas focalizadas verificaron el shell de escritorio/móvil, la separación de Capas/Widgets frente a módulos globales, Administración desde `Más`, RBAC, roles y árbol de capas (34 pruebas verdes). La auditoría Chromium local queda bloqueada porque el runner actual no dispone de Chrome/Chromium.
 - F05.1: se confirmó una regresión importante: el contrato/UI del editor no exponía eliminar una capa pese a ser requisito cerrado. Corregida con mutación canónica, Command Bus, confirmación, recuperación por Deshacer, atajo Supr/Retroceso y bloqueo respetado.
 - F05.1: también se expusieron en el árbol las operaciones ya existentes de duplicar, renombrar, mostrar/ocultar y bloquear/desbloquear.

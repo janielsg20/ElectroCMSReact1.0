@@ -22,6 +22,7 @@ export const MenuItemIdSchema = z.uuid().brand<'MenuItemId'>()
 export const BackendScreenIdSchema = z.uuid().brand<'BackendScreenId'>()
 export const ProjectSnapshotIdSchema = z.uuid().brand<'ProjectSnapshotId'>()
 export const ProjectJournalEntryIdSchema = z.uuid().brand<'ProjectJournalEntryId'>()
+export const AuditLogEntryIdSchema = z.uuid().brand<'AuditLogEntryId'>()
 
 export const TimestampSchema = z.iso
   .datetime({ offset: false, precision: 3 })
@@ -49,6 +50,7 @@ export type MenuItemId = z.infer<typeof MenuItemIdSchema>
 export type BackendScreenId = z.infer<typeof BackendScreenIdSchema>
 export type ProjectSnapshotId = z.infer<typeof ProjectSnapshotIdSchema>
 export type ProjectJournalEntryId = z.infer<typeof ProjectJournalEntryIdSchema>
+export type AuditLogEntryId = z.infer<typeof AuditLogEntryIdSchema>
 export type Timestamp = z.infer<typeof TimestampSchema>
 
 export function parseProjectId(value: unknown): ProjectId { return ProjectIdSchema.parse(value) }
@@ -73,4 +75,5 @@ export function parseMenuItemId(value: unknown): MenuItemId { return MenuItemIdS
 export function parseBackendScreenId(value: unknown): BackendScreenId { return BackendScreenIdSchema.parse(value) }
 export function parseProjectSnapshotId(value: unknown): ProjectSnapshotId { return ProjectSnapshotIdSchema.parse(value) }
 export function parseProjectJournalEntryId(value: unknown): ProjectJournalEntryId { return ProjectJournalEntryIdSchema.parse(value) }
+export function parseAuditLogEntryId(value: unknown): AuditLogEntryId { return AuditLogEntryIdSchema.parse(value) }
 export function parseTimestamp(value: unknown): Timestamp { return TimestampSchema.parse(value) }

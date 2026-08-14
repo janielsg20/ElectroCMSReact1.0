@@ -4,6 +4,7 @@ import { listBackendScreens } from '../../domain/project/backend-shell-engine'
 import { projectCmsBackend } from '../../domain/project/cms-defaults'
 import { Button, HelpTip, Icon } from '../primitives'
 import { AdminCrudViewsManager } from './AdminCrudViewsManager'
+import { AuditLogManager } from './AuditLogManager'
 import { BackendShellManager } from './BackendShellManager'
 import { RoleManager } from './RoleManager'
 import { UserManager } from './UserManager'
@@ -48,5 +49,6 @@ export function BackendAdminWorkspace() {
     <details className="rounded-lg border border-border bg-surface" open={screens.length === 0}><summary className="min-h-11 cursor-pointer px-3 py-3 text-xs font-semibold text-foreground focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 lg:py-2">Añadir el lienzo actual como panel</summary><BackendShellManager /></details>
     <RoleManager />
     <UserManager />
+    <AuditLogManager />
   </div>
 }

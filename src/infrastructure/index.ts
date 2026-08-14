@@ -25,6 +25,10 @@ export {
   createThemePackageRepository,
   THEME_PACKAGES_NAMESPACE,
 } from './indexed-db/theme-package-repository'
+export {
+  createAuditLogRepository,
+  AUDIT_LOG_NAMESPACE,
+} from './indexed-db/audit-log-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,

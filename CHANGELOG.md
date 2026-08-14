@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-13 — M12.5: registro local de auditoría
+
+- Añadido un registro local de actividad para cada mutación, deshacer y rehacer que pasa por el Command Bus existente.
+- Cada entrada conserva acción, etiqueta, comandos, actor (persona activa o modo de configuración) y rutas modificadas; no almacena los valores editados en el informe.
+- Administración incorpora un panel accesible de actividad reciente y exportación JSON local. La consulta y la exportación se controlan con las nuevas capacidades explícitas `audit.view` y `audit.export`.
+- Verificado con TypeScript, ESLint, build Vite y suite completa: 114 archivos / 455 pruebas verdes. Se ajustó el verificador de arquitectura para que evalúe únicamente módulos de producción; los fixtures de pruebas pueden importar la estructura inicial sin ser una inversión de capas. La auditoría Chromium sigue bloqueada localmente por falta de navegador compatible.
+
 ## 2026-08-13 — Auditoría exhaustiva F12: permisos y paneles
 
 - Corregido el modo de configuración de Administración: sin una persona activa vuelve a listar todos los paneles del proyecto, en lugar de ocultarlos y bloquear su edición.

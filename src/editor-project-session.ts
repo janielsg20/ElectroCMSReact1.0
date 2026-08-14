@@ -1,6 +1,7 @@
 import {
   addDocument,
   applyThemePackage as applyThemePackageToStructure,
+  createAuditLogEntry,
   createBreakpoint,
   createCompleteWidgetRegistry,
   deleteNodes,
@@ -11,6 +12,7 @@ import {
   mergeEditableVisualStyles,
   moveNodes,
   parseBreakpointId,
+  parseAuditLogEntryId,
   parseContentRecordRevisionId,
   parseDocumentId,
   parseGlobalComponentId,
@@ -36,6 +38,8 @@ import {
   updateDocumentConditions,
   updateNodeSpacing,
   type BreakpointId,
+  type AuditActor,
+  type AuditLogEntry,
   type BreakpointInput,
   type BreakpointPatch,
   type ContentRecord,
@@ -160,6 +164,7 @@ import {
 } from './domain/project/taxonomy-engine'
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import {
+  createAuditLogRepository,
   createProjectHistoryRepository,
   createProjectRecordRepository,
   createThemePackageRepository,
@@ -222,14 +227,17 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   readonly #database: ElectroCmsLocalDatabase
   readonly #projects: ReturnType<typeof createProjectRecordRepository<ProjectStructure>>
   readonly #histories: ReturnType<typeof createProjectHistoryRepository<ProjectStructure>>
+  readonly #auditLog: ReturnType<typeof createAuditLogRepository>
   readonly #themePackages: ReturnType<typeof createThemePackageRepository>
   readonly #bus: ProjectCommandBus<ProjectStructure>
   readonly #ready: Promise<Result<void, string>>
+  #auditActor: AuditActor = { kind: 'system', label: 'Configuración del proyecto' }
 
   constructor(databaseName = EDITOR_DATABASE_NAME) {
     this.#database = new ElectroCmsLocalDatabase(databaseName)
     this.#projects = createProjectRecordRepository(this.#database, ProjectStructureSchema)
     this.#histories = createProjectHistoryRepository(this.#database, ProjectStructureSchema)
+    this.#auditLog = createAuditLogRepository(this.#database)
     this.#themePackages = createThemePackageRepository(this.#database)
     this.#bus = new ProjectCommandBus(this.#projects, this.#histories, ProjectStructureSchema, {
       createHistoryEntryId: () => parseProjectHistoryEntryId(crypto.randomUUID()),
@@ -247,6 +255,24 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   subscribeDocumentSelection(listener: () => void): () => void {
     this.#documentSelectionListeners.add(listener)
     return () => this.#documentSelectionListeners.delete(listener)
+  }
+
+  setAuditActor(actor: AuditActor): void {
+    this.#auditActor = structuredClone(actor)
+  }
+
+  async listAuditEntries(): Promise<Result<readonly AuditLogEntry[], string>> {
+    const entries = await this.#auditLog.list()
+    if (!entries.ok) return failure(entries.error.message)
+    return success([...entries.value]
+      .filter((entry) => entry.projectId === EDITOR_PROJECT_ID)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt)))
+  }
+
+  async exportAuditEntries(): Promise<Result<string, string>> {
+    const entries = await this.listAuditEntries()
+    if (!entries.ok) return entries
+    return success(JSON.stringify({ exportedAt: new Date().toISOString(), format: 'electrocms.audit-log', schemaVersion: 1, entries: entries.value }, null, 2))
   }
 
   async applyThemePackage(themePackage: ThemePackage, selection: ThemePackagePartSelection, routeConflict: ThemePackageRouteConflictPolicy): Promise<Result<ThemePackageImportReport, string>> {
@@ -728,6 +754,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (!ready.ok) return ready
     const undone = await this.#bus.undo(EDITOR_PROJECT_ID)
     if (!undone.ok) return failure(commandErrorMessage(undone.error))
+    await this.#appendAuditEntry(undone.value.entryId, 'undo')
     return this.#publishPersistedStructure()
   }
 
@@ -736,6 +763,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (!ready.ok) return ready
     const redone = await this.#bus.redo(EDITOR_PROJECT_ID)
     if (!redone.ok) return failure(commandErrorMessage(redone.error))
+    await this.#appendAuditEntry(redone.value.entryId, 'redo')
     return this.#publishPersistedStructure()
   }
 
@@ -851,7 +879,29 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     if (!ready.ok) return ready
     const executed = await this.#bus.execute(command, EDITOR_PROJECT_ID)
     if (!executed.ok) return failure(commandErrorMessage(executed.error))
+    await this.#appendAuditEntry(executed.value.entryId, 'execute')
     return this.#publishPersistedStructure()
+  }
+
+  async #appendAuditEntry(historyEntryId: string, action: AuditLogEntry['action']): Promise<void> {
+    const history = await this.#histories.findById(EDITOR_PROJECT_ID)
+    if (!history.ok || !history.value) return
+    const source = history.value.entries.find((entry) => entry.id === historyEntryId)
+    if (!source) return
+    const before = action === 'undo' ? source.after.project.payload : source.before.project.payload
+    const after = action === 'undo' ? source.before.project.payload : source.after.project.payload
+    const entry = createAuditLogEntry({
+      action,
+      actor: this.#auditActor,
+      after,
+      before,
+      commandIds: source.commandIds,
+      createdAt: now(),
+      id: parseAuditLogEntryId(crypto.randomUUID()),
+      label: action === 'undo' ? `Deshacer: ${source.label}` : action === 'redo' ? `Rehacer: ${source.label}` : source.label,
+      projectId: EDITOR_PROJECT_ID,
+    })
+    await this.#auditLog.save(entry)
   }
 }
 

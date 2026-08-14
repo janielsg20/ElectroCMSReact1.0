@@ -1,6 +1,8 @@
 import { createContext, useContext, useSyncExternalStore } from 'react'
 import type {
   BreakpointId,
+  AuditActor,
+  AuditLogEntry,
   BreakpointInput,
   BreakpointPatch,
   ContentRecord,
@@ -80,6 +82,9 @@ export interface EditorProjectSession {
   subscribeDocumentSelection?(listener: () => void): () => void
   readonly initialSelectedNodeId?: NodeId
   readonly store: ProjectStructureRenderStore
+  setAuditActor?(actor: AuditActor): void
+  listAuditEntries?(): Promise<Result<readonly AuditLogEntry[], string>>
+  exportAuditEntries?(): Promise<Result<string, string>>
   createDocument?(document: Document): Promise<Result<ProjectStructure, string>>
   createBreakpoint(input: BreakpointInput, index?: number): Promise<Result<BreakpointCreationResult, string>>
   insertWidget(widgetType: string, anchorNodeId?: NodeId | null, template?: WidgetInsertionTemplate): Promise<Result<WidgetInsertionResult, string>>
