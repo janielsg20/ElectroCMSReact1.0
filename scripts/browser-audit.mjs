@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 const auditDir = resolve('browser-audit')
 mkdirSync(auditDir, { recursive: true })
@@ -26,18 +27,20 @@ function findChrome() {
   return command
 }
 
-async function waitForJson(url, chromeProcess, attempts = 240) {
+async function waitForJson(url, chromeProcess, attempts = 600) {
+  let lastFailure = 'sin respuesta'
   for (let index = 0; index < attempts; index += 1) {
     if (chromeProcess.exitCode !== null) throw new Error(`Chrome terminó antes de exponer DevTools con código ${chromeProcess.exitCode}.`)
     try {
-      const response = await fetch(url)
+      const response = await fetch(url, { signal: AbortSignal.timeout(1_000) })
       if (response.ok) return response.json()
-    } catch {
-      // El puerto de DevTools todavía no está listo.
+      lastFailure = `HTTP ${response.status}`
+    } catch (error) {
+      lastFailure = error instanceof Error ? error.message : String(error)
     }
     await sleep(100)
   }
-  throw new Error(`DevTools no respondió en ${url}`)
+  throw new Error(`DevTools no respondió en ${url}: ${lastFailure}`)
 }
 
 function createCdpClient(webSocketDebuggerUrl) {
@@ -257,18 +260,26 @@ const report = {
 }
 
 const chrome = findChrome()
+const browserProfileDir = mkdtempSync(join(tmpdir(), 'electrocms-browser-audit-'))
 let chromeStderr = ''
 const chromeProcess = spawn(chrome, [
   '--incognito',
   '--headless=new',
   '--no-sandbox',
   '--no-first-run',
+  '--no-default-browser-check',
   '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-component-update',
+  '--disable-default-apps',
   '--disable-gpu',
   '--disable-dev-shm-usage',
+  '--disable-sync',
+  '--metrics-recording-only',
+  '--password-store=basic',
   '--remote-debugging-address=127.0.0.1',
   '--remote-debugging-port=9222',
-  `--user-data-dir=${resolve(auditDir, 'browser-profile')}`,
+  `--user-data-dir=${browserProfileDir}`,
   'http://127.0.0.1:4173/',
 ], { stdio: ['ignore', 'pipe', 'pipe'] })
 
@@ -396,4 +407,5 @@ try {
   throw error
 } finally {
   chromeProcess.kill('SIGTERM')
+  rmSync(browserProfileDir, { force: true, recursive: true })
 }
