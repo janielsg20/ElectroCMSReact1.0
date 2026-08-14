@@ -1,10 +1,15 @@
 import {
   addDocument,
+  addMediaAsset,
+  createMediaFolder,
+  createMediaTag,
   applyThemePackage as applyThemePackageToStructure,
+  applyProjectBlueprint as applyProjectBlueprintToStructure,
   createAuditLogEntry,
   createBreakpoint,
   createCompleteWidgetRegistry,
   deleteNodes,
+  deleteMediaAsset,
   duplicateNodes,
   editableVisualStyles,
   failure,
@@ -19,6 +24,8 @@ import {
   parseNodeId,
   parseProjectHistoryEntryId,
   parseProjectId,
+  parseMediaFolderId,
+  parseMediaTagId,
   parseTimestamp,
   ProjectStructureSchema,
   reorderBreakpoint,
@@ -35,7 +42,9 @@ import {
   setProjectTheme,
   success,
   updateBreakpoint,
+  updateMediaAsset,
   updateDocumentConditions,
+  updateEditableDemoStore,
   updateNodeSpacing,
   type BreakpointId,
   type AuditActor,
@@ -49,11 +58,17 @@ import {
   type ContentTypeId,
   type Document,
   type DocumentId,
+  type EditableDemoStorePatch,
   type FieldDefinition,
   type FieldDefinitionId,
   type Form,
   type FormId,
   type JsonValue,
+  type MediaAssetId,
+  type MediaAssetInput,
+  type MediaAssetVariantName,
+  type MediaFolder,
+  type MediaTag,
   type Node,
   type NodeDataSettings,
   type NodeId,
@@ -65,6 +80,8 @@ import {
   type ProjectStructure,
   type ProjectTheme,
   type ProjectThemeScope,
+  type ProjectBlueprint,
+  type ProjectBlueprintApplyReport,
   type Query,
   type QueryId,
   type Relation,
@@ -165,6 +182,7 @@ import {
 import { ProjectCommandBus, ProjectStructureCommand, type ProjectCommandBusError } from './application'
 import {
   createAuditLogRepository,
+  createMediaBlobRepository,
   createProjectHistoryRepository,
   createProjectRecordRepository,
   createThemePackageRepository,
@@ -228,6 +246,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
   readonly #projects: ReturnType<typeof createProjectRecordRepository<ProjectStructure>>
   readonly #histories: ReturnType<typeof createProjectHistoryRepository<ProjectStructure>>
   readonly #auditLog: ReturnType<typeof createAuditLogRepository>
+  readonly #mediaBlobs: ReturnType<typeof createMediaBlobRepository>
   readonly #themePackages: ReturnType<typeof createThemePackageRepository>
   readonly #bus: ProjectCommandBus<ProjectStructure>
   readonly #ready: Promise<Result<void, string>>
@@ -238,6 +257,7 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     this.#projects = createProjectRecordRepository(this.#database, ProjectStructureSchema)
     this.#histories = createProjectHistoryRepository(this.#database, ProjectStructureSchema)
     this.#auditLog = createAuditLogRepository(this.#database)
+    this.#mediaBlobs = createMediaBlobRepository(this.#database)
     this.#themePackages = createThemePackageRepository(this.#database)
     this.#bus = new ProjectCommandBus(this.#projects, this.#histories, ProjectStructureSchema, {
       createHistoryEntryId: () => parseProjectHistoryEntryId(crypto.randomUUID()),
@@ -299,6 +319,29 @@ class BrowserEditorProjectSession implements EditorProjectSession {
     return report ? success(report) : failure('El paquete se aplicó sin producir un informe de cambios.')
   }
 
+  async applyProjectBlueprint(blueprint: ProjectBlueprint): Promise<Result<ProjectBlueprintApplyReport, string>> {
+    let report: ProjectBlueprintApplyReport | null = null
+    const applied = await this.#execute(new ProjectStructureCommand(
+      'project-blueprint.apply',
+      `Aplicar modelo ${blueprint.name}`,
+      (structure) => {
+        const result = applyProjectBlueprintToStructure(structure, blueprint, { createId: () => crypto.randomUUID(), now: new Date().toISOString() })
+        if (!result.ok) return failure({ code: 'invalid-tree' as const, message: result.error.join(' ') })
+        report = result.value.report
+        return success(result.value.structure)
+      },
+    ))
+    if (!applied.ok) return failure(applied.error)
+    return report ? success(report) : failure('El modelo se aplicó sin producir un informe de cambios.')
+  }
+
+  async updateEditableDemoStore(patch: EditableDemoStorePatch): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('demo-store.update', 'Actualizar tienda demo', (structure) => {
+      const updated = updateEditableDemoStore(structure, patch)
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error })
+    }))
+  }
+
   async addFormControl(formId: FormId, stepId: string, control: FormControl, position?: number): Promise<Result<ProjectStructure, string>> {
     return this.#execute(new ProjectStructureCommand('cms.add-form-control', `Añadir control ${control.label}`, (structure) => {
       const added = addFormControlInStructure(structure, formId, stepId, control, position)
@@ -322,6 +365,60 @@ class BrowserEditorProjectSession implements EditorProjectSession {
       const created = createContentRecordInStructure(structure, normalized)
       return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error[0]?.message ?? 'El registro no es válido.' })
     }))
+  }
+
+  async createMediaAsset(asset: MediaAssetInput): Promise<Result<ProjectStructure, string>> {
+    const timestamp = now()
+    return this.#execute(new ProjectStructureCommand('media.create-asset', `Añadir recurso ${asset.name}`, (structure) => {
+      const created = addMediaAsset(structure, asset, timestamp)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error })
+    }))
+  }
+
+  async createMediaFolder(name: string, parentId: MediaFolder['parentId'] = null): Promise<Result<ProjectStructure, string>> {
+    const folder: MediaFolder = { id: parseMediaFolderId(crypto.randomUUID()), name, parentId }
+    return this.#execute(new ProjectStructureCommand('media.create-folder', `Crear carpeta ${name}`, (structure) => {
+      const created = createMediaFolder(structure, folder)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error })
+    }))
+  }
+
+  async createMediaTag(name: string): Promise<Result<ProjectStructure, string>> {
+    const tag: MediaTag = { id: parseMediaTagId(crypto.randomUUID()), name }
+    return this.#execute(new ProjectStructureCommand('media.create-tag', `Crear etiqueta ${name}`, (structure) => {
+      const created = createMediaTag(structure, tag)
+      return created.ok ? success(created.value) : failure({ code: 'invalid-tree' as const, message: created.error })
+    }))
+  }
+
+  async importMediaAsset(asset: MediaAssetInput, dataUrl: string, variantData: Readonly<Partial<Record<MediaAssetVariantName, string>>> = {}): Promise<Result<ProjectStructure, string>> {
+    const blob = await this.#mediaBlobs.save({ assetId: asset.id, dataUrl, schemaVersion: 1, variantData })
+    if (!blob.ok) return failure(blob.error.message)
+    const created = await this.createMediaAsset(asset)
+    if (!created.ok) await this.#mediaBlobs.remove(asset.id)
+    return created
+  }
+
+  async readMediaAssetData(assetId: MediaAssetId, variant?: MediaAssetVariantName): Promise<Result<string | null, string>> {
+    const blob = await this.#mediaBlobs.findById(assetId)
+    if (!blob.ok) return failure(blob.error.message)
+    return success(variant ? blob.value?.variantData[variant] ?? null : blob.value?.dataUrl ?? null)
+  }
+
+  async updateMediaAsset(assetId: MediaAssetId, patch: Partial<Pick<MediaAssetInput, 'altText' | 'description' | 'folderId' | 'name' | 'starred' | 'tagIds'>>): Promise<Result<ProjectStructure, string>> {
+    return this.#execute(new ProjectStructureCommand('media.update-asset', 'Editar recurso multimedia', (structure) => {
+      const updated = updateMediaAsset(structure, assetId, patch, now())
+      return updated.ok ? success(updated.value) : failure({ code: 'invalid-tree' as const, message: updated.error })
+    }))
+  }
+
+  async deleteMediaAsset(assetId: MediaAssetId): Promise<Result<ProjectStructure, string>> {
+    const removed = await this.#execute(new ProjectStructureCommand('media.delete-asset', 'Eliminar recurso multimedia', (structure) => {
+      const removed = deleteMediaAsset(structure, assetId)
+      return removed.ok ? success(removed.value) : failure({ code: 'invalid-tree' as const, message: removed.error })
+    }))
+    if (removed.ok) await this.#mediaBlobs.remove(assetId)
+    return removed
   }
 
   async createContentType(contentType: ContentType): Promise<Result<ProjectStructure, string>> {

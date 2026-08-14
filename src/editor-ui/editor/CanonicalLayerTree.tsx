@@ -89,7 +89,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         {hasChildren ? (
           <button
             aria-label={expanded ? `Contraer ${entry.node.name}` : `Expandir ${entry.node.name}`}
-            className="grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
+            className="layer-option__disclosure grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
             onClick={() => onToggle(entry.node.id)}
             type="button"
           >
@@ -99,7 +99,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         <button
           aria-description="Arrastra para reordenar la capa. También puedes usar el menú de acciones para moverla sin arrastrar."
           aria-label={entry.node.locked ? `${entry.node.name}, bloqueada` : `Arrastrar ${entry.node.name}`}
-          className={`grid size-11 shrink-0 place-items-center rounded touch-none focus-visible:ring-2 focus-visible:ring-focus lg:size-8 ${entry.node.locked ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-primary-soft active:cursor-grabbing'}`}
+          className={`layer-option__drag grid size-11 shrink-0 place-items-center rounded touch-none focus-visible:ring-2 focus-visible:ring-focus lg:size-8 ${entry.node.locked ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-primary-soft active:cursor-grabbing'}`}
           disabled={entry.node.locked}
           ref={setActivatorNodeRef}
           type="button"
@@ -108,7 +108,7 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         >
           <Icon name={entry.node.locked ? 'lock' : 'move'} size={13} />
         </button>
-        <button aria-label={entry.node.name} className="flex min-h-11 min-w-11 flex-1 cursor-pointer items-center gap-1.5 rounded px-1 text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(entry.node.id)} type="button">
+        <button aria-label={entry.node.name} className="layer-option__select flex min-h-11 min-w-11 flex-1 cursor-pointer items-center gap-1.5 rounded px-1 text-left focus-visible:ring-2 focus-visible:ring-focus lg:min-h-8 lg:min-w-0" onClick={() => onSelect(entry.node.id)} type="button">
           <Icon className="shrink-0" name={nodeIcon(entry)} size={14} />
           <span className="truncate">{entry.node.name}</span>
           {entry.node.hidden ? <><Icon name="eye" size={12} /><span className="sr-only">Oculta</span></> : null}
@@ -116,14 +116,14 @@ function SortableLayer({ activeId, entry, expanded, insertion, selected, onOpenM
         <button
           aria-expanded={activeId === entry.node.id}
           aria-label={`Mover ${entry.node.name} mediante menú`}
-          className="grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
+          className="layer-option__menu grid size-11 shrink-0 cursor-pointer place-items-center rounded hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-focus lg:size-8"
           disabled={entry.node.locked}
           onClick={() => onOpenMove(entry.node.id)}
           type="button"
         >
           <Icon name="more" size={13} />
         </button>
-        {selected ? <button aria-label={`Eliminar ${entry.node.name}`} className="grid size-11 shrink-0 cursor-pointer place-items-center rounded text-danger hover:bg-danger-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:size-8" disabled={entry.node.locked} onClick={() => onRequestDelete(entry.node.id)} type="button"><Icon name="trash" size={13} /></button> : null}
+        {selected ? <button aria-label={`Eliminar ${entry.node.name}`} className="layer-option__delete grid size-11 shrink-0 cursor-pointer place-items-center rounded text-danger hover:bg-danger-soft focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 lg:size-8" disabled={entry.node.locked} onClick={() => onRequestDelete(entry.node.id)} type="button"><Icon name="trash" size={13} /></button> : null}
       </div>
     </li>
   )

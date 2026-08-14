@@ -10,6 +10,8 @@ import {
 import { CmsBackendSchema } from './cms-schema'
 import { JsonValueSchema } from './project-envelope'
 import { DEFAULT_PROJECT_THEMES, ProjectThemesSchema } from './theme-schema'
+import { MediaLibrarySchema } from './media-library'
+import { EditableDemoStoreSchema } from './editable-demo-store'
 
 const LabelSchema = z.string().trim().min(1).max(160)
 const PropertyKeySchema = z.string().min(1).max(160)
@@ -160,7 +162,9 @@ export const ProjectStructureSchema = z.strictObject({
   breakpoints: z.array(BreakpointSchema).min(1),
   cms: CmsBackendSchema.optional(),
   documents: z.record(DocumentIdSchema, DocumentSchema),
+  demoStore: EditableDemoStoreSchema.optional(),
   globalComponents: z.record(GlobalComponentIdSchema, GlobalComponentSchema),
+  media: MediaLibrarySchema.optional(),
   themes: ProjectThemesSchema.default(() => structuredClone(DEFAULT_PROJECT_THEMES)),
 })
 

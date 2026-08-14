@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Button, Icon } from '../primitives'
-import type { Breakpoint, BreakpointId, NodeId } from '../../domain'
+import { editableDemoStore, type Breakpoint, type BreakpointId, type NodeId } from '../../domain'
 import { CanonicalProjectRenderer } from '../../renderers'
 import { DirectManipulationFrame } from './DirectManipulationFrame'
 import { DirectManipulationMenu } from './DirectManipulationMenu'
@@ -11,6 +11,7 @@ import { fitCanvas, stepCanvasZoom, updateCanvasPan } from './canvas-viewport'
 import { DEFAULT_CANVAS_WORKSPACE, type CanvasWorkspaceState } from './workspace-preferences'
 import { useWidgetLibraryCanvasDrop } from './widget-library-context'
 import { BreakpointManager } from './BreakpointManager'
+import { useMediaPreviewSources } from './media-preview-sources'
 import './direct-manipulation.css'
 
 export type ViewportMode = 'desktop' | 'tablet' | 'mobile'
@@ -79,8 +80,11 @@ interface PanInteraction {
 }
 
 export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, viewport, onCanvasWorkspaceChange, onViewportChange, onToggleLibrary, onToggleInspector, libraryOpen, inspectorOpen }: CanvasPreviewProps) {
-  const { documentId, store } = useEditorProject()
+  const session = useEditorProject()
+  const { documentId, store } = session
   const structure = useEditorProjectStructure()
+  const demoStore = editableDemoStore(structure)
+  const mediaSources = useMediaPreviewSources(session, structure)
   const selection = useEditorSelection()
   const selectedNodeId = useEditorSelectedNodeId()
   const { active: widgetDropActive, isOver: widgetDropIsOver, setNodeRef: setWidgetDropNodeRef } = useWidgetLibraryCanvasDrop()
@@ -298,10 +302,11 @@ export function CanvasPreview({ canvasWorkspace: controlledCanvasWorkspace, view
             <div className={`h-full overflow-auto bg-white text-slate-950 ${isDevice ? activeViewport === 'mobile' ? 'rounded-[2rem]' : 'rounded-[1.35rem]' : ''}`}>
               {isDevice ? <div className="flex h-8 items-end justify-between px-5 pb-1 text-[0.625rem] font-bold"><span>9:41</span><span className="flex items-end gap-1" aria-label="Señal, wifi y batería"><span className="h-2 w-2 rounded-full bg-slate-900" /><span className="h-2 w-3 rounded-t-full border-2 border-b-0 border-slate-900" /><span className="h-2 w-4 rounded-sm border-2 border-slate-900" /></span></div> : null}
               <div className="relative pl-[18px] pt-[18px]">
+                <div aria-label="Datos de tienda compartidos" className="mx-2 mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs text-slate-950 shadow-sm"><span className="min-w-0 truncate font-semibold">{demoStore.identity.name} · {demoStore.featuredProduct.name}</span><span className="shrink-0 font-bold" style={{ color: demoStore.colors.primary }}>{demoStore.featuredProduct.price}</span></div>
                 <span aria-hidden="true" className="canvas-ruler canvas-ruler--horizontal" data-testid="canvas-horizontal-ruler" />
                 <span aria-hidden="true" className="canvas-ruler canvas-ruler--vertical" data-testid="canvas-vertical-ruler" />
                 <DirectManipulationContext value={manipulation}>
-                  <CanonicalProjectRenderer breakpointId={breakpointId} documentId={documentId} NodeFrame={DirectManipulationFrame} store={store} />
+                  <CanonicalProjectRenderer breakpointId={breakpointId} documentId={documentId} mediaSources={mediaSources} NodeFrame={DirectManipulationFrame} store={store} />
                 </DirectManipulationContext>
               </div>
             </div>

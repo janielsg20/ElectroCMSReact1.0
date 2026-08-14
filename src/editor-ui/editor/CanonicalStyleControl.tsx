@@ -10,6 +10,7 @@ import {
   validateCanonicalStyles,
 } from '../../domain/project/style-engine'
 import type { Node } from '../../domain/project/structure-schema'
+import { Button, TextArea, TextField } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 
 interface CanonicalStyleControlProps {
@@ -110,41 +111,41 @@ export function CanonicalStyleControl({ node }: CanonicalStyleControlProps) {
   }
 
   return (
-    <form className="rounded-md border border-border bg-surface px-2 py-1.5" data-canonical-style-control onSubmit={(event) => { void submit(event) }}>
+    <form className="grid gap-1.5 rounded-md border border-border bg-surface px-2 py-1.5 shadow-sm" data-canonical-style-control data-electrocms-surface="canonical-style" onSubmit={(event) => { void submit(event) }}>
       <div>
         <strong className="block text-xs text-foreground">Estilos canónicos</strong>
         <p className="text-[0.625rem] leading-4 text-muted-foreground">Tokens, clases y estados seguros. El tamaño y espaciado se editan en el canvas.</p>
       </div>
-      <label className="mt-1 block text-[0.625rem] font-semibold text-foreground" htmlFor={`style-classes-${node.id}`}>Clases</label>
-      <input
-        className="mt-0.5 min-h-9 w-full rounded-md border border-border bg-surface px-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus"
+      <TextField
+        className="font-mono"
         disabled={node.locked || pending}
         id={`style-classes-${node.id}`}
+        label="Clases"
         onChange={(event) => setDraft((current) => ({ ...current, classes: event.target.value }))}
         placeholder="card featured"
         value={draft.classes}
       />
-      <label className="mt-1 block text-[0.625rem] font-semibold text-foreground" htmlFor={`style-declarations-${node.id}`}>Declaraciones seguras (JSON)</label>
-      <textarea
-        className="mt-0.5 min-h-24 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus"
+      <TextArea
+        className="min-h-24 font-mono"
         disabled={node.locked || pending}
         id={`style-declarations-${node.id}`}
+        label="Declaraciones seguras (JSON)"
         onChange={(event) => setDraft((current) => ({ ...current, declarations: event.target.value }))}
         value={draft.declarations}
       />
-      <label className="mt-1 block text-[0.625rem] font-semibold text-foreground" htmlFor={`style-states-${node.id}`}>Estados hover/focus/focusVisible/active/disabled (JSON)</label>
-      <textarea
-        className="mt-0.5 min-h-20 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus"
+      <TextArea
+        className="min-h-20 font-mono"
         disabled={node.locked || pending}
         id={`style-states-${node.id}`}
+        label="Estados hover/focus/focusVisible/active/disabled (JSON)"
         onChange={(event) => setDraft((current) => ({ ...current, states: event.target.value }))}
         value={draft.states}
       />
-      {error ? <p className="mt-1 rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
+      {error ? <p className="rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
-      <div className="mt-1.5 flex gap-1">
-        <button className="min-h-9 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={node.locked || pending} type="submit">{pending ? 'Guardando…' : 'Aplicar estilos'}</button>
-        <button className="min-h-9 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50" disabled={!hasEditableStyles || node.locked || pending} onClick={() => { void reset() }} type="button">Reset estilos</button>
+      <div className="flex gap-1">
+        <Button className="flex-1" disabled={node.locked} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">Aplicar estilos</Button>
+        <Button disabled={!hasEditableStyles || node.locked || pending} onClick={() => { void reset() }} size="small" variant="secondary">Reset estilos</Button>
       </div>
     </form>
   )

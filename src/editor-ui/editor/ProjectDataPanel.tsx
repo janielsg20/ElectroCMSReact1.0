@@ -20,6 +20,9 @@ const CustomFieldManager = lazy(() => import('./CustomFieldManager').then((modul
 const RecordRelationManager = lazy(() => import('./RecordRelationManager').then((module) => ({ default: module.RecordRelationManager })))
 const QueryManager = lazy(() => import('./QueryManager').then((module) => ({ default: module.QueryManager })))
 const FormManager = lazy(() => import('./FormManager').then((module) => ({ default: module.FormManager })))
+const MediaLibraryManager = lazy(() => import('./MediaLibraryManager').then((module) => ({ default: module.MediaLibraryManager })))
+const ProjectBlueprintManager = lazy(() => import('./ProjectBlueprintManager').then((module) => ({ default: module.ProjectBlueprintManager })))
+const EditableDemoStoreManager = lazy(() => import('./EditableDemoStoreManager').then((module) => ({ default: module.EditableDemoStoreManager })))
 const tabs: readonly DataTabDefinition[] = [
   { id: 'content-types', label: 'Tipos de contenido', compact: 'Tipos', title: 'Tipos de contenido', overflow: 'auto', panel: ContentTypeManager },
   { id: 'taxonomies', label: 'Clasificaciones', compact: 'Clasificar', title: 'Categorías y clasificaciones', overflow: 'auto', panel: TaxonomyManager },
@@ -27,6 +30,9 @@ const tabs: readonly DataTabDefinition[] = [
   { id: 'records', label: 'Entradas y relaciones', compact: 'Entradas', title: 'Entradas y relaciones', overflow: 'auto', panel: RecordRelationManager },
   { id: 'queries', label: 'Qué contenido mostrar', compact: 'Consultas', title: 'Consultas de contenido', overflow: 'hidden', panel: QueryManager },
   { id: 'forms', label: 'Formularios', compact: 'Formularios', title: 'Formularios', overflow: 'auto', panel: FormManager },
+  { id: 'media', label: 'Biblioteca multimedia', compact: 'Multimedia', title: 'Biblioteca multimedia', overflow: 'auto', panel: MediaLibraryManager },
+  { id: 'blueprints', label: 'Modelos de proyecto', compact: 'Modelos', title: 'Modelos de proyecto', overflow: 'auto', panel: ProjectBlueprintManager },
+  { id: 'demo-store', label: 'Tienda demo', compact: 'Tienda', title: 'Tienda demo compartida', overflow: 'auto', panel: EditableDemoStoreManager },
 ]
 
 function DataPanelFallback({ label }: { readonly label: string }) {

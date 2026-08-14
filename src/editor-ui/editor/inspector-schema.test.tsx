@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { failure, success, type JsonValue, type NodeId, type NodePlacement, type ProjectStructure, type Result } from '../../domain'
+import { failure, mediaAssetUrl, parseMediaAssetId, parseTimestamp, success, type JsonValue, type NodeId, type NodePlacement, type ProjectStructure, type Result } from '../../domain'
 import { ProjectStructureRenderStore } from '../../renderers'
 import { EditorProjectProvider } from './EditorProjectProvider'
 import { InspectorPanel } from './InspectorPanel'
 import { STARTER_DOCUMENT_ID, STARTER_PROJECT_STRUCTURE, STARTER_SELECTED_NODE_ID } from './starter-project-structure'
 
-function renderInspector() {
-  const store = new ProjectStructureRenderStore(STARTER_PROJECT_STRUCTURE)
+function renderInspector(structure = STARTER_PROJECT_STRUCTURE) {
+  const store = new ProjectStructureRenderStore(structure)
   const unchanged = () => Promise.resolve(success(store.structure))
   const resetWidgetProperty = vi.fn(unchanged)
   const resetNodeVisualStyles = vi.fn(unchanged)
@@ -128,5 +128,24 @@ describe('M07.1 inspector declarativo', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar cambios' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Conexiones debe contener JSON válido')
     expect(updateNodeDataSettings).not.toHaveBeenCalled()
+  })
+
+  it('selecciona un recurso local desde el inspector sin exponer su identificador técnico', async () => {
+    const structure = structuredClone(STARTER_PROJECT_STRUCTURE)
+    const node = structure.documents[STARTER_DOCUMENT_ID]?.nodes[STARTER_SELECTED_NODE_ID]
+    if (!node || node.kind !== 'widget') throw new Error('Falta un widget inicial para la prueba.')
+    const assetId = parseMediaAssetId('d1000000-0000-4000-8000-000000000001')
+    node.widgetType = 'media.image'
+    node.properties = { alt: 'Marca', src: '' }
+    const timestamp = parseTimestamp('2026-08-13T23:00:00.000Z')
+    structure.media = { assets: { [assetId]: { altText: 'Marca', byteSize: 42, contentHash: 'e'.repeat(64), createdAt: timestamp, description: '', fileName: 'marca.png', folderId: null, height: 80, id: assetId, kind: 'image', mimeType: 'image/png', name: 'Marca', starred: false, tagIds: [], updatedAt: timestamp, variants: {}, width: 160 } }, folders: {}, recentAssetIds: [assetId], tags: {} }
+    const { updateWidgetProperty } = renderInspector(structure)
+    fireEvent.click(screen.getByRole('option', { name: /Marca image/ }))
+    expect(screen.getByText('Recurso seleccionado: Marca')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'URL externa' })).toHaveValue('')
+    const form = screen.getByTestId('media-asset-picker').closest('form')
+    if (!form) throw new Error('Falta el formulario de propiedad multimedia.')
+    fireEvent.click(within(form).getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(updateWidgetProperty).toHaveBeenCalledWith(STARTER_SELECTED_NODE_ID, 'src', mediaAssetUrl(assetId)))
   })
 })

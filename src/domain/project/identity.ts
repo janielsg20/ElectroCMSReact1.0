@@ -23,6 +23,9 @@ export const BackendScreenIdSchema = z.uuid().brand<'BackendScreenId'>()
 export const ProjectSnapshotIdSchema = z.uuid().brand<'ProjectSnapshotId'>()
 export const ProjectJournalEntryIdSchema = z.uuid().brand<'ProjectJournalEntryId'>()
 export const AuditLogEntryIdSchema = z.uuid().brand<'AuditLogEntryId'>()
+export const MediaAssetIdSchema = z.uuid().brand<'MediaAssetId'>()
+export const MediaFolderIdSchema = z.uuid().brand<'MediaFolderId'>()
+export const MediaTagIdSchema = z.uuid().brand<'MediaTagId'>()
 
 export const TimestampSchema = z.iso
   .datetime({ offset: false, precision: 3 })
@@ -51,6 +54,9 @@ export type BackendScreenId = z.infer<typeof BackendScreenIdSchema>
 export type ProjectSnapshotId = z.infer<typeof ProjectSnapshotIdSchema>
 export type ProjectJournalEntryId = z.infer<typeof ProjectJournalEntryIdSchema>
 export type AuditLogEntryId = z.infer<typeof AuditLogEntryIdSchema>
+export type MediaAssetId = z.infer<typeof MediaAssetIdSchema>
+export type MediaFolderId = z.infer<typeof MediaFolderIdSchema>
+export type MediaTagId = z.infer<typeof MediaTagIdSchema>
 export type Timestamp = z.infer<typeof TimestampSchema>
 
 export function parseProjectId(value: unknown): ProjectId { return ProjectIdSchema.parse(value) }
@@ -76,4 +82,7 @@ export function parseBackendScreenId(value: unknown): BackendScreenId { return B
 export function parseProjectSnapshotId(value: unknown): ProjectSnapshotId { return ProjectSnapshotIdSchema.parse(value) }
 export function parseProjectJournalEntryId(value: unknown): ProjectJournalEntryId { return ProjectJournalEntryIdSchema.parse(value) }
 export function parseAuditLogEntryId(value: unknown): AuditLogEntryId { return AuditLogEntryIdSchema.parse(value) }
+export function parseMediaAssetId(value: unknown): MediaAssetId { return MediaAssetIdSchema.parse(value) }
+export function parseMediaFolderId(value: unknown): MediaFolderId { return MediaFolderIdSchema.parse(value) }
+export function parseMediaTagId(value: unknown): MediaTagId { return MediaTagIdSchema.parse(value) }
 export function parseTimestamp(value: unknown): Timestamp { return TimestampSchema.parse(value) }

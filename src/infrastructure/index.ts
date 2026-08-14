@@ -29,6 +29,10 @@ export {
   createAuditLogRepository,
   AUDIT_LOG_NAMESPACE,
 } from './indexed-db/audit-log-repository'
+export {
+  createMediaBlobRepository,
+  MEDIA_BLOBS_NAMESPACE,
+} from './indexed-db/media-blob-repository'
 export { WebPlatformAdapter } from './platform/web-platform-adapter'
 export {
   registerElectroCmsServiceWorker,

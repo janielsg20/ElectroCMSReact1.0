@@ -1,5 +1,64 @@
 # Changelog
 
+## 2026-08-14 — Inicio M13.4: tienda demo compartida
+
+- Añadido `demoStore` al modelo canónico para identidad, colores, producto destacado y preferencias visibles del dashboard; una actualización se registra como una sola acción reversible.
+- Añadido `Contenido → Tienda`, una edición accesible de la tienda demo que no crea una copia por workspace.
+- Verificación inicial: TypeScript, ESLint y dos pruebas de dominio verdes.
+
+## 2026-08-14 — M13.3: motor canónico de modelos de proyecto
+
+- Un modelo aplica, en una sola mutación reversible del Command Bus, páginas, plantillas Single/Archive, tipo de contenido, campo, clasificación, relación, contenido de ejemplo, consulta, formulario, rol, menú y pantalla administrativa.
+- La aplicación preserva los datos existentes: detecta conflictos de tipo y ruta antes de escribir y no sobrescribe recursos.
+- Añadida cobertura de creación completa y de rechazo al aplicar el mismo modelo dos veces; TypeScript, lint, build y pruebas focalizadas pasan.
+- Añadido el selector visual lazy en Contenido → Modelos, con 20 opciones, ayuda contextual, estados de aplicación y mensajes de conflicto sin exponer identificadores ni contratos internos.
+- Añadida prueba de interfaz que cubre selección, aplicación y conflicto; las tarjetas del selector ahora anuncian correctamente su nombre a tecnologías de asistencia.
+- La suite completa confirma el alcance: 121 archivos y 476 pruebas aprobadas; TypeScript, ESLint, build y comprobación de espacios también están en verde. La auditoría Chromium queda pendiente de un runner que incluya navegador.
+
+## 2026-08-13 — M13.3: contrato de blueprints de proyecto
+
+- Añadido el catálogo canónico y versionado de los 20 tipos de proyecto requeridos, cada uno con contenido principal y cobertura que deberá materializarse al aplicarlo.
+- El catálogo no se presenta como una demo creada: la siguiente entrega lo aplicará al proyecto mediante mutaciones canónicas.
+
+## 2026-08-13 — M13.2: seguridad y rendimiento de multimedia
+
+- La importación valida el encabezado real antes de persistir y admite PNG/JPEG/GIF/WebP/AVIF, SVG, PDF, fuentes, audio y vídeo; rechaza discrepancias MIME y binarios desconocidos.
+- Límites locales: 8 MB por archivo y 40 MB por biblioteca. Imágenes y galerías cargan de forma diferida; audio y vídeo precargan metadatos.
+- Las imágenes importadas crean una miniatura PNG local de hasta 240 px, separada del original y visible desde la biblioteca.
+
+## 2026-08-13 — M13.1: resolución local de recursos en el lienzo
+
+- El preview del editor detecta las referencias canónicas `asset://` de documentos y componentes y carga sólo sus binarios locales desde IndexedDB.
+- El renderer recibe un mapa temporal de fuentes ya resueltas y conserva la misma validación de esquemas seguros para imágenes, galerías, vídeo y audio.
+- Añadidas pruebas para la extracción de referencias y para la resolución segura dentro de los adapters React.
+
+## 2026-08-13 — M13.1: selector multimedia en el inspector
+
+- Los widgets de imagen, logo, vídeo, audio y galerías reutilizan la biblioteca desde el inspector mediante un selector visual de recursos compatibles.
+- El selector conserva una referencia canónica al recurso y puede mantener URL externas, pero muestra el nombre del archivo en vez de identificadores internos.
+- Añadida cobertura para elegir el recurso y guardarlo mediante la mutación canónica del editor. El selector memoiza la lista filtrada para no recalcularla en cada interacción.
+
+## 2026-08-13 — M13.1: organización y protección de recursos
+
+- El gestor permite crear carpetas y etiquetas, asignarlas mediante controles ElectroCMS al recurso seleccionado y verificar que las referencias existan antes de guardarlas.
+- Añadidos filtros por tipo y favorito, junto con eliminación en dos pasos; la eliminación sigue bloqueada si el recurso está en uso.
+- Corregida la detección de SVG para clasificarlos como iconos antes de la regla general de imágenes y el ciclo de vida asíncrono del formulario de organización.
+- Verificación: TypeScript, ESLint, build Vite, 18 pruebas focalizadas y suite completa secuencial de 116 archivos / 462 pruebas verdes.
+
+## 2026-08-13 — Inicio M13.1: biblioteca multimedia canónica
+
+- Añadido el modelo local de recursos multimedia: imágenes, SVG, vídeo, audio, documentos, fuentes e iconos con metadatos, alt, dimensiones, carpetas, etiquetas, favoritos y recientes.
+- La biblioteca evita duplicados mediante huella de contenido y bloquea eliminar un recurso todavía referenciado por un documento o componente.
+- Crear, editar y eliminar recursos pasa por el Command Bus, por lo que conserva persistencia local y deshacer/rehacer.
+- Validación inicial: TypeScript y 14 pruebas focalizadas verdes de dominio y sesión. La interfaz de biblioteca y la persistencia del binario continúan en M13.1.
+
+## 2026-08-13 — M13.1: importación local y gestor visual
+
+- La biblioteca multimedia aparece como herramienta lazy dentro de Contenido y permite importar varios archivos al almacenamiento local IndexedDB.
+- La importación obtiene huella SHA-256, tipo, tamaño y dimensiones de imagen; conserva el binario como Data URL local junto con metadatos canónicos del proyecto.
+- Añadidas búsqueda de recursos y edición accesible de texto alternativo, descripción y favorito.
+- Verificado con ESLint, TypeScript, build Vite y 16 pruebas focalizadas verdes.
+
 ## 2026-08-13 — M12.5: registro local de auditoría
 
 - Añadido un registro local de actividad para cada mutación, deshacer y rehacer que pasa por el Command Bus existente.

@@ -168,6 +168,9 @@ describe('M05.3 CanonicalLayerTree', () => {
     )
 
     expect(screen.getByRole('button', { name: 'Header, bloqueada' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Arrastrar Hero principal' })).toHaveAttribute('tabindex', '0')
+    const drag = screen.getByRole('button', { name: 'Arrastrar Hero principal' })
+    expect(drag).toHaveAttribute('tabindex', '0')
+    expect(drag).toHaveClass('layer-option__drag', 'size-11')
+    expect(screen.getByRole('button', { name: 'Mover Hero principal mediante menú' })).toHaveClass('layer-option__menu', 'size-11')
   })
 })
