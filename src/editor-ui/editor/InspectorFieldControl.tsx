@@ -1,9 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { JsonValueSchema, type JsonValue, type Node, type WidgetDefinition } from '../../domain'
-import { HelpTip } from '../primitives'
+import { Button, ControlInput, HelpTip, TextArea } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 import { getInspectorFieldHelp } from './feature-help'
 import { formatInspectorValue, type GeneratedInspectorField } from './inspector-schema-model'
+import { MediaAssetPicker } from './MediaAssetPicker'
 
 interface InspectorFieldControlProps {
   readonly definition: WidgetDefinition
@@ -194,6 +195,8 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
             </div>
           ) : <EmptyBinding id={inputId} message="Este contenido no tiene clasificaciones asociadas." />
         ) : <EmptyBinding id={inputId} message="Selecciona primero qué contenido utilizará este elemento." />
+      ) : field.control === 'asset' ? (
+        <MediaAssetPicker disabled={disabled} multiple={Array.isArray(field.value)} nodeWidgetType={node.kind === 'widget' ? node.widgetType : ''} onChange={setDraft} value={draft} />
       ) : field.control === 'select' && field.options ? (
         <div aria-label={field.label} className="mt-1 grid grid-cols-2 gap-1 rounded-md border border-border bg-muted/10 p-1" id={inputId} role="listbox">
           {field.options.map((option) => (
@@ -211,12 +214,13 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
           ))}
         </div>
       ) : isComplex || field.control === 'textarea' || field.control === 'spacing' ? (
-        <textarea className="mt-1 min-h-20 w-full resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs focus-visible:ring-2 focus-visible:ring-focus" disabled={disabled} id={inputId} onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft} />
+        <TextArea className="mt-1 min-h-20 font-mono" controlSize="compact" disabled={disabled} id={inputId} label={field.label} labelHidden onChange={(event) => setDraft(event.target.value)} required={field.required} value={draft} />
       ) : (
         <div className="relative mt-1">
           {field.control === 'color' ? <span aria-hidden="true" className="absolute left-2 top-1/2 size-4 -translate-y-1/2 rounded border border-border" style={{ backgroundColor: /^#[0-9a-f]{6}$/i.test(draft) ? draft : 'transparent' }} /> : null}
-          <input
-            className={`min-h-11 w-full rounded-md border border-border bg-surface px-2 text-xs focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${field.control === 'color' ? 'pl-8 font-mono' : ''}`}
+          <ControlInput
+            className={`w-full ${field.control === 'color' ? 'pl-8 font-mono' : ''}`}
+            controlSize="compact"
             disabled={disabled}
             id={inputId}
             inputMode={field.control === 'number' ? 'decimal' : 'text'}
@@ -233,8 +237,8 @@ export function InspectorFieldControl({ definition, field, node }: InspectorFiel
       {error ? <p className="mt-1 rounded bg-danger-soft px-1.5 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
       <p aria-live="polite" className="sr-only">{status}</p>
       <div className="mt-1.5 flex gap-1">
-        <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary hover:bg-primary-strong focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={disabled} type="submit">{pending ? 'Guardando…' : 'Guardar'}</button>
-        <button aria-label={`Restablecer ${field.label}`} className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold text-muted-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50 lg:min-h-9" disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} type="button">Restablecer</button>
+        <Button className="flex-1" disabled={node.locked} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">Guardar</Button>
+        <Button aria-label={`Restablecer ${field.label}`} disabled={field.source === 'default' || disabled} onClick={() => { void reset() }} size="small" variant="secondary">Restablecer</Button>
       </div>
       <output className="sr-only" aria-label={`${field.label}: ${formatInspectorValue(field.value)}`}>{formatInspectorValue(field.value)}</output>
       <span className="sr-only">Opciones de {definition.label}</span>

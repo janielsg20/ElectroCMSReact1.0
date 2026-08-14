@@ -24,9 +24,9 @@ function widgetNode(widgetType: string, properties: Readonly<Record<string, Json
   }
 }
 
-function props(widgetType: string, properties: Readonly<Record<string, JsonValue>> = {}): CanonicalWidgetViewProps {
+function props(widgetType: string, properties: Readonly<Record<string, JsonValue>> = {}, mediaSources?: CanonicalWidgetViewProps['mediaSources']): CanonicalWidgetViewProps {
   const responsive: ResolvedNodeResponsiveState = { hidden: false, properties, styles: {} }
-  return { node: widgetNode(widgetType, properties), responsive, slots: {} }
+  return { mediaSources, node: widgetNode(widgetType, properties), responsive, slots: {} }
 }
 
 function createRenderer(fallback: CanonicalWidgetRenderer = ({ node }) => createElement('div', { 'data-fallback': node.name })): CanonicalWidgetRenderer {
@@ -91,6 +91,29 @@ describe('M06.2 adapters React registrados', () => {
     const html = render(<>{renderer(props('embed.html', { html: '<img src=x onerror=alert(1)>' }))}</>)
     expect(html.container.querySelector('img')).not.toBeInTheDocument()
     expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument()
+  })
+
+  it('resuelve recursos locales preautorizados sin ampliar los esquemas de URL seguros', () => {
+    const renderer = createRenderer()
+    const localReference = 'asset://12121212-1212-4121-8121-121212121212'
+    const mediaSources = { [localReference]: 'data:image/png;base64,AA==' }
+
+    const image = render(<>{renderer(props('media.image', { alt: 'Marca local', src: localReference }, mediaSources))}</>)
+    expect(screen.getByRole('img', { name: 'Marca local' })).toHaveAttribute('src', mediaSources[localReference])
+    image.unmount()
+
+    render(<>{renderer(props('media.image', { alt: 'No segura', src: localReference }, { [localReference]: 'javascript:alert(1)' }))}</>)
+    expect(screen.getByRole('img', { name: 'No segura' })).toHaveTextContent('Sin imagen')
+  })
+
+  it('difiere la descarga de imágenes y limita multimedia a metadatos', () => {
+    const renderer = createRenderer()
+    const image = render(<>{renderer(props('media.image', { alt: 'Carga diferida', src: 'https://example.com/foto.jpg' }))}</>)
+    expect(screen.getByRole('img', { name: 'Carga diferida' })).toHaveAttribute('loading', 'lazy')
+    image.unmount()
+
+    render(<>{renderer(props('media.video', { caption: 'Vídeo local', src: 'https://example.com/video.mp4' }))}</>)
+    expect(screen.getByLabelText('Vídeo local')).toHaveAttribute('preload', 'metadata')
   })
 
   it('delega widgets de futuras microfases y rechaza adapters registrados ausentes', () => {

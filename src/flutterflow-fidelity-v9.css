@@ -387,24 +387,23 @@
 }
 
 /* La regla histórica del árbol daba 100 % de ancho a cada botón de una fila.
-   En el árbol actual hay tres controles: arrastrar, seleccionar y menú. */
+   Las clases semánticas evitan que el orden condicional de los hijos comprima
+   los activadores táctiles de arrastre o de menú. */
 #library-panel-layers [role="treeitem"] .layer-option > button {
   width: auto;
   margin-inline: 0;
 }
 
-#library-panel-layers [role="treeitem"] .layer-option > button:first-child,
-#library-panel-layers [role="treeitem"] .layer-option > button:last-child {
+#library-panel-layers [role="treeitem"] .layer-option > :is(.layer-option__disclosure, .layer-option__drag, .layer-option__menu, .layer-option__delete) {
   flex: 0 0 2.25rem;
 }
 
-#library-panel-layers [role="treeitem"] .layer-option > button:nth-child(2) {
+#library-panel-layers [role="treeitem"] .layer-option > .layer-option__select {
   flex: 1 1 auto;
 }
 
 @media (pointer: coarse) {
-  #library-panel-layers [role="treeitem"] .layer-option > button:first-child,
-  #library-panel-layers [role="treeitem"] .layer-option > button:last-child {
+  #library-panel-layers [role="treeitem"] .layer-option > :is(.layer-option__disclosure, .layer-option__drag, .layer-option__menu, .layer-option__delete) {
     min-width: 2.75rem;
     flex-basis: 2.75rem;
   }

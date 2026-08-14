@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { readCanonicalNodeSize, readCanonicalNodeSpacing, type BoxSpacing, type BreakpointId, type NodeId, type NodeSize, type NodeSpacing } from '../../domain'
-import { Icon } from '../primitives'
+import { Button, ControlInput, Icon } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 import type { MenuPosition } from './direct-manipulation-context'
 
@@ -27,19 +27,20 @@ const sides = [
 
 function SpacingFields({ label, onChange, value }: SpacingFieldsProps) {
   return (
-    <fieldset className="min-w-0 rounded-md border border-border p-1.5">
+    <fieldset className="min-w-0 rounded-md border border-border bg-muted/15 p-1.5">
       <legend className="px-1 text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground">{label}</legend>
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
         {sides.map(([side, sideLabel]) => (
           <label className="grid gap-0.5 text-[0.625rem] font-semibold text-muted-foreground" key={side}>
             {sideLabel}
-            <input
+            <ControlInput
               aria-label={`${label} ${sideLabel}`}
-              className="h-9 min-w-0 rounded border border-border bg-surface px-1.5 text-xs tabular-nums text-foreground focus-visible:ring-2 focus-visible:ring-focus"
-              max={1000}
+              className="w-full tabular-nums"
+              controlSize="compact"
+              inputMode="numeric"
+              onChange={(event) => onChange({ ...value, [side]: Math.max(0, Math.min(1000, Number(event.target.value) || 0)) })}
               min={0}
-              onChange={(event) => onChange({ ...value, [side]: Number(event.target.value) })}
-              step={1}
+              max={1000}
               type="number"
               value={value[side]}
             />
@@ -97,10 +98,16 @@ export function DirectManipulationMenu({ breakpointId, nodeId, onClose, onStatus
     onClose()
   }
 
+  function updateSize(key: keyof NodeSize, source: string): void {
+    const next = Math.max(24, Math.min(10_000, Number(source) || 24))
+    setSize((current) => ({ ...current, [key]: next }))
+  }
+
   return (
     <div
       aria-label={`Menú contextual de ${snapshot.node.name}`}
       className="fixed z-50 w-[min(21.5rem,calc(100vw-1rem))] rounded-lg border border-border bg-surface p-2 text-foreground shadow-xl"
+      data-electrocms-surface="direct-manipulation"
       data-testid="direct-manipulation-menu"
       onKeyDown={handleKeyDown}
       ref={panelRef}
@@ -110,19 +117,19 @@ export function DirectManipulationMenu({ breakpointId, nodeId, onClose, onStatus
       <div className="mb-1.5 flex min-h-9 items-center gap-1.5 border-b border-border pb-1.5">
         <span className="grid size-8 place-items-center rounded bg-primary-soft text-primary"><Icon name="resize" size={14} /></span>
         <div className="min-w-0 flex-1"><h2 className="truncate text-xs font-bold">{snapshot.node.name}</h2><p className="text-[0.625rem] text-muted-foreground">Geometría · retícula 8 px · {snapshot.node.locked ? 'bloqueado' : 'editable'}</p></div>
-        <button aria-label="Cerrar menú contextual" className="grid size-9 place-items-center rounded hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus" onClick={onClose} type="button"><Icon name="close" size={13} /></button>
+        <Button aria-label="Cerrar menú contextual" onClick={onClose} size="icon" variant="ghost"><Icon name="close" size={13} /></Button>
       </div>
 
       {snapshot.node.locked ? <p className="rounded border border-warning/40 bg-warning/10 p-2 text-xs" role="alert">Desbloquea esta capa para cambiar su geometría.</p> : (
-        <form className="grid gap-1.5" onSubmit={(event) => void applyLayout(event)}>
-          <fieldset className="min-w-0 rounded-md border border-border p-1.5">
+        <form className="grid gap-1.5" data-electrocms-surface="geometry-form" onSubmit={(event) => void applyLayout(event)}>
+          <fieldset className="min-w-0 rounded-md border border-border bg-muted/15 p-1.5">
             <legend className="px-1 text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground">Tamaño</legend>
             <div className="grid grid-cols-2 gap-1">
               <label className="grid gap-0.5 text-[0.625rem] font-semibold text-muted-foreground">Ancho
-                <input aria-label="Ancho del nodo" className="h-9 rounded border border-border bg-surface px-1.5 text-xs tabular-nums text-foreground focus-visible:ring-2 focus-visible:ring-focus" max={10000} min={24} onChange={(event) => setSize((current) => ({ ...current, width: Number(event.target.value) }))} step={8} type="number" value={size.width} />
+                <ControlInput aria-label="Ancho del nodo" className="w-full tabular-nums" controlSize="compact" inputMode="numeric" max={10_000} min={24} onChange={(event) => updateSize('width', event.target.value)} type="number" value={size.width} />
               </label>
               <label className="grid gap-0.5 text-[0.625rem] font-semibold text-muted-foreground">Alto
-                <input aria-label="Alto del nodo" className="h-9 rounded border border-border bg-surface px-1.5 text-xs tabular-nums text-foreground focus-visible:ring-2 focus-visible:ring-focus" max={10000} min={24} onChange={(event) => setSize((current) => ({ ...current, height: Number(event.target.value) }))} step={8} type="number" value={size.height} />
+                <ControlInput aria-label="Alto del nodo" className="w-full tabular-nums" controlSize="compact" inputMode="numeric" max={10_000} min={24} onChange={(event) => updateSize('height', event.target.value)} type="number" value={size.height} />
               </label>
             </div>
           </fieldset>
@@ -131,8 +138,8 @@ export function DirectManipulationMenu({ breakpointId, nodeId, onClose, onStatus
           <div className="flex items-center justify-between gap-1 pt-0.5">
             <span className="text-[0.625rem] text-muted-foreground">Undo/redo conserva cada cambio</span>
             <div className="flex gap-1">
-              <button className="h-9 rounded px-2 text-xs font-semibold hover:bg-muted focus-visible:ring-2 focus-visible:ring-focus" onClick={onClose} type="button">Cancelar</button>
-              <button className="h-9 rounded bg-primary px-2 text-xs font-bold text-on-primary focus-visible:ring-2 focus-visible:ring-focus" type="submit">Aplicar</button>
+              <Button onClick={onClose} size="small" variant="ghost">Cancelar</Button>
+              <Button size="small" type="submit">Aplicar</Button>
             </div>
           </div>
         </form>

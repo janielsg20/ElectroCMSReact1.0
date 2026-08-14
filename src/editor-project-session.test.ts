@@ -1,10 +1,38 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { createBrowserEditorProjectSession } from './editor-project-session'
-import { DEFAULT_BREAKPOINTS, parseDocumentId, parseRoleId, parseUserId, type Document } from './domain'
+import { DEFAULT_BREAKPOINTS, parseDocumentId, parseMediaAssetId, parseRoleId, parseUserId, type Document } from './domain'
 import { STARTER_SELECTED_NODE_ID } from './editor-ui/editor/starter-project-structure'
 
 describe('M06.5 sesión canónica de inserción', () => {
+  it('persiste recursos multimedia y los revierte mediante el Command Bus', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-media-test-${crypto.randomUUID()}`)
+    const assetId = parseMediaAssetId('b2000000-0000-4000-8000-000000000001')
+    const created = await session.createMediaAsset?.({ altText: '', byteSize: 1200, contentHash: 'b'.repeat(64), description: '', fileName: 'foto.jpg', folderId: null, height: 400, id: assetId, kind: 'image', mimeType: 'image/jpeg', name: 'Foto', starred: false, tagIds: [], width: 600 })
+    expect(created?.ok).toBe(true)
+    expect(session.store.structure.media?.assets[assetId]?.name).toBe('Foto')
+    expect((await session.undo()).ok).toBe(true)
+    expect(session.store.structure.media?.assets[assetId]).toBeUndefined()
+  })
+
+  it('guarda y recupera el binario multimedia localmente', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-media-blob-test-${crypto.randomUUID()}`)
+    const assetId = parseMediaAssetId('b3000000-0000-4000-8000-000000000001')
+    const imported = await session.importMediaAsset?.({ altText: '', byteSize: 12, contentHash: 'd'.repeat(64), description: '', fileName: 'archivo.txt', folderId: null, height: null, id: assetId, kind: 'document', mimeType: 'text/plain', name: 'Archivo', starred: false, tagIds: [], width: null }, 'data:text/plain;base64,SG9sYQ==')
+    expect(imported?.ok).toBe(true)
+    const data = await session.readMediaAssetData?.(assetId)
+    expect(data).toEqual({ ok: true, value: 'data:text/plain;base64,SG9sYQ==' })
+  })
+
+  it('mantiene una miniatura local separada del binario original', async () => {
+    const session = createBrowserEditorProjectSession(`electrocms-media-thumbnail-test-${crypto.randomUUID()}`)
+    const assetId = parseMediaAssetId('b3000000-0000-4000-8000-000000000002')
+    const imported = await session.importMediaAsset?.({ altText: '', byteSize: 12, contentHash: 'f'.repeat(64), description: '', fileName: 'foto.png', folderId: null, height: 80, id: assetId, kind: 'image', mimeType: 'image/png', name: 'Foto', starred: false, tagIds: [], variants: { thumbnail: { byteSize: 4, height: 40, mimeType: 'image/png', width: 40 } }, width: 80 }, 'data:image/png;base64,T1JJR0lOQUw=', { thumbnail: 'data:image/png;base64,VEhVTUI=' })
+    expect(imported?.ok).toBe(true)
+    expect(await session.readMediaAssetData?.(assetId)).toEqual({ ok: true, value: 'data:image/png;base64,T1JJR0lOQUw=' })
+    expect(await session.readMediaAssetData?.(assetId, 'thumbnail')).toEqual({ ok: true, value: 'data:image/png;base64,VEhVTUI=' })
+  })
+
   it('registra actor, acción y rutas de cambio para exportar la auditoría', async () => {
     const session = createBrowserEditorProjectSession(`electrocms-audit-test-${crypto.randomUUID()}`)
     session.setAuditActor?.({ kind: 'person', label: 'Ana', userId: parseUserId('a4000000-0000-4000-8000-000000000001') })

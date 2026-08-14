@@ -64,7 +64,7 @@ describe('M06.4 adapters de comercio, formularios y filtros', () => {
     expect(mounted.container.querySelector('form')).toHaveAttribute('data-action', 'https://example.com')
   })
 
-  it('conserva controles nativos locales y estados accesibles', () => {
+  it('mantiene semántica accesible con presentación ElectroCMS', () => {
     const renderWidget = renderer(() => null)
     render(<>{renderWidget(props('form.email', { label: 'Correo', name: 'email', required: true, value: 'a@example.com' }))}</>)
     expect(screen.getByRole('textbox', { name: 'Correo' })).toBeRequired()
@@ -76,6 +76,25 @@ describe('M06.4 adapters de comercio, formularios y filtros', () => {
 
     render(<>{renderWidget(props('form.status-message', { message: 'No se pudo enviar', state: 'error' }))}</>)
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudo enviar')
+  })
+
+  it('no reintroduce select, radio ni checkbox visuales nativos en el canvas', () => {
+    const renderWidget = renderer(() => null)
+    const select = render(<>{renderWidget(props('form.select', { label: 'País', name: 'country', options: ['Cuba', 'Estados Unidos'], value: 'Cuba' }))}</>)
+    expect(screen.getByRole('combobox', { name: 'País' })).toBeInTheDocument()
+    expect(select.container.querySelector('[data-electrocms-widget-control="select"]')).not.toBeNull()
+    expect(select.container.querySelector('select')).toBeNull()
+    cleanup()
+
+    const radio = render(<>{renderWidget(props('form.radio', { label: 'Plan', name: 'plan', options: ['Básico', 'Pro'], value: 'Básico' }))}</>)
+    expect(screen.getByRole('radio', { name: 'Básico' })).toBeInTheDocument()
+    expect(radio.container.querySelector('input[type="radio"]')).toBeNull()
+    cleanup()
+
+    const checkbox = render(<>{renderWidget(props('form.checkbox', { label: 'Acepto', name: 'terms', value: true }))}</>)
+    expect(screen.getByRole('checkbox', { name: 'Acepto' })).toBeInTheDocument()
+    expect(checkbox.container.querySelector('[data-electrocms-widget-control="checkbox"]')).not.toBeNull()
+    expect(checkbox.container.querySelector('input[type="checkbox"]')).toBeNull()
   })
 
   it('conserva fallback únicamente para familias posteriores', () => {

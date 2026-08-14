@@ -32,6 +32,7 @@ import { SmartFilterRuntimeProvider } from './SmartFilterRuntimeProvider'
 export interface CanonicalProjectRendererProps {
   readonly breakpointId: BreakpointId
   readonly documentId: DocumentId
+  readonly mediaSources?: Readonly<Record<string, string>>
   readonly renderWidget?: CanonicalWidgetRenderer
   readonly NodeFrame?: ComponentType<CanonicalNodeFrameProps>
   readonly store: ProjectStructureRenderStore
@@ -49,6 +50,7 @@ export interface CanonicalNodeFrameProps {
 
 interface NodeRendererProps {
   readonly breakpointId: BreakpointId
+  readonly mediaSources?: Readonly<Record<string, string>>
   readonly nodeId: NodeId
   readonly renderWidget: CanonicalWidgetRenderer
   readonly NodeFrame: ComponentType<CanonicalNodeFrameProps>
@@ -70,6 +72,7 @@ interface NodeErrorBoundaryState {
 
 interface CanonicalNodeViewProps {
   readonly NodeFrame: ComponentType<CanonicalNodeFrameProps>
+  readonly mediaSources?: Readonly<Record<string, string>>
   readonly renderWidget: CanonicalWidgetRenderer
   readonly runtimeListings: boolean
   readonly snapshot: NodeRenderSnapshot
@@ -154,7 +157,7 @@ function NodeDataStateView({ snapshot }: { readonly snapshot: NodeRenderSnapshot
   return null
 }
 
-function CanonicalNodeView({ NodeFrame, renderWidget, runtimeListings, slots, snapshot, store, themeTokens }: CanonicalNodeViewProps) {
+function CanonicalNodeView({ NodeFrame, mediaSources, renderWidget, runtimeListings, slots, snapshot, store, themeTokens }: CanonicalNodeViewProps) {
   const compiled = compileCanonicalStyles(snapshot.responsive.styles, { scopeId: snapshot.node.id, tokens: themeTokens })
   const dataStateView = snapshot.dataState === 'ready' ? null : <NodeDataStateView snapshot={snapshot} />
   const isWidget = snapshot.node.kind === 'widget'
@@ -166,7 +169,7 @@ function CanonicalNodeView({ NodeFrame, renderWidget, runtimeListings, slots, sn
     ? <ListingGridRuntime key={listingKey} nodeId={snapshot.node.id} properties={snapshot.responsive.properties} slots={slots} store={store} />
     : isSmartFilter
       ? <SmartFilterRuntime nodeId={snapshot.node.id} projectStore={store} properties={snapshot.responsive.properties} widgetType={snapshot.node.widgetType} />
-      : renderWidget({ node: snapshot.node, responsive: snapshot.responsive, slots })
+      : renderWidget({ mediaSources, node: snapshot.node, responsive: snapshot.responsive, slots })
 
   return (
     <NodeFrame
@@ -184,6 +187,7 @@ function CanonicalNodeView({ NodeFrame, renderWidget, runtimeListings, slots, sn
 
 function SubscribedNodeRenderer({
   breakpointId,
+  mediaSources,
   NodeFrame,
   nodeId,
   renderWidget,
@@ -218,6 +222,7 @@ function SubscribedNodeRenderer({
         <SubscribedNodeRenderer
           breakpointId={breakpointId}
           key={childId}
+          mediaSources={mediaSources}
           nodeId={childId}
           NodeFrame={NodeFrame}
           renderWidget={renderWidget}
@@ -233,6 +238,7 @@ function SubscribedNodeRenderer({
     <NodeErrorBoundary nodeId={nodeId} nodeName={snapshot.node.name} resetKey={snapshot}>
       <CanonicalNodeView
         NodeFrame={NodeFrame}
+        mediaSources={mediaSources}
         renderWidget={renderWidget}
         runtimeListings={runtimeListings}
         slots={slots}
@@ -247,6 +253,7 @@ function SubscribedNodeRenderer({
 export function CanonicalProjectRenderer({
   breakpointId,
   documentId,
+  mediaSources,
   NodeFrame = DefaultNodeFrame,
   renderWidget = renderCanonicalWidget,
   store,
@@ -285,6 +292,7 @@ export function CanonicalProjectRenderer({
           <SubscribedNodeRenderer
             breakpointId={breakpointId}
             key={nodeId}
+            mediaSources={mediaSources}
             nodeId={nodeId}
             NodeFrame={NodeFrame}
             renderWidget={renderWidget}

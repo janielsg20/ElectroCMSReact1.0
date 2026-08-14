@@ -1,21 +1,34 @@
 # TRACKING — ElectroCMS
 
-Actualizado: 2026-08-13.
+Actualizado: 2026-08-14.
 
 > Estado operativo actual. El historial detallado permanece en `CHANGELOG.md` y en los documentos de sistema de cada fase.
 
 ## Estado global
 
-- Fase actual: `F12 — Backend visual, usuarios y permisos`.
-- Microfase actual: `M12.5 — Auditoría`.
-- Estado: `EN_REVISION — registro de auditoría implementado; pendiente puerta final y auditoría visual Chromium`.
+- Fase actual: `F13 — Media y proyectos predeterminados`.
+- Microfase actual: `M13.4 — Tienda demo única y editable`.
+- Estado: `EN_CURSO — M13.4 incorpora el estado canónico compartido; M13.1–M13.3 esperan solo Chromium en un runner compatible`.
 - F00–F11: `COMPLETADA`.
-- F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `EN_CURSO`.
+- F12: M12.1–M12.4 `COMPLETADAS`; M12.5 `EN_REVISION` (solo falta auditoría Chromium).
+- F13: M13.1–M13.3 `EN_REVISION`; M13.4 `EN_CURSO`; M13.5 `NO_INICIADA`.
 - F13–F18: `NO_INICIADA` salvo contratos anticipados que no cuentan como implementación formal.
 - F19–F31: `NO_INICIADA`; ampliación documental de paridad funcional.
 - Producción permanece omitida desde el PR draft #24; solo se permite preview hasta gate final y revisión.
 
 ## Auditoría correctiva transversal en curso
+
+- F13/M13.1: biblioteca multimedia canónica en `ProjectStructure`: metadatos de recursos, carpetas/etiquetas, favoritos, recientes, dimensiones, texto alternativo, deduplicación por huella y bloqueo de eliminación si el recurso sigue referenciado. Todas las mutaciones usan el Command Bus y soportan undo/redo.
+- F13/M13.1: añadido gestor visual lazy dentro de Contenido. Importa binarios a IndexedDB local, busca y filtra por tipo/favoritos, edita texto alternativo, descripción y favorito; crea carpetas/etiquetas y las asigna al recurso seleccionado. La eliminación exige confirmación y respeta referencias activas.
+- F13/M13.1: el inspector reutiliza la biblioteca para imágenes, iconos, vídeo y audio. Guarda una referencia canónica al recurso, permite conservar URL externa y nunca presenta IDs internos a quien edita.
+- F13/M13.1: el lienzo resuelve las referencias `asset://` usadas por documentos y componentes desde IndexedDB local; el renderer recibe sólo fuentes ya autorizadas y mantiene su validación de URL antes de mostrarlas.
+- F13/M13.1: imágenes locales generan una miniatura PNG separada, limitada a 240 px, persistida junto al binario sin cambiar la referencia original. La biblioteca la muestra bajo demanda y el favorito usa el control visual del sistema en vez de un checkbox nativo.
+- F13/M13.2: se detecta el MIME real antes de guardar, con soporte seguro para PNG/JPEG/GIF/WebP/AVIF, SVG, PDF, fuentes, audio y vídeo. Se bloquean discrepancias MIME, binarios desconocidos, archivos mayores de 8 MB y una biblioteca local de más de 40 MB; imágenes y galerías usan lazy load y audio/vídeo precargan únicamente metadatos.
+- F13/M13.3: catálogo canónico y versionado de los 20 blueprints requeridos. Es un contrato de aplicación pendiente, no se presenta aún como una demo generada.
+- F13/M13.3: aplicado el motor canónico inicial: crea de forma atómica páginas, plantillas Single/Archive, tipo de contenido, campo, clasificación, relación, contenido de ejemplo, consulta, formulario, rol, menú y pantalla administrativa. Rechaza conflictos sin sobrescribir el proyecto y usa el Command Bus desde la sesión. Falta el selector visual guiado para que la persona elija y aplique el modelo desde la interfaz.
+- F13/M13.3: añadido el selector visual lazy en `Contenido → Modelos`. Usa lenguaje orientado a la tarea, ayuda contextual y selección explícita; la aplicación sigue siendo reversible por historial y comunica los conflictos de forma accionable. La prueba de interfaz cubre selección, aplicación y conflicto, además de etiquetas accesibles de las tarjetas.
+- F13/M13.4: creada la fuente canónica `demoStore` para identidad, colores, producto destacado y preferencias visibles del dashboard. La mutación usa el Command Bus, por lo que comparte un único historial y no se reinicia al cambiar de workspace. `Contenido → Tienda` ofrece la edición inicial con controles accesibles; faltan las superficies conectadas de preview/backend y su prueba end-to-end.
+- Validación actual F13: TypeScript, ESLint, build Vite, `git diff --check`, pruebas focalizadas y suite completa verdes (`121` archivos / `476` pruebas). Chromium sigue bloqueado porque este runner no tiene Chrome, Edge ni Chromium; M13.1–M13.3 permanecen `EN_REVISION` hasta esa auditoría.
 
 - F12/M12.5: corregidos bloqueos de lint y compilación tras integrar la última versión: tipo público `UserStatus`, contexto activo seguro sin CMS inicial, separación del provider para Fast Refresh y renombrado de capas sin actualización de estado dentro de un efecto.
 - F12/M12.5: corregido un fallo de autorización en las vistas administrativas. El modo de configuración vuelve a listar los paneles sin una persona activa; al probar una persona, la vista deniega por defecto lectura, creación, edición, eliminación, acciones masivas y campos sin permiso explícito. También se añadió una salida clara del modo de comprobación de permisos.

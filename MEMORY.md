@@ -1,6 +1,6 @@
 # MEMORY — contexto corto de ElectroCMS
 
-Actualizado: 2026-08-13.
+Actualizado: 2026-08-14.
 
 ## Objetivo
 
@@ -19,9 +19,9 @@ Construir ElectroCMS como CMS/visual app builder local-first en React + TypeScri
 
 - React 19, TypeScript estricto, Tailwind 4, Vite y PWA local-first.
 - F00–F11 completadas.
-- Fase activa: `F12 — Backend visual, usuarios y permisos`.
-- Microfase completada: `M12.4 — Contexto de usuario`; siguiente: `M12.5 — Auditoría`.
-- M12.5 y F13–F31 permanecen pendientes salvo contratos anticipados que no cuentan como implementación formal.
+- Fase activa: `F13 — Media y proyectos predeterminados`.
+- Microfase activa: `M13.4 — Tienda demo única y editable`.
+- M12.5 permanece `EN_REVISION` exclusivamente por la auditoría Chromium no disponible en este runner; F13 se desarrolla por instrucción explícita del usuario.
 - Producción no se despliega desde el PR draft #23.
 
 - M12.3 cerrada: RBAC con denegación por defecto, CRUD de roles por Command Bus y gestor visual de Roles y permisos. La puerta local pasó con 110 archivos / 438 pruebas, lint, TypeScript y build; se corrigió el orden asíncrono de acciones de formularios.
@@ -123,4 +123,4 @@ Objetivo inmediato:
 
 ## Próximo paso exacto
 
-Completar la auditoría Chromium de M12.5 en un runner con navegador compatible; el resto de la puerta ya está verde: ESLint, TypeScript, build Vite y suite completa de 114 archivos / 455 pruebas. El registro local cubre ejecutar/deshacer/rehacer por Command Bus, actor y rutas de cambio, con exportación JSON sin valores.
+M13.4 inició con `demoStore`, una fuente canónica para identidad, colores, producto destacado y preferencias del dashboard. Su editor está en `Contenido → Tienda` y guarda mediante Command Bus; falta conectar preview y backend a este estado y cubrir el flujo completo. M13.3 ya superó la suite completa (`121` archivos / `476` pruebas), además de TypeScript, ESLint, build y pruebas focalizadas. `ProjectBlueprintManager` tiene prueba de interfaz para selección, aplicación y conflicto, y cada tarjeta expone su nombre al lector de pantalla. M13.1/M13.2 también han superado la suite global; M13.1–M13.3 permanecen en revisión únicamente por Chromium, porque el runner no tiene un navegador compatible. Repetir Chromium para cerrar M12.5 y F13 cuando exista un runner compatible.

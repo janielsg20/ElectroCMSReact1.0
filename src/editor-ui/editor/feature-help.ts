@@ -40,7 +40,7 @@ export const SECTION_HELP: Readonly<Record<AppSection, FeatureHelp>> = {
   },
 }
 
-export type DataHelpId = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries' | 'forms'
+export type DataHelpId = 'content-types' | 'taxonomies' | 'fields' | 'records' | 'queries' | 'forms' | 'media' | 'blueprints' | 'demo-store'
 
 export const DATA_HELP: Readonly<Record<DataHelpId, FeatureHelp>> = {
   'content-types': {
@@ -78,6 +78,24 @@ export const DATA_HELP: Readonly<Record<DataHelpId, FeatureHelp>> = {
     description: 'Crea formularios visualmente, decide qué campos pedir y conecta las respuestas con campos de tu contenido cuando quieras guardar datos.',
     reference: 'JetFormBuilder · Elementor Forms',
     example: 'Crea un formulario “Solicitar información” con Nombre, Email y Teléfono.',
+  },
+  media: {
+    label: 'Biblioteca multimedia',
+    description: 'Importa y reutiliza imágenes, vídeo, audio, documentos, iconos y fuentes dentro del proyecto.',
+    reference: 'WordPress Media Library · Elementor Media Manager',
+    example: 'Importa un logotipo una vez y úsalo en todas las páginas.',
+  },
+  blueprints: {
+    label: 'Modelos de proyecto',
+    description: 'Empieza con una base adaptable para tu tipo de proyecto y edita después sus páginas, contenido y administración.',
+    reference: 'WordPress starter site · Elementor Kit · JetEngine',
+    example: 'Elige Estudio de tatuajes para preparar reservas y un panel para gestionarlas.',
+  },
+  'demo-store': {
+    label: 'Tienda demo',
+    description: 'Edita el ejemplo compartido de tienda sin crear copias distintas para el editor, la vista pública o la administración.',
+    reference: 'ElectroCMS — proyecto demo editable',
+    example: 'Cambia el producto destacado y comprueba el mismo dato en los espacios de trabajo.',
   },
 }
 

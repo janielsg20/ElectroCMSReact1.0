@@ -9,9 +9,14 @@ import type {
   ContentRecordId,
   ContentRecordRevisionId,
   ContentType,
+  MediaAssetId,
+  MediaAssetInput,
+  MediaAssetVariantName,
+  MediaFolder,
   ContentTypeId,
   Document,
   DocumentId,
+  EditableDemoStorePatch,
   FieldDefinition,
   FieldDefinitionId,
   JsonValue,
@@ -24,6 +29,8 @@ import type {
   ProjectStructure,
   ProjectTheme,
   ProjectThemeScope,
+  ProjectBlueprint,
+  ProjectBlueprintApplyReport,
   Relation,
   RelationEntry,
   RelationEntryId,
@@ -82,6 +89,15 @@ export interface EditorProjectSession {
   subscribeDocumentSelection?(listener: () => void): () => void
   readonly initialSelectedNodeId?: NodeId
   readonly store: ProjectStructureRenderStore
+  applyProjectBlueprint?(blueprint: ProjectBlueprint): Promise<Result<ProjectBlueprintApplyReport, string>>
+  updateEditableDemoStore?(patch: EditableDemoStorePatch): Promise<Result<ProjectStructure, string>>
+  createMediaAsset?(asset: MediaAssetInput): Promise<Result<ProjectStructure, string>>
+  createMediaFolder?(name: string, parentId?: MediaFolder['parentId']): Promise<Result<ProjectStructure, string>>
+  createMediaTag?(name: string): Promise<Result<ProjectStructure, string>>
+  importMediaAsset?(asset: MediaAssetInput, dataUrl: string, variantData?: Readonly<Partial<Record<MediaAssetVariantName, string>>>): Promise<Result<ProjectStructure, string>>
+  readMediaAssetData?(assetId: MediaAssetId, variant?: MediaAssetVariantName): Promise<Result<string | null, string>>
+  updateMediaAsset?(assetId: MediaAssetId, patch: Partial<Pick<MediaAssetInput, 'altText' | 'description' | 'folderId' | 'name' | 'starred' | 'tagIds'>>): Promise<Result<ProjectStructure, string>>
+  deleteMediaAsset?(assetId: MediaAssetId): Promise<Result<ProjectStructure, string>>
   setAuditActor?(actor: AuditActor): void
   listAuditEntries?(): Promise<Result<readonly AuditLogEntry[], string>>
   exportAuditEntries?(): Promise<Result<string, string>>

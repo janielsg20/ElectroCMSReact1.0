@@ -11,7 +11,7 @@ import {
   type WidgetDefinition,
 } from '../../domain'
 import { listCustomFields } from '../../domain/project/custom-field-engine'
-import { ChoiceField, HelpTip } from '../primitives'
+import { Button, ChoiceField, HelpTip, TextArea } from '../primitives'
 import { useEditorProject } from './editor-project-context'
 
 interface DataConditionAccessibilityControlProps {
@@ -264,15 +264,9 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
           <summary className="min-h-9 cursor-pointer py-2 text-xs font-bold">Opciones avanzadas (JSON)</summary>
           <p className="pb-1 text-[0.625rem] leading-4 text-muted-foreground">Para usuarios avanzados: edita directamente conexiones, condiciones y atributos de accesibilidad.</p>
           <div className="grid gap-1.5 pt-1">
-            <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`bindings-${node.id}`}>Conexiones
-              <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`bindings-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, bindings: event.target.value }))} value={draft.bindings} />
-            </label>
-            <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`conditions-${node.id}`}>Condiciones de visibilidad
-              <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`conditions-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, conditions: event.target.value }))} value={draft.conditions} />
-            </label>
-            <label className="grid gap-1 text-[0.625rem] font-semibold" htmlFor={`accessibility-${node.id}`}>Accesibilidad ARIA
-              <textarea className="min-h-20 resize-y rounded-md border border-border bg-surface p-2 font-mono text-xs" disabled={node.locked || pending} id={`accessibility-${node.id}`} onChange={(event) => setDraft((current) => ({ ...current, accessibility: event.target.value }))} value={draft.accessibility} />
-            </label>
+            <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`bindings-${node.id}`} label="Conexiones" onChange={(event) => setDraft((current) => ({ ...current, bindings: event.target.value }))} value={draft.bindings} />
+            <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`conditions-${node.id}`} label="Condiciones de visibilidad" onChange={(event) => setDraft((current) => ({ ...current, conditions: event.target.value }))} value={draft.conditions} />
+            <TextArea className="min-h-20 font-mono" controlSize="compact" disabled={node.locked || pending} id={`accessibility-${node.id}`} label="Accesibilidad ARIA" onChange={(event) => setDraft((current) => ({ ...current, accessibility: event.target.value }))} value={draft.accessibility} />
           </div>
         </details>
 
@@ -280,8 +274,8 @@ export function DataConditionAccessibilityControl({ definition, node, structure 
         {error ? <p className="rounded bg-danger-soft px-2 py-1 text-[0.625rem] text-danger" role="alert">{error}</p> : null}
         <p aria-live="polite" className="sr-only">{status}</p>
         <div className="flex gap-1">
-          <button className="min-h-11 flex-1 rounded-md bg-primary px-2 text-[0.625rem] font-bold text-on-primary disabled:opacity-50 lg:min-h-9" disabled={node.locked || pending} type="submit">{pending ? 'Guardando…' : 'Aplicar cambios'}</button>
-          <button className="min-h-11 rounded-md border border-border px-2 text-[0.625rem] font-bold disabled:opacity-50 lg:min-h-9" disabled={!hasSettings || node.locked || pending} onClick={() => { void reset() }} type="button">Restablecer</button>
+          <Button className="flex-1" disabled={node.locked} isLoading={pending} loadingLabel="Guardando…" size="small" type="submit">Aplicar cambios</Button>
+          <Button disabled={!hasSettings || node.locked || pending} onClick={() => { void reset() }} size="small" type="button" variant="secondary">Restablecer</Button>
         </div>
       </form>
     </details>
